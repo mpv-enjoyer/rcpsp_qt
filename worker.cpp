@@ -19,6 +19,17 @@ void Worker::assign(Job *job)
     current_job = {*clock, job};
 }
 
+void Worker::update()
+{
+    if (current_job.job == nullptr) return;
+    if (current_time >= current_job.time_start + current_job.job->get_time_to_spend())
+    {
+        current_job.job->done();
+        current_job.job = nullptr;
+        current_job.time_start = -1;
+    }
+}
+
 bool Worker::is_free()
 {
     return current_job.job == nullptr && plan.is_ready(current_time);
@@ -32,8 +43,8 @@ const Job* Worker::get_job()
 int Worker::left_before_free()
 {
     int current_time = *clock;
-    bool current_status = plan.is_ready(current_time);
-    if (current_status == false)
+    bool ready = plan.is_ready(current_time);
+    if (!ready)
     {
         return plan.get_time_until_ready(current_time);
     }

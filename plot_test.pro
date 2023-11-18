@@ -9,8 +9,10 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    algorithm.cpp \
     colorlabel.cpp \
     job.cpp \
+    jobgroup.cpp \
     main.cpp \
     mainwindow.cpp \
     plan.cpp \
@@ -19,8 +21,10 @@ SOURCES += \
     workergroup.cpp
 
 HEADERS += \
+    algorithm.h \
     colorlabel.h \
     job.h \
+    jobgroup.h \
     mainwindow.h \
     plan.h \
     qcustomplot.h \
