@@ -16,11 +16,23 @@ void Algorithm::add_job_group(JobGroup* jobs, WorkerGroup* workers)
     }
 }
 
+void Algorithm::set_preference(Preference new_preference)
+{
+    preference = new_preference;
+}
+
 bool Algorithm::check_nearest_front()
 {
     bool result = false;
     current_time = pending_fronts[0];
     pending_fronts.erase(pending_fronts.begin());
+
+    //Workaround: in some cases completed_jobs can't properly update
+    for (int i = 0; i < completed_jobs.size(); i++)
+    {
+        completed_jobs[i].worker->update();
+    }
+
     for (int i = 0; i < pending_jobs.size(); i++)
     {
         JobPair current_pending = pending_jobs[i];
@@ -76,6 +88,16 @@ bool Algorithm::check_nearest_front()
     return result;
 }
 
+bool compare_SPT(JobPair lhs, JobPair rhs)
+{
+    return (lhs.job->get_time_to_spend() < rhs.job->get_time_to_spend());
+}
+
+bool compare_LPT(JobPair lhs, JobPair rhs)
+{
+    return (lhs.job->get_time_to_spend() > rhs.job->get_time_to_spend());
+}
+
 void Algorithm::run()
 {
     pending_fronts = { 0 };
@@ -86,9 +108,19 @@ void Algorithm::run()
             pending_jobs[i].worker_groups[j]->set_clock(&current_time);
         }
     }
+
+    switch (preference)
+    {
+    case SPT:
+        std::sort(pending_jobs.begin(), pending_jobs.end(), compare_SPT);
+        break;
+    case LPT:
+        std::sort(pending_jobs.begin(), pending_jobs.end(), compare_LPT);
+    }
+
     while (check_nearest_front())
     {
-        /* do nothing? */
+        /* Nothing? */
     }
 }
 

@@ -27,9 +27,10 @@ MainWindow::MainWindow(QWidget *parent)
     first_worker_group.add_worker(first_worker);
     first_worker_group.add_worker(second_worker);
 
-    int start_first_job_group_at = 0;
+    int start_first_job_group_at = 1;
     JobGroup* first_job_group = new JobGroup(all_jobs, start_first_job_group_at, __INT_MAX__);
     algorithm.add_job_group(first_job_group, &first_worker_group);
+    algorithm.set_preference(current_preference);
     algorithm.run();
 
     ui->setupUi(this);
@@ -84,8 +85,17 @@ void MainWindow::setupPlot(QCustomPlot *customPlot)
     customPlot->yAxis->setLabel("tasks");
 }
 
-//Test function: calling the algorithm several times
 void MainWindow::on_spinBox_4_valueChanged(int arg1)
+{
+    start_first_job_group_at = arg1;
+}
+
+void MainWindow::on_spinBox_5_valueChanged(int arg1)
+{
+    current_preference = (Preference)arg1;
+}
+
+void MainWindow::on_pushButton_clicked()
 {
     for (int i = 0; i < all_jobs.size(); i++)
     {
@@ -96,15 +106,14 @@ void MainWindow::on_spinBox_4_valueChanged(int arg1)
     {
         int temp = __INT_MAX__;
         all_workers[i]->set_clock(&temp);
-        all_workers[i]->is_free(); //triggering update()
+        all_workers[i]->update();
         worker_group.add_worker(all_workers[i]);
     }
 
-    int start_first_job_group_at = arg1;
     JobGroup* first_job_group = new JobGroup(all_jobs, start_first_job_group_at, __INT_MAX__);
     algorithm = Algorithm();
     algorithm.add_job_group(first_job_group, &worker_group);
+    algorithm.set_preference(current_preference);
     algorithm.run();
     updatePlot(ui->plot, 10);
 }
-

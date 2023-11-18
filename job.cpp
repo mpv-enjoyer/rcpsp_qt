@@ -45,6 +45,11 @@ bool Job::check_predecessors() const
     return true;
 }
 
+void Job::set_predecessors(std::vector<Job*> new_predecessors)
+{
+    predecessors = new_predecessors;
+}
+
 AssignedJob::AssignedJob(Job& to_assign, int time_begin) : Job(to_assign)
 {
     begin_at = time_begin;

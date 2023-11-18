@@ -22,6 +22,7 @@ public:
     void done();
     void undone();
     bool check_predecessors() const;
+    void set_predecessors(std::vector<Job*> new_predecessors);
 };
 
 //TODO: AssignedJob not needed.

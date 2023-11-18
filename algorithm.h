@@ -19,8 +19,16 @@ struct ResultPair
     int start;
 };
 
+enum Preference
+{
+    NONE = 0,
+    SPT = 1,
+    LPT = 2
+};
+
 class Algorithm
 {
+    Preference preference = NONE;
     std::vector<JobPair> pending_jobs;
     int current_time;
     std::vector<int> pending_fronts;
@@ -28,6 +36,7 @@ class Algorithm
     bool check_nearest_front();
 public:
     Algorithm();
+    void set_preference(Preference new_preference);
     void add_job_group(JobGroup* jobs, WorkerGroup* workers);
     void run();
     std::vector<ResultPair> get_completed();
