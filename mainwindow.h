@@ -24,6 +24,10 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+
+    void on_spinBox_4_valueChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
     Algorithm algorithm;

@@ -20,6 +20,7 @@ public:
     int get_want_non_renewable() const;
     bool is_done() const;
     void done();
+    void undone();
     bool check_predecessors() const;
 };
 

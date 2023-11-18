@@ -26,6 +26,11 @@ void Job::done()
     _done = true;
 }
 
+void Job::undone()
+{
+    _done = false;
+}
+
 bool Job::is_done() const
 {
     return _done;

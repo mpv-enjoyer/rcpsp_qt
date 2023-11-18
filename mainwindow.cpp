@@ -9,20 +9,27 @@ MainWindow::MainWindow(QWidget *parent)
     Job* second_job = new Job(2, 0, 7);
     Job* third_job = new Job(5, 0, 2);
     Job* fourth_job = new Job(0, 0, 8);
+    Job* fifth_job = new Job(0, 0, 4);
+    Job* sixth_job = new Job(0, 0, 1);
     all_jobs.push_back(first_job);
     all_jobs.push_back(second_job);
     all_jobs.push_back(third_job);
     all_jobs.push_back(fourth_job);
+    all_jobs.push_back(fifth_job);
+    all_jobs.push_back(sixth_job);
+
     Plan common_plan = Plan({{8, 2}});
     Worker* first_worker = new Worker(common_plan);
     Worker* second_worker = new Worker(common_plan);
     all_workers.push_back(first_worker);
     all_workers.push_back(second_worker);
-    WorkerGroup* first_worker_group = new WorkerGroup();
-    first_worker_group->add_worker(first_worker);
-    first_worker_group->add_worker(second_worker);
-    JobGroup* first_job_group = new JobGroup(all_jobs, 5, __INT_MAX__);
-    algorithm.add_job_group(first_job_group, first_worker_group);
+    WorkerGroup first_worker_group = WorkerGroup();
+    first_worker_group.add_worker(first_worker);
+    first_worker_group.add_worker(second_worker);
+
+    int start_first_job_group_at = 0;
+    JobGroup* first_job_group = new JobGroup(all_jobs, start_first_job_group_at, __INT_MAX__);
+    algorithm.add_job_group(first_job_group, &first_worker_group);
     algorithm.run();
 
     ui->setupUi(this);
@@ -73,7 +80,31 @@ void MainWindow::setupPlot(QCustomPlot *customPlot)
     QCPItemRect* rect=new QCPItemRect( ui->plot );
     rect->topLeft->setCoords(QPointF(0,100));
     rect->bottomRight->setCoords(QPointF(100,0));
-    rect->setBrush(QBrush(QColor("floralwhite")));
     customPlot->xAxis->setLabel("time");
     customPlot->yAxis->setLabel("tasks");
 }
+
+//Test function: calling the algorithm several times
+void MainWindow::on_spinBox_4_valueChanged(int arg1)
+{
+    for (int i = 0; i < all_jobs.size(); i++)
+    {
+        all_jobs[i]->undone();
+    }
+    WorkerGroup worker_group = WorkerGroup();
+    for (int i = 0; i < all_workers.size(); i++)
+    {
+        int temp = __INT_MAX__;
+        all_workers[i]->set_clock(&temp);
+        all_workers[i]->is_free(); //triggering update()
+        worker_group.add_worker(all_workers[i]);
+    }
+
+    int start_first_job_group_at = arg1;
+    JobGroup* first_job_group = new JobGroup(all_jobs, start_first_job_group_at, __INT_MAX__);
+    algorithm = Algorithm();
+    algorithm.add_job_group(first_job_group, &worker_group);
+    algorithm.run();
+    updatePlot(ui->plot, 10);
+}
+
