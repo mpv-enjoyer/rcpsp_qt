@@ -2,7 +2,8 @@
 
 Выбор правила предпочтения:
 
-0 - по ID ![image](https://github.com/mpv-enjoyer/rcpsp_qt/assets/123133847/a11f26c6-bcad-4958-9df8-29b126868d24)
+0 - по ID 
+![image](https://github.com/mpv-enjoyer/rcpsp_qt/assets/123133847/a11f26c6-bcad-4958-9df8-29b126868d24)
 
 1 - первой - работа с наименьшей продолжительностью ![image](https://github.com/mpv-enjoyer/rcpsp_qt/assets/123133847/7c3bc3c1-d638-49bd-acfc-a1dc08de494b)
 
