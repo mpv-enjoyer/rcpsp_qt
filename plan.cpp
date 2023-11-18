@@ -62,3 +62,45 @@ int Plan::get_time_until_rest(int current_time) const
         }
     }
 }
+
+int Plan::get_time_nearest_possible(int current_time, int job_time) const
+{
+    int current_element = 0;
+    current_time -= start;
+    if (current_time < 0) return 0;
+    while (current_time >= 0)
+    {
+        for (int i = 0; i < elements.size(); i++)
+        {
+            current_time -= elements[i].work;
+            if (current_time < 0)
+            {
+                current_element = i + 1;
+                if (-current_time >= job_time)
+                {
+                    return -current_time;
+                }
+                current_time -= elements[i].rest;
+                break;
+            }
+            current_time -= elements[i].rest;
+            if (current_time < 0)
+            {
+                current_element = i + 1;
+                break;
+            }
+        }
+    }
+    int start_element = current_element;
+    for (int i = 0; i < elements.size(); i++)
+    {
+        current_element = start_element + i;
+        if (elements[current_element].work <= job_time)
+        {
+            return -current_time;
+        }
+        current_time -= elements[current_element].work;
+        current_time -= elements[current_element].rest;
+    }
+    return -1;
+}

@@ -22,12 +22,7 @@ public:
     bool is_free();
     const Job* get_job();
     int left_before_free();
-    const Plan Worker::get_plan();
-};
-
-class WorkerGroup
-{
-
+    const Plan get_plan();
 };
 
 #endif // WORKER_H

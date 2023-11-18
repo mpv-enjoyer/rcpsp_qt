@@ -15,7 +15,8 @@ SOURCES += \
     mainwindow.cpp \
     plan.cpp \
     qcustomplot.cpp \
-    worker.cpp
+    worker.cpp \
+    workergroup.cpp
 
 HEADERS += \
     colorlabel.h \
@@ -23,7 +24,8 @@ HEADERS += \
     mainwindow.h \
     plan.h \
     qcustomplot.h \
-    worker.h
+    worker.h \
+    workergroup.h
 
 FORMS += \
     mainwindow.ui
