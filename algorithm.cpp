@@ -54,7 +54,7 @@ bool Algorithm::check_nearest_front()
         if (new_front_time == -1) continue;
         new_front_time += current_time;
         int new_index = 0;
-        for (int j = 0; j < pending_fronts[j]; j++)
+        for (int j = 0; j < pending_fronts.size(); j++)
         {
             if (pending_fronts[j] > new_front_time) break;
             if (pending_fronts[j] == new_front_time)

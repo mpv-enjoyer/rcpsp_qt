@@ -43,7 +43,7 @@ const Job* Worker::get_job()
     return current_job.job;
 }
 
-int Worker::left_before_free()
+int Worker::will_be_free_at()
 {
     update();
     int current_time = *clock;

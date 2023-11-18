@@ -23,7 +23,7 @@ public:
     void assign(Job* job);
     bool is_free();
     const Job* get_job();
-    int left_before_free();
+    int will_be_free_at();
     const Plan get_plan();
 };
 

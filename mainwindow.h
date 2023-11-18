@@ -28,6 +28,7 @@ private:
     Ui::MainWindow *ui;
     Algorithm algorithm;
     std::vector<Job*> all_jobs;
+    std::vector<Worker*> all_workers;
 };
 
 #endif // MAINWINDOW_H

@@ -8,16 +8,20 @@ MainWindow::MainWindow(QWidget *parent)
     Job* first_job = new Job(3, 0, 4);
     Job* second_job = new Job(2, 0, 7);
     Job* third_job = new Job(5, 0, 2);
+    Job* fourth_job = new Job(0, 0, 8);
     all_jobs.push_back(first_job);
     all_jobs.push_back(second_job);
     all_jobs.push_back(third_job);
+    all_jobs.push_back(fourth_job);
     Plan common_plan = Plan({{8, 2}});
     Worker* first_worker = new Worker(common_plan);
     Worker* second_worker = new Worker(common_plan);
+    all_workers.push_back(first_worker);
+    all_workers.push_back(second_worker);
     WorkerGroup* first_worker_group = new WorkerGroup();
     first_worker_group->add_worker(first_worker);
     first_worker_group->add_worker(second_worker);
-    JobGroup* first_job_group = new JobGroup({first_job, second_job, third_job}, 3, __INT_MAX__);
+    JobGroup* first_job_group = new JobGroup(all_jobs, 5, __INT_MAX__);
     algorithm.add_job_group(first_job_group, first_worker_group);
     algorithm.run();
 
@@ -41,9 +45,11 @@ void MainWindow::updatePlot(QCustomPlot *customPlot, int overall_time)
         ResultPair current_pair = current_completed[i];
         auto found = std::find(all_jobs.begin(), all_jobs.end(), current_pair.job);
         int index = std::distance(all_jobs.begin(), found);
+        auto found_worker = std::find(all_workers.begin(), all_workers.end(), current_pair.worker);
+        int index_worker = std::distance(all_workers.begin(), found_worker);
         QCPItemRect* rect = new QCPItemRect( customPlot );
         rect->topLeft->setCoords(QPointF(current_pair.start, index + 1));
-        switch (index)
+        switch (index_worker % 3)
         {
         case 0:
             rect->setBrush(QBrush(QColor("magenta")));
@@ -69,5 +75,5 @@ void MainWindow::setupPlot(QCustomPlot *customPlot)
     rect->bottomRight->setCoords(QPointF(100,0));
     rect->setBrush(QBrush(QColor("floralwhite")));
     customPlot->xAxis->setLabel("time");
-    customPlot->yAxis->setLabel("workers");
+    customPlot->yAxis->setLabel("tasks");
 }
