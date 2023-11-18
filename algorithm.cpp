@@ -11,34 +11,42 @@ void Algorithm::add_job_group(JobGroup* jobs, WorkerGroup* workers)
     {
         int start = jobs->get_start();
         int end = jobs->get_end();
-        pending_jobs.push_back( {start, end, jobs->get_job(i), workers} );
+        JobPair new_pair = {start, end, jobs->get_job(i), { workers }};
+        pending_jobs.push_back(new_pair);
     }
 }
 
 bool Algorithm::check_nearest_front()
 {
     bool result = false;
-    int current_time = pending_fronts[0];
+    current_time = pending_fronts[0];
+    pending_fronts.erase(pending_fronts.begin());
     for (int i = 0; i < pending_jobs.size(); i++)
     {
         JobPair current_pending = pending_jobs[i];
-        if (current_pending.start_after > current_time) continue;
+        if (current_pending.start_after > current_time)
+        {
+            result = true;
+            continue;
+        }
         if (current_pending.end_before <= current_time) continue;
         result = true;
         if (!current_pending.job->check_predecessors()) continue;
         int new_front_time = -1;
         for (int j = 0; j < current_pending.worker_groups.size(); j++)
         {
-            int earliest_placement = current_pending.worker_groups[j]->get_earliest_placement_time(current_pending);
+            int earliest_placement = current_pending.worker_groups[j]->get_earliest_placement_time(current_pending.job);
             if (earliest_placement == -1) continue;
             if (earliest_placement == 0)
             {
                 Worker* assigned_to = current_pending.worker_groups[j]->assign(current_pending.job);
                 completed_jobs.push_back( {current_pending.job, assigned_to, current_time} );
+                current_pending.worker_groups[j]->set_clock(&current_time);
                 pending_jobs.erase(pending_jobs.begin() + i);
-                continue;
+                i--;
+                break;
             }
-            if (new_front_time = -1 || new_front_time > earliest_placement)
+            if (new_front_time == -1 || new_front_time > earliest_placement)
             {
                 new_front_time = earliest_placement;
             }
@@ -61,12 +69,23 @@ bool Algorithm::check_nearest_front()
             pending_fronts.insert(pending_fronts.begin() + new_index, new_front_time);
         }
     }
+    if (pending_fronts.size() == 0 && result)
+    {
+        pending_fronts.push_back(current_time + 1);
+    }
     return result;
 }
 
 void Algorithm::run()
 {
     pending_fronts = { 0 };
+    for (int i = 0; i < pending_jobs.size(); i++)
+    {
+        for (int j = 0; j < pending_jobs[i].worker_groups.size(); j++)
+        {
+            pending_jobs[i].worker_groups[j]->set_clock(&current_time);
+        }
+    }
     while (check_nearest_front())
     {
         /* do nothing? */

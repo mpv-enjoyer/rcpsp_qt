@@ -1,8 +1,17 @@
 #include "workergroup.h"
 
-WorkerGroup::WorkerGroup(int* time) : current_time(time)
+WorkerGroup::WorkerGroup()
 {
 
+}
+
+void WorkerGroup::set_clock(int* clock)
+{
+    current_time = clock;
+    for (int i = 0; i < workers.size(); i++)
+    {
+        workers[i]->set_clock(clock);
+    }
 }
 
 void WorkerGroup::add_worker(Worker* new_worker)

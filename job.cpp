@@ -21,6 +21,25 @@ int Job::get_want_non_renewable() const
     return want_non_renewable;
 }
 
+void Job::done()
+{
+    _done = true;
+}
+
+bool Job::is_done() const
+{
+    return _done;
+}
+
+bool Job::check_predecessors() const
+{
+    for (int i = 0; i < predecessors.size(); i++)
+    {
+        if (!predecessors[i]->is_done()) return false;
+    }
+    return true;
+}
+
 AssignedJob::AssignedJob(Job& to_assign, int time_begin) : Job(to_assign)
 {
     begin_at = time_begin;
@@ -43,5 +62,3 @@ QColor VisualJob::get_color() const
 {
     return color;
 }
-
-

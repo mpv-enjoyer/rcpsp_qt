@@ -16,8 +16,10 @@ private:
     int* clock;
     Plan plan;
     CurrentJob current_job;
+    void update();
 public:
-    Worker(std::vector<PlanElement> want_plan, int want_start, int* want_clock);
+    Worker(Plan want_plan);
+    void set_clock(int* new_clock);
     void assign(Job* job);
     bool is_free();
     const Job* get_job();

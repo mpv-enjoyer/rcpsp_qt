@@ -1,13 +1,14 @@
 #include "worker.h"
 
-Worker::Worker(std::vector<PlanElement> want_plan, int want_start, int* want_clock) :
-    start(want_start), plan(want_plan), clock(want_clock)
+Worker::Worker(Plan want_plan) :
+    plan(want_plan)
 {
     current_job = {-1, nullptr};
 }
 
 void Worker::assign(Job *job)
 {
+    update();
     if (!is_free())
     {
         throw std::exception();
@@ -22,7 +23,7 @@ void Worker::assign(Job *job)
 void Worker::update()
 {
     if (current_job.job == nullptr) return;
-    if (current_time >= current_job.time_start + current_job.job->get_time_to_spend())
+    if (*clock >= current_job.time_start + current_job.job->get_time_to_spend())
     {
         current_job.job->done();
         current_job.job = nullptr;
@@ -32,16 +33,19 @@ void Worker::update()
 
 bool Worker::is_free()
 {
-    return current_job.job == nullptr && plan.is_ready(current_time);
+    update();
+    return current_job.job == nullptr && plan.is_ready(*clock);
 }
 
 const Job* Worker::get_job()
 {
+    update();
     return current_job.job;
 }
 
 int Worker::left_before_free()
 {
+    update();
     int current_time = *clock;
     bool ready = plan.is_ready(current_time);
     if (!ready)
@@ -58,5 +62,11 @@ int Worker::left_before_free()
 
 const Plan Worker::get_plan()
 {
+    update();
     return plan;
+}
+
+void Worker::set_clock(int* new_clock)
+{
+    clock = new_clock;
 }

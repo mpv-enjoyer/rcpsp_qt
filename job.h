@@ -19,7 +19,7 @@ public:
     int get_want_renewable() const;
     int get_want_non_renewable() const;
     bool is_done() const;
-    void done() const;
+    void done();
     bool check_predecessors() const;
 };
 

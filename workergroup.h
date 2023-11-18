@@ -9,7 +9,8 @@ private:
     int* current_time;
     std::vector<Worker*> workers;
 public:
-    WorkerGroup(int* time);
+    WorkerGroup();
+    void set_clock(int* clock);
     void add_worker(Worker* new_worker);
     int get_earliest_placement_time(Job* job);
     Worker* assign(Job* job);

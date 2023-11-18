@@ -25,7 +25,7 @@ class Algorithm
     int current_time;
     std::vector<int> pending_fronts;
     std::vector<ResultPair> completed_jobs;
-    void check_nearest_front();
+    bool check_nearest_front();
 public:
     Algorithm();
     void add_job_group(JobGroup* jobs, WorkerGroup* workers);

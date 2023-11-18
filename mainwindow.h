@@ -8,6 +8,7 @@
 #include <qmatrix.h>
 #include <QRandomGenerator>
 #include <algorithm>
+#include "algorithm.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -22,14 +23,11 @@ public:
     void updatePlot(QCustomPlot *customPlot, int overall_time);
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void assignJob(int index, int time);
 
 private:
-    int renewables = 5;
-    std::vector<Job*> unassigned_jobs;
-    std::vector<VisualJob*> visual_jobs;
     Ui::MainWindow *ui;
-    std::vector<ColorLabel*> previous_labels;
+    Algorithm algorithm;
+    std::vector<Job*> all_jobs;
 };
 
 #endif // MAINWINDOW_H
