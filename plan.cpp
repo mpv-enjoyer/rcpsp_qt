@@ -95,7 +95,7 @@ int Plan::get_time_nearest_possible(int current_time, int job_time) const
     for (int i = 0; i < elements.size() + 1; i++)
     {
         current_element = (start_element + i) % elements.size();
-        if (elements[current_element].work <= job_time)
+        if (elements[current_element].work >= job_time)
         {
             return -current_time;
         }
