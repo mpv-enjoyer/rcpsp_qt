@@ -15,14 +15,16 @@ void Algorithm::add_job_group(JobGroup* jobs, WorkerGroup* workers)
     }
 }
 
-void Algorithm::check_nearest_front()
+bool Algorithm::check_nearest_front()
 {
+    bool result = false;
     int current_time = pending_fronts[0];
-    for (int i = 0; i < pending_gobs.size(); i++)
+    for (int i = 0; i < pending_jobs.size(); i++)
     {
         JobPair current_pending = pending_jobs[i];
         if (current_pending.start_after > current_time) continue;
         if (current_pending.end_before <= current_time) continue;
+        result = true;
         if (!current_pending.job->check_predecessors()) continue;
         int new_front_time = -1;
         for (int j = 0; j < current_pending.worker_groups.size(); j++)
@@ -47,7 +49,11 @@ void Algorithm::check_nearest_front()
         for (int j = 0; j < pending_fronts[j]; j++)
         {
             if (pending_fronts[j] > new_front_time) break;
-            if (pending_fronts[j] == new_front_time) new_index = -1;
+            if (pending_fronts[j] == new_front_time)
+            {
+                new_index = -1;
+                break;
+            }
             if (pending_fronts[j] < new_front_time) new_index++;
         }
         if (new_index != -1)
@@ -55,4 +61,24 @@ void Algorithm::check_nearest_front()
             pending_fronts.insert(pending_fronts.begin() + new_index, new_front_time);
         }
     }
+    return result;
+}
+
+void Algorithm::run()
+{
+    pending_fronts = { 0 };
+    while (check_nearest_front())
+    {
+        /* do nothing? */
+    }
+}
+
+std::vector<ResultPair> Algorithm::get_completed()
+{
+    return completed_jobs;
+}
+
+std::vector<JobPair> Algorithm::get_failed()
+{
+    return pending_jobs;
 }

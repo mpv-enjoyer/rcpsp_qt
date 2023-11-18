@@ -30,6 +30,8 @@ public:
     Algorithm();
     void add_job_group(JobGroup* jobs, WorkerGroup* workers);
     void run();
+    std::vector<ResultPair> get_completed();
+    std::vector<JobPair> get_failed();
 };
 
 #endif // ALGORITHM_H
