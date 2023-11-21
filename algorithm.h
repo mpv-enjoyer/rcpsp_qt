@@ -23,7 +23,8 @@ enum Preference
 {
     NONE = 0,
     SPT = 1,
-    LPT = 2
+    LPT = 2,
+    EST = 3
 };
 
 class Algorithm
@@ -34,6 +35,8 @@ class Algorithm
     std::vector<int> pending_fronts;
     std::vector<ResultPair> completed_jobs;
     bool check_nearest_front();
+    int set_critical_time(JobPair current_job_pair);
+    void begin_set_critical_time();
 public:
     Algorithm();
     void set_preference(Preference new_preference);

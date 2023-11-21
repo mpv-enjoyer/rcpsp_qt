@@ -18,6 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
     all_jobs.push_back(fifth_job);
     all_jobs.push_back(sixth_job);
 
+    first_job->set_predecessors({fourth_job, fifth_job});
+
     Plan common_plan = Plan({{8, 2}});
     Worker* first_worker = new Worker(common_plan);
     Worker* second_worker = new Worker(common_plan);
@@ -28,8 +30,10 @@ MainWindow::MainWindow(QWidget *parent)
     first_worker_group.add_worker(second_worker);
 
     int start_first_job_group_at = 1;
-    JobGroup* first_job_group = new JobGroup(all_jobs, start_first_job_group_at, __INT_MAX__);
+    JobGroup* first_job_group = new JobGroup({first_job, second_job}, start_first_job_group_at, 50);
+    JobGroup* second_job_group = new JobGroup({third_job, fourth_job, fifth_job, sixth_job}, start_first_job_group_at, 200);
     algorithm.add_job_group(first_job_group, &first_worker_group);
+    algorithm.add_job_group(second_job_group, &first_worker_group);
     algorithm.set_preference(current_preference);
     algorithm.run();
 

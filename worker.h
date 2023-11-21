@@ -16,8 +16,8 @@ private:
     int* clock;
     Plan plan;
     CurrentJob current_job;
-public:
     void update();
+public:
     Worker(Plan want_plan);
     void set_clock(int* new_clock);
     void assign(Job* job);

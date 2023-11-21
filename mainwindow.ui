@@ -34,7 +34,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Recalculate</string>
+     <string>PushButton</string>
     </property>
    </widget>
    <widget class="QSpinBox" name="spinBox">
@@ -120,47 +120,11 @@
    <widget class="QSpinBox" name="spinBox_4">
     <property name="geometry">
      <rect>
-      <x>620</x>
+      <x>680</x>
       <y>130</y>
       <width>42</width>
       <height>27</height>
      </rect>
-    </property>
-   </widget>
-   <widget class="QSpinBox" name="spinBox_5">
-    <property name="geometry">
-     <rect>
-      <x>720</x>
-      <y>130</y>
-      <width>42</width>
-      <height>27</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>590</x>
-      <y>110</y>
-      <width>71</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>start_all_at</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_5">
-    <property name="geometry">
-     <rect>
-      <x>710</x>
-      <y>110</y>
-      <width>58</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>method</string>
     </property>
    </widget>
   </widget>

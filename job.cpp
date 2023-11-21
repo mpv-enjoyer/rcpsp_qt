@@ -50,25 +50,32 @@ void Job::set_predecessors(std::vector<Job*> new_predecessors)
     predecessors = new_predecessors;
 }
 
-AssignedJob::AssignedJob(Job& to_assign, int time_begin) : Job(to_assign)
+bool Job::is_predecessor(Job *job)
 {
-    begin_at = time_begin;
+    for (int i = 0; i < predecessors.size(); i++)
+    {
+        if (predecessors[i] == job) return true;
+    }
+    return false;
 }
 
-int AssignedJob::get_begin_at() const
+int Job::get_critical_time() const
 {
-    return begin_at;
+    if (!critical_time_exists()) throw std::exception();
+    return _critical_time;
 }
 
-VisualJob::VisualJob(AssignedJob& assigned) : AssignedJob(assigned)
+bool Job::critical_time_exists() const
 {
-    int R = QRandomGenerator::global()->bounded(255);
-    int G = QRandomGenerator::global()->bounded(255);
-    int B = QRandomGenerator::global()->bounded(255);
-    color = QColor(R, G, B);
+    return _critical_time != -1;
 }
 
-QColor VisualJob::get_color() const
+void Job::set_critical_time(int time)
 {
-    return color;
+    _critical_time = time;
+}
+
+void Job::reset_critical_time()
+{
+    _critical_time = -1;
 }

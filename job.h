@@ -9,6 +9,8 @@ class Job
 {
 private:
     bool _done = false;
+    int _critical_time = -1;
+    int* _following_time_to_spend = nullptr;
     int want_renewable;
     int want_non_renewable;
     int time_to_spend;
@@ -23,26 +25,11 @@ public:
     void undone();
     bool check_predecessors() const;
     void set_predecessors(std::vector<Job*> new_predecessors);
-};
-
-//TODO: AssignedJob not needed.
-//This info will be stored inside Worker
-class AssignedJob : public Job
-{
-private:
-    int begin_at;
-public:
-    AssignedJob(Job& to_assign, int time_begin);
-    int get_begin_at() const;
-};
-
-class VisualJob : public AssignedJob
-{
-private:
-    QColor color;
-public:
-    VisualJob(AssignedJob& assigned);
-    QColor get_color() const;
+    bool is_predecessor(Job* job);
+    int get_critical_time() const;
+    bool critical_time_exists() const;
+    void set_critical_time(int time);
+    void reset_critical_time();
 };
 
 #endif // JOB_H

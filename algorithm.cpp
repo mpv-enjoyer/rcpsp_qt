@@ -88,6 +88,33 @@ bool Algorithm::check_nearest_front()
     return result;
 }
 
+int Algorithm::set_critical_time(JobPair current_job_pair)
+{
+    if (current_job_pair.job->critical_time_exists())
+    {
+        return current_job_pair.job->get_critical_time();
+    }
+    int result = current_job_pair.end_before;
+    for (int i = 0; i < pending_jobs.size(); i++)
+    {
+        if (pending_jobs[i].job->is_predecessor(current_job_pair.job))
+        {
+            int internal_result = set_critical_time(pending_jobs[i]);
+            result = internal_result < result ? internal_result : result;
+        }
+    }
+    current_job_pair.job->set_critical_time(result - current_job_pair.job->get_time_to_spend());
+    return result - current_job_pair.job->get_time_to_spend();
+}
+
+void Algorithm::begin_set_critical_time()
+{
+    for (int i = 0; i < pending_jobs.size(); i++)
+    {
+        set_critical_time(pending_jobs[i]);
+    }
+}
+
 bool compare_SPT(JobPair lhs, JobPair rhs)
 {
     return (lhs.job->get_time_to_spend() < rhs.job->get_time_to_spend());
@@ -96,6 +123,11 @@ bool compare_SPT(JobPair lhs, JobPair rhs)
 bool compare_LPT(JobPair lhs, JobPair rhs)
 {
     return (lhs.job->get_time_to_spend() > rhs.job->get_time_to_spend());
+}
+
+bool compare_EST(JobPair lhs, JobPair rhs)
+{
+    return (lhs.job->get_critical_time() < rhs.job->get_critical_time());
 }
 
 void Algorithm::run()
@@ -108,7 +140,7 @@ void Algorithm::run()
             pending_jobs[i].worker_groups[j]->set_clock(&current_time);
         }
     }
-
+    begin_set_critical_time();
     switch (preference)
     {
     case SPT:
@@ -116,7 +148,12 @@ void Algorithm::run()
         break;
     case LPT:
         std::sort(pending_jobs.begin(), pending_jobs.end(), compare_LPT);
+        break;
+    case EST:
+        std::sort(pending_jobs.begin(), pending_jobs.end(), compare_EST);
+        break;
     }
+
 
     while (check_nearest_front())
     {
