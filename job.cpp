@@ -36,12 +36,14 @@ bool Job::is_done() const
     return _done;
 }
 
-bool Job::check_predecessors() const
+bool Job::check_predecessors()
 {
+    if (_predecessors_done) return true;
     for (int i = 0; i < predecessors.size(); i++)
     {
         if (!predecessors[i]->is_done()) return false;
     }
+    _predecessors_done = true;
     return true;
 }
 

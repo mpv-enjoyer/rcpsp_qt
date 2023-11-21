@@ -50,7 +50,7 @@ void MainWindow::GenerateExample()
 {
     const int LOWEST_JOB_TIME = 3;
     const int HIGHEST_JOB_TIME = 20;
-    const int ALL_JOBS_SIZE = 20000;
+    const int ALL_JOBS_SIZE = 100000;
     const int ALL_WORKERS_SIZE = 500;
     const int JOB_GROUP_LOWEST_BEGIN = 0;
     const int JOB_GROUP_HIGHEST_BEGIN = 1000;
@@ -109,6 +109,8 @@ void MainWindow::GenerateExample()
         algorithm.add_job_group(job_groups[i], worker_group);
     }
     algorithm.set_preference(EST);
+
+    std::shuffle(all_jobs.begin(), all_jobs.end(), rng);
     qDebug() << "example generated";
 }
 

@@ -14,6 +14,7 @@ class Plan
 private:
     std::vector<PlanElement> elements;
     int start;
+    int time_loop;
 public:
     Plan(std::vector<PlanElement> want_elements, int want_start = 0);
     bool is_ready(int current_time) const;

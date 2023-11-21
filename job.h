@@ -15,6 +15,7 @@ private:
     int want_non_renewable;
     int time_to_spend;
     std::vector<Job*> predecessors;
+    bool _predecessors_done = false;
 public:
     Job(int renewable, int non_renewable, int time_to_spend);
     int get_time_to_spend() const;
@@ -23,7 +24,7 @@ public:
     bool is_done() const;
     void done();
     void undone();
-    bool check_predecessors() const;
+    bool check_predecessors();
     void set_predecessors(std::vector<Job*> new_predecessors);
     bool is_predecessor(Job* job);
     int get_critical_time() const;
