@@ -3,6 +3,7 @@
 
 #include "jobgroup.h"
 #include "workergroup.h"
+#include <QtDebug>
 
 struct JobPair
 {

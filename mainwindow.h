@@ -23,7 +23,7 @@ public:
     void updatePlot(QCustomPlot *customPlot, int overall_time);
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
+    void GenerateExample();
 private slots:
 
     void on_spinBox_4_valueChanged(int arg1);

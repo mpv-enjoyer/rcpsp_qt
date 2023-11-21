@@ -5,7 +5,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-    Job* first_job = new Job(3, 0, 4);
+    /*Job* first_job = new Job(3, 0, 4);
     Job* second_job = new Job(2, 0, 7);
     Job* third_job = new Job(5, 0, 2);
     Job* fourth_job = new Job(0, 0, 8);
@@ -29,12 +29,16 @@ MainWindow::MainWindow(QWidget *parent)
     first_worker_group.add_worker(first_worker);
     first_worker_group.add_worker(second_worker);
 
+
+
     int start_first_job_group_at = 1;
     JobGroup* first_job_group = new JobGroup({first_job, second_job}, start_first_job_group_at, 50);
     JobGroup* second_job_group = new JobGroup({third_job, fourth_job, fifth_job, sixth_job}, start_first_job_group_at, 200);
     algorithm.add_job_group(first_job_group, &first_worker_group);
     algorithm.add_job_group(second_job_group, &first_worker_group);
-    algorithm.set_preference(current_preference);
+    algorithm.set_preference(current_preference);*/
+
+    GenerateExample();
     algorithm.run();
 
     ui->setupUi(this);
@@ -45,6 +49,72 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::GenerateExample()
+{
+    const int LOWEST_JOB_TIME = 3;
+    const int HIGHEST_JOB_TIME = 20;
+    const int ALL_JOBS_SIZE = 15000;
+    const int ALL_WORKERS_SIZE = 500;
+    const int JOB_GROUP_LOWEST_BEGIN = 0;
+    const int JOB_GROUP_HIGHEST_BEGIN = 1000;
+    const int JOB_GROUP_LOWEST_END  = 100000;
+    const int JOB_GROUP_HIGHEST_END = 10000000;
+    const int JOB_GROUPS_COUNT = 100;
+    qDebug() << "Begin example generation";
+    all_jobs.clear();
+    for (int i = 0; i < ALL_JOBS_SIZE; i++)
+    {
+        int time = QRandomGenerator::global()->bounded(LOWEST_JOB_TIME, HIGHEST_JOB_TIME);
+        Job* generated = new Job(0, 0, time);
+        all_jobs.push_back(generated);
+        int predecessor = QRandomGenerator::global()->bounded(0, ALL_JOBS_SIZE);
+        if (predecessor < i)
+        {
+            generated->set_predecessors({all_jobs[predecessor]});
+        }
+    }
+    auto rng = std::default_random_engine {};
+    std::shuffle(all_jobs.begin(), all_jobs.end(), rng);
+    int current_job = 0;
+    std::vector<JobGroup*> job_groups = std::vector<JobGroup*>();
+    int true_job_groups_count = 0;
+    for (int i = 0; i < JOB_GROUPS_COUNT; i++)
+    {
+        int new_group_size = QRandomGenerator::global()->bounded(ALL_JOBS_SIZE / JOB_GROUPS_COUNT - 20, ALL_JOBS_SIZE / JOB_GROUPS_COUNT + 20);
+        if (current_job + new_group_size >= ALL_JOBS_SIZE || i == JOB_GROUPS_COUNT - 1)
+        {
+            new_group_size = ALL_JOBS_SIZE - current_job;
+        }
+        std::vector<Job*> new_group_jobs = std::vector<Job*>(new_group_size);
+        for (int j = current_job; j < new_group_size + current_job; j++)
+        {
+            new_group_jobs[j - current_job] = all_jobs[j];
+        }
+        int begin = QRandomGenerator::global()->bounded(JOB_GROUP_LOWEST_BEGIN, JOB_GROUP_HIGHEST_BEGIN);
+        int end = QRandomGenerator::global()->bounded(JOB_GROUP_LOWEST_END, JOB_GROUP_HIGHEST_END);
+        job_groups.push_back(new JobGroup(new_group_jobs, begin, end));
+        current_job += new_group_size;
+        if (current_job >= ALL_JOBS_SIZE) break;
+    }
+
+    all_workers.clear();
+    WorkerGroup* worker_group = new WorkerGroup();
+    Plan common_plan = Plan({{30, 2}});
+    for (int i = 0; i < ALL_WORKERS_SIZE; i++)
+    {
+        Worker* generated = new Worker(common_plan);
+        all_workers.push_back(generated);
+        worker_group->add_worker(generated);
+    }
+
+    for (int i = 0; i < job_groups.size(); i++)
+    {
+        algorithm.add_job_group(job_groups[i], worker_group);
+    }
+    algorithm.set_preference(EST);
+    qDebug() << "example generated";
 }
 
 void MainWindow::updatePlot(QCustomPlot *customPlot, int overall_time)

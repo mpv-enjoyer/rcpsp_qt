@@ -27,6 +27,8 @@ bool Algorithm::check_nearest_front()
     current_time = pending_fronts[0];
     pending_fronts.erase(pending_fronts.begin());
 
+    static int assigned_count = 0;
+
     //Workaround: in some cases completed_jobs can't properly update
     for (int i = 0; i < completed_jobs.size(); i++)
     {
@@ -55,6 +57,8 @@ bool Algorithm::check_nearest_front()
                 completed_jobs.push_back( {current_pending.job, assigned_to, current_time} );
                 current_pending.worker_groups[j]->set_clock(&current_time);
                 pending_jobs.erase(pending_jobs.begin() + i);
+                assigned_count++;
+                if (assigned_count % 500 == 0) qDebug() << "Assigned job " << assigned_count;
                 i--;
                 break;
             }
@@ -111,6 +115,7 @@ void Algorithm::begin_set_critical_time()
 {
     for (int i = 0; i < pending_jobs.size(); i++)
     {
+        if (i % 500 == 0) qDebug() << "Sorting element " << i;
         set_critical_time(pending_jobs[i]);
     }
 }
@@ -154,11 +159,15 @@ void Algorithm::run()
         break;
     }
 
+    qDebug() << "Sorting done";
 
     while (check_nearest_front())
     {
         /* Nothing? */
     }
+
+    qDebug() << "Ready to display";
+
 }
 
 std::vector<ResultPair> Algorithm::get_completed()
