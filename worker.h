@@ -16,9 +16,9 @@ private:
     int* clock;
     Plan plan;
     CurrentJob current_job;
-    void update();
 public:
     Worker(Plan want_plan);
+    void update();
     void set_clock(int* new_clock);
     void assign(Job* job);
     bool is_free();
