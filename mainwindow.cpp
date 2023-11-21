@@ -37,13 +37,8 @@ MainWindow::MainWindow(QWidget *parent)
     algorithm.add_job_group(first_job_group, &first_worker_group);
     algorithm.add_job_group(second_job_group, &first_worker_group);
     algorithm.set_preference(current_preference);*/
-
-    GenerateExample();
-    algorithm.run();
-
     ui->setupUi(this);
     setupPlot(ui->plot);
-    updatePlot(ui->plot, 10);
 }
 
 MainWindow::~MainWindow()
@@ -55,7 +50,7 @@ void MainWindow::GenerateExample()
 {
     const int LOWEST_JOB_TIME = 3;
     const int HIGHEST_JOB_TIME = 20;
-    const int ALL_JOBS_SIZE = 15000;
+    const int ALL_JOBS_SIZE = 20000;
     const int ALL_WORKERS_SIZE = 500;
     const int JOB_GROUP_LOWEST_BEGIN = 0;
     const int JOB_GROUP_HIGHEST_BEGIN = 1000;
@@ -152,7 +147,7 @@ void MainWindow::setupPlot(QCustomPlot *customPlot)
     customPlot->setInteraction(QCP::iRangeDrag, true);
     customPlot->setInteraction(QCP::iRangeZoom, true);
 
-    QCPItemRect* rect=new QCPItemRect( ui->plot );
+    QCPItemRect* rect = new QCPItemRect( ui->plot );
     rect->topLeft->setCoords(QPointF(0,100));
     rect->bottomRight->setCoords(QPointF(100,0));
     customPlot->xAxis->setLabel("time");
@@ -171,7 +166,10 @@ void MainWindow::on_spinBox_5_valueChanged(int arg1)
 
 void MainWindow::on_pushButton_clicked()
 {
-    for (int i = 0; i < all_jobs.size(); i++)
+    GenerateExample();
+    algorithm.run();
+    updatePlot(ui->plot, 10);
+    /*for (int i = 0; i < all_jobs.size(); i++)
     {
         all_jobs[i]->undone();
     }
@@ -189,5 +187,5 @@ void MainWindow::on_pushButton_clicked()
     algorithm.add_job_group(first_job_group, &worker_group);
     algorithm.set_preference(current_preference);
     algorithm.run();
-    updatePlot(ui->plot, 10);
+    updatePlot(ui->plot, 10);*/
 }

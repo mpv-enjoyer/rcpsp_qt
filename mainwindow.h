@@ -9,6 +9,7 @@
 #include <QRandomGenerator>
 #include <algorithm>
 #include "algorithm.h"
+#include <signal.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -33,7 +34,7 @@ private slots:
     void on_pushButton_clicked();
 
 private:
-    int start_first_job_group_at;
+    int start_first_job_group_at = 0;
     Preference current_preference = NONE;
     Ui::MainWindow *ui;
     Algorithm algorithm;
