@@ -5,12 +5,12 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-    /*Job* first_job = new Job(3, 0, 4);
-    Job* second_job = new Job(2, 0, 7);
-    Job* third_job = new Job(5, 0, 2);
-    Job* fourth_job = new Job(0, 0, 8);
-    Job* fifth_job = new Job(0, 0, 4);
-    Job* sixth_job = new Job(0, 0, 1);
+    /*Job* first_job = new Job(3, 1, 4);
+    Job* second_job = new Job(2, 2, 7);
+    Job* third_job = new Job(5, 3, 2);
+    Job* fourth_job = new Job(0, 4, 8);
+    Job* fifth_job = new Job(0, 5, 4);
+    Job* sixth_job = new Job(0, 6, 1);
     all_jobs.push_back(first_job);
     all_jobs.push_back(second_job);
     all_jobs.push_back(third_job);
@@ -36,9 +36,11 @@ MainWindow::MainWindow(QWidget *parent)
     JobGroup* second_job_group = new JobGroup({third_job, fourth_job, fifth_job, sixth_job}, start_first_job_group_at, 200);
     algorithm.add_job_group(first_job_group, &first_worker_group);
     algorithm.add_job_group(second_job_group, &first_worker_group);
-    algorithm.set_preference(current_preference);*/
+    algorithm.set_preference(current_preference);
+    algorithm.run();*/
     ui->setupUi(this);
     setupPlot(ui->plot);
+    //updatePlot(ui->plot, 15);
 }
 
 MainWindow::~MainWindow()
@@ -108,9 +110,9 @@ void MainWindow::GenerateExample()
     {
         algorithm.add_job_group(job_groups[i], worker_group);
     }
-    algorithm.set_preference(EST);
 
     std::shuffle(all_jobs.begin(), all_jobs.end(), rng);
+    algorithm.set_preference(NONE);
     qDebug() << "example generated";
 }
 

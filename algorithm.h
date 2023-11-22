@@ -20,6 +20,12 @@ struct ResultPair
     int start;
 };
 
+struct FrontData
+{
+    int time;
+    std::vector<JobPair> job_pairs;
+};
+
 enum Preference
 {
     NONE = 0,
@@ -32,9 +38,11 @@ class Algorithm
 {
     Preference preference = NONE;
     std::vector<JobPair> pending_jobs;
+    int previous_time;
     int current_time;
-    std::vector<int> pending_fronts;
+    std::vector<FrontData> pending_fronts;
     std::vector<ResultPair> completed_jobs;
+    std::vector<ResultPair> assigned_jobs; //To later become completed.
     bool check_nearest_front();
     int set_critical_time(JobPair current_job_pair);
     void begin_set_critical_time();
