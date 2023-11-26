@@ -11,3 +11,5 @@
 2 - первой - работа с наибольшей продолжительностью ![image](https://github.com/mpv-enjoyer/rcpsp_qt/assets/123133847/974caaf9-efd4-4ef1-8d77-b01238806e1c)
 
 Изменение времени, с которого может начинаться выполнение (это можно задать для каждой группы "станков", в данном примере группа только одна) ![image](https://github.com/mpv-enjoyer/rcpsp_qt/assets/123133847/29e1d48d-cfc9-4a53-9a82-3a942e25af04)
+
+Пример с 100К работ, 500 работников (48 минут на вычисление, 346МБ RAM занято) ![image](https://github.com/mpv-enjoyer/rcpsp_qt/assets/123133847/c6d81006-cf2c-44f8-b57b-2cdbea7f6b04)
