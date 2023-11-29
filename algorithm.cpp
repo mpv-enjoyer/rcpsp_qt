@@ -55,6 +55,7 @@ bool Algorithm::check_nearest_front()
         {
             completed_jobs.push_back(assigned_jobs[i]);
             assigned_jobs.erase(assigned_jobs.begin() + i);
+            i--;
         }
     };
 
@@ -81,7 +82,6 @@ bool Algorithm::check_nearest_front()
         std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_EST);
         break;
     }
-
     for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
         JobPair current_pending = current_front.job_pairs[i];
@@ -99,7 +99,7 @@ bool Algorithm::check_nearest_front()
                 current_front.job_pairs.erase(current_front.job_pairs.begin() + i);
                 assigned_count++;
                 new_front_time = -1;
-                if (assigned_count % 50 == 0) qDebug() << "Assigned job " << assigned_count;
+                if (assigned_count % 500 == 0) qDebug() << "Assigned job " << assigned_count;
                 i--;
                 break;
             }
@@ -110,7 +110,7 @@ bool Algorithm::check_nearest_front()
         }
         if (new_front_time == -1) continue;
         new_front_time += current_time;
-        /*FrontData new_front_data = { new_front_time, { current_pending } };
+        FrontData new_front_data = { new_front_time, { current_pending } };
         SearchResult result = binarySearch(pending_fronts, new_front_data);
         if (!result.found)
         {
@@ -119,28 +119,6 @@ bool Algorithm::check_nearest_front()
         else
         {
             pending_fronts[result.pos].job_pairs.push_back(current_pending);
-        }*/
-        int new_index = pending_fronts.size();
-        for (int j = 1; j < pending_fronts.size(); j++)
-        {
-            if (pending_fronts[j].time > new_front_time)
-            {
-                new_index = j;
-                break;
-            }
-            if (pending_fronts[j].time == new_front_time)
-            {
-                new_index = -1;
-                pending_fronts[j].job_pairs.push_back(current_pending);
-                //qDebug() << "Pushed back to" << new_front_time <<"front Job" << current_pending.job->get_want_non_renewable();
-                break;
-            }
-            //if (pending_fronts[j].time < new_front_time) new_index++;
-        }
-        if (new_index != -1)
-        {
-            //qDebug() << "Created front with Job " << current_pending.job->get_want_non_renewable() << "at" << current_time << " to Time" << new_front_time;
-            pending_fronts.insert(pending_fronts.begin() + new_index, { new_front_time, { current_pending } });
         }
     }
 
@@ -193,6 +171,7 @@ void Algorithm::run()
         if (pending_jobs[i].job->check_predecessors() && pending_jobs[i].start_after <= 0)
         {
             pending_fronts[0].job_pairs.push_back(pending_jobs[i]);
+            pending_jobs.erase(pending_jobs.begin() + i);
         }
         for (int j = 0; j < pending_jobs[i].worker_groups.size(); j++)
         {

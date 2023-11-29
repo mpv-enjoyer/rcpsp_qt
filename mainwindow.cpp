@@ -24,18 +24,22 @@ MainWindow::MainWindow(QWidget *parent)
     Plan common_plan = Plan({{8, 2}});
     Worker* first_worker = new Worker(common_plan);
     Worker* second_worker = new Worker(common_plan);
+    Worker* third_worker = new Worker(common_plan);
     all_workers.push_back(first_worker);
     all_workers.push_back(second_worker);
+    all_workers.push_back(third_worker);
     WorkerGroup first_worker_group = WorkerGroup();
+    WorkerGroup second_worker_group = WorkerGroup();
     first_worker_group.add_worker(first_worker);
     first_worker_group.add_worker(second_worker);
+    second_worker_group.add_worker(third_worker);
 
 
 
     int start_first_job_group_at = 1;
     JobGroup* first_job_group = new JobGroup({first_job, second_job, seventh_job}, start_first_job_group_at, 50);
     JobGroup* second_job_group = new JobGroup({third_job, fourth_job, fifth_job, sixth_job}, start_first_job_group_at, 200);
-    algorithm.add_job_group(first_job_group, &first_worker_group);
+    algorithm.add_job_group(first_job_group, &second_worker_group);
     algorithm.add_job_group(second_job_group, &first_worker_group);
     algorithm.set_preference(current_preference);
     algorithm.run();*/
@@ -53,10 +57,10 @@ void MainWindow::GenerateExample()
 {
     const int LOWEST_JOB_TIME = 3;
     const int HIGHEST_JOB_TIME = 20;
-    const int ALL_JOBS_SIZE = 20000;
+    const int ALL_JOBS_SIZE = 100000;
     const int ALL_WORKERS_SIZE = 500;
     const int JOB_GROUP_LOWEST_BEGIN = 0;
-    const int JOB_GROUP_HIGHEST_BEGIN = 2;
+    const int JOB_GROUP_HIGHEST_BEGIN = 1000;
     const int JOB_GROUP_LOWEST_END  = 100000;
     const int JOB_GROUP_HIGHEST_END = 10000000;
     const int JOB_GROUPS_COUNT = 100;
