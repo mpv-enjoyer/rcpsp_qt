@@ -8,6 +8,7 @@ struct CurrentJob
 {
     int time_start;
     Job* job;
+    int will_be_free_at;
 };
 
 class Worker

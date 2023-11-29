@@ -11,6 +11,8 @@
 #include "algorithm.h"
 #include <signal.h>
 
+#undef QT_NO_DEBUG_OUTPUT
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE

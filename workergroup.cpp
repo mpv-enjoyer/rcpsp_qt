@@ -11,6 +11,7 @@ void WorkerGroup::set_clock(int* clock)
     for (int i = 0; i < workers.size(); i++)
     {
         workers[i]->set_clock(clock);
+        workers[i]->update();
     }
 }
 
@@ -34,7 +35,7 @@ int WorkerGroup::get_earliest_placement_time(Job *job)
         {
             int will_end_current_work = workers[i]->will_be_free_at();// + *current_time;
             current_nearest = workers[i]->get_plan().get_time_nearest_possible(will_end_current_work, job_time);
-            current_nearest += workers[i]->will_be_free_at() - *current_time;
+            current_nearest += (will_end_current_work - *current_time);
         }
         if (current_nearest == -1) continue;
         if (min == -1) min = current_nearest;
@@ -47,6 +48,7 @@ Worker* WorkerGroup::assign(Job *job)
 {
     for (int i = 0; i < workers.size(); i++)
     {
+        workers[i]->update();
         if (workers[i]->is_free())
         {
             workers[i]->assign(job);

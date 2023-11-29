@@ -36,6 +36,10 @@ bool compare_EST(JobPair lhs, JobPair rhs)
     return (lhs.job->get_critical_time() < rhs.job->get_critical_time());
 }
 
+bool compare_fronts(FrontData& lhs, FrontData& rhs)
+{
+    return (lhs.time < rhs.time);
+}
 
 bool Algorithm::check_nearest_front()
 {
@@ -46,6 +50,7 @@ bool Algorithm::check_nearest_front()
 
     for (int i = 0; i < assigned_jobs.size(); i++)
     {
+        assigned_jobs[i].worker->update();
         if (assigned_jobs[i].worker->is_free())
         {
             completed_jobs.push_back(assigned_jobs[i]);
@@ -94,7 +99,7 @@ bool Algorithm::check_nearest_front()
                 current_front.job_pairs.erase(current_front.job_pairs.begin() + i);
                 assigned_count++;
                 new_front_time = -1;
-                if (assigned_count % 500 == 0) qDebug() << "Assigned job " << assigned_count;
+                if (assigned_count % 50 == 0) qDebug() << "Assigned job " << assigned_count;
                 i--;
                 break;
             }
@@ -105,6 +110,16 @@ bool Algorithm::check_nearest_front()
         }
         if (new_front_time == -1) continue;
         new_front_time += current_time;
+        /*FrontData new_front_data = { new_front_time, { current_pending } };
+        SearchResult result = binarySearch(pending_fronts, new_front_data);
+        if (!result.found)
+        {
+            pending_fronts.insert(pending_fronts.begin() + result.pos, new_front_data);
+        }
+        else
+        {
+            pending_fronts[result.pos].job_pairs.push_back(current_pending);
+        }*/
         int new_index = pending_fronts.size();
         for (int j = 1; j < pending_fronts.size(); j++)
         {
@@ -200,6 +215,30 @@ void Algorithm::run()
 
     qDebug() << "Ready to display";
 
+}
+
+SearchResult Algorithm::binarySearch(const std::vector<FrontData> &arr, const FrontData& x)
+{
+    int r = arr.size() - 1;
+    int l = 0;
+    while (l <= r) {
+        int m = l + (r - l) / 2;
+
+        // Check if x is present at mid
+        if (arr[m].time == x.time)
+            return { true, m };
+
+        // If x greater, ignore left half
+        if (arr[m].time < x.time)
+            l = m + 1;
+
+        // If x is smaller, ignore right half
+        else
+            r = m - 1;
+    }
+
+    // If we reach here, then element was not present
+    return { false, l };
 }
 
 std::vector<ResultPair> Algorithm::get_completed()

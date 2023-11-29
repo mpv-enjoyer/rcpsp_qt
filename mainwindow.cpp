@@ -5,19 +5,20 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-    /*Job* first_job = new Job(3, 1, 4);
-    Job* second_job = new Job(2, 2, 7);
-    Job* third_job = new Job(5, 3, 2);
+    /*Job* first_job = new Job(0, 1, 1);
+    Job* second_job = new Job(0, 2, 7);
+    Job* third_job = new Job(0, 3, 2);
     Job* fourth_job = new Job(0, 4, 8);
-    Job* fifth_job = new Job(0, 5, 4);
-    Job* sixth_job = new Job(0, 6, 1);
+    Job* fifth_job = new Job(0, 5, 8);
+    Job* sixth_job = new Job(0, 6, 8);
+    Job* seventh_job = new Job(0, 7, 8);
     all_jobs.push_back(first_job);
     all_jobs.push_back(second_job);
     all_jobs.push_back(third_job);
     all_jobs.push_back(fourth_job);
     all_jobs.push_back(fifth_job);
     all_jobs.push_back(sixth_job);
-
+    all_jobs.push_back(seventh_job);
     first_job->set_predecessors({fourth_job, fifth_job});
 
     Plan common_plan = Plan({{8, 2}});
@@ -32,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     int start_first_job_group_at = 1;
-    JobGroup* first_job_group = new JobGroup({first_job, second_job}, start_first_job_group_at, 50);
+    JobGroup* first_job_group = new JobGroup({first_job, second_job, seventh_job}, start_first_job_group_at, 50);
     JobGroup* second_job_group = new JobGroup({third_job, fourth_job, fifth_job, sixth_job}, start_first_job_group_at, 200);
     algorithm.add_job_group(first_job_group, &first_worker_group);
     algorithm.add_job_group(second_job_group, &first_worker_group);
@@ -52,10 +53,10 @@ void MainWindow::GenerateExample()
 {
     const int LOWEST_JOB_TIME = 3;
     const int HIGHEST_JOB_TIME = 20;
-    const int ALL_JOBS_SIZE = 100000;
+    const int ALL_JOBS_SIZE = 20000;
     const int ALL_WORKERS_SIZE = 500;
     const int JOB_GROUP_LOWEST_BEGIN = 0;
-    const int JOB_GROUP_HIGHEST_BEGIN = 1000;
+    const int JOB_GROUP_HIGHEST_BEGIN = 2;
     const int JOB_GROUP_LOWEST_END  = 100000;
     const int JOB_GROUP_HIGHEST_END = 10000000;
     const int JOB_GROUPS_COUNT = 100;

@@ -34,6 +34,12 @@ enum Preference
     EST = 3
 };
 
+struct SearchResult
+{
+    bool found;
+    int pos;
+};
+
 class Algorithm
 {
     Preference preference = NONE;
@@ -51,6 +57,7 @@ public:
     void set_preference(Preference new_preference);
     void add_job_group(JobGroup* jobs, WorkerGroup* workers);
     void run();
+    SearchResult binarySearch(const std::vector<FrontData>& arr, const FrontData& x);
     std::vector<ResultPair> get_completed();
     std::vector<JobPair> get_failed();
 };
