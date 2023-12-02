@@ -55,4 +55,5 @@ Worker* WorkerGroup::assign(Job *job)
             return workers[i];
         }
     }
+    throw std::exception();
 }

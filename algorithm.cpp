@@ -141,13 +141,11 @@ int Algorithm::set_critical_time(JobPair current_job_pair)
         return current_job_pair.job->get_critical_time();
     }
     int result = current_job_pair.end_before;
-    for (int i = 0; i < pending_jobs.size(); i++)
+    std::vector<Job*>* current_ancestors = current_job_pair.job->get_ancestors();
+    for (int j = 0; j < current_ancestors->size(); j++)
     {
-        if (pending_jobs[i].job->is_predecessor(current_job_pair.job))
-        {
-            int internal_result = set_critical_time(pending_jobs[i]);
-            result = internal_result < result ? internal_result : result;
-        }
+        int internal_result = set_critical_time( { current_ancestors->at(j)->get_start_after(), current_ancestors->at(j)->get_end_before(), current_ancestors->at(j) } );
+        result = internal_result < result ? internal_result : result;
     }
     current_job_pair.job->set_critical_time(result - current_job_pair.job->get_time_to_spend());
     return result - current_job_pair.job->get_time_to_spend();
@@ -168,11 +166,8 @@ void Algorithm::run()
     pending_fronts.push_back(FrontData{0, std::vector<JobPair>()});
     for (int i = 0; i < pending_jobs.size(); i++)
     {
-        if (pending_jobs[i].job->check_predecessors() && pending_jobs[i].start_after <= 0)
-        {
-            pending_fronts[0].job_pairs.push_back(pending_jobs[i]);
-            pending_jobs.erase(pending_jobs.begin() + i);
-        }
+        pending_jobs[i].job->set_start_after(pending_jobs[i].start_after);
+        pending_jobs[i].job->set_end_before(pending_jobs[i].end_before);
         for (int j = 0; j < pending_jobs[i].worker_groups.size(); j++)
         {
             pending_jobs[i].worker_groups[j]->set_clock(&current_time);
@@ -181,6 +176,15 @@ void Algorithm::run()
     begin_set_critical_time();
 
     qDebug() << "Sorting done";
+
+    for (int i = 0; i < pending_jobs.size(); i++)
+    {
+        if (pending_jobs[i].job->check_predecessors() && pending_jobs[i].start_after <= 0)
+        {
+            pending_fronts[0].job_pairs.push_back(pending_jobs[i]);
+            pending_jobs.erase(pending_jobs.begin() + i);
+        }
+    }
 
     while (check_nearest_front())
     {

@@ -24,6 +24,10 @@ int Job::get_want_non_renewable() const
 void Job::done()
 {
     _done = true;
+    for (int i = 0; i < ancestors.size(); i++)
+    {
+        ancestors[i]->decrement_predecessors_count();
+    }
 }
 
 void Job::undone()
@@ -38,6 +42,8 @@ bool Job::is_done() const
 
 bool Job::check_predecessors()
 {
+    return predecessors_count == 0;
+    /*
     if (_predecessors_done) return true;
     for (int i = 0; i < predecessors.size(); i++)
     {
@@ -45,21 +51,41 @@ bool Job::check_predecessors()
     }
     _predecessors_done = true;
     return true;
+    */
 }
 
-void Job::set_predecessors(std::vector<Job*> new_predecessors)
+void Job::increment_predecessors_count()
 {
-    predecessors = new_predecessors;
+    predecessors_count++;
 }
 
-bool Job::is_predecessor(Job *job)
+void Job::decrement_predecessors_count()
+{
+    if (!predecessors_count) throw std::exception();
+    predecessors_count--;
+}
+
+void Job::set_ancestors(std::vector<Job*> new_ancestors)
+{
+    ancestors = new_ancestors;
+    for (int i = 0; i < new_ancestors.size(); i++)
+    {
+        new_ancestors[i]->increment_predecessors_count();
+    }
+}
+
+std::vector<Job*>* Job::get_ancestors()
+{
+    return &ancestors;
+}
+/*bool Job::is_predecessor(Job *job)
 {
     for (int i = 0; i < predecessors.size(); i++)
     {
         if (predecessors[i] == job) return true;
     }
     return false;
-}
+}*/
 
 int Job::get_critical_time() const
 {
@@ -80,4 +106,24 @@ void Job::set_critical_time(int time)
 void Job::reset_critical_time()
 {
     _critical_time = -1;
+}
+
+void Job::set_start_after(int time)
+{
+    begin_min = time;
+}
+
+int Job::get_start_after() const
+{
+    return begin_min;
+}
+
+void Job::set_end_before(int time)
+{
+    end_max = time;
+}
+
+int Job::get_end_before() const
+{
+    return end_max;
 }

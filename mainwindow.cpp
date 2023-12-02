@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     all_jobs.push_back(fifth_job);
     all_jobs.push_back(sixth_job);
     all_jobs.push_back(seventh_job);
-    first_job->set_predecessors({fourth_job, fifth_job});
+    first_job->set_ancestors({fourth_job, fifth_job});
 
     Plan common_plan = Plan({{8, 2}});
     Worker* first_worker = new Worker(common_plan);
@@ -74,7 +74,7 @@ void MainWindow::GenerateExample()
         int predecessor = QRandomGenerator::global()->bounded(0, ALL_JOBS_SIZE);
         if (predecessor < i)
         {
-            generated->set_predecessors({all_jobs[predecessor]});
+            generated->set_ancestors({all_jobs[predecessor]});
         }
     }
     auto rng = std::default_random_engine {};
@@ -155,10 +155,6 @@ void MainWindow::setupPlot(QCustomPlot *customPlot)
 {
     customPlot->setInteraction(QCP::iRangeDrag, true);
     customPlot->setInteraction(QCP::iRangeZoom, true);
-
-    QCPItemRect* rect = new QCPItemRect( ui->plot );
-    rect->topLeft->setCoords(QPointF(0,100));
-    rect->bottomRight->setCoords(QPointF(100,0));
     customPlot->xAxis->setLabel("time");
     customPlot->yAxis->setLabel("tasks");
 }
