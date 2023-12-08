@@ -3,6 +3,12 @@
 
 #include "worker.h"
 
+struct AssignedWorker
+{
+    Worker* worker;
+    int internal_id;
+};
+
 class WorkerGroup
 {
 private:
@@ -13,7 +19,7 @@ public:
     void set_clock(int* clock);
     void add_worker(Worker* new_worker);
     int get_earliest_placement_time(Job* job);
-    Worker* assign(Job* job);
+    AssignedWorker assign(Job* job);
 };
 
 #endif // WORKERGROUP_H

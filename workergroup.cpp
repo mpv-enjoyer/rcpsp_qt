@@ -44,7 +44,7 @@ int WorkerGroup::get_earliest_placement_time(Job *job)
     return min;
 }
 
-Worker* WorkerGroup::assign(Job *job)
+AssignedWorker WorkerGroup::assign(Job *job)
 {
     for (int i = 0; i < workers.size(); i++)
     {
@@ -52,7 +52,7 @@ Worker* WorkerGroup::assign(Job *job)
         if (workers[i]->is_free())
         {
             workers[i]->assign(job);
-            return workers[i];
+            return {workers[i], i};
         }
     }
     throw std::exception();

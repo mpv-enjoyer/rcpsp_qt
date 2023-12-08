@@ -10,6 +10,8 @@
 #include <algorithm>
 #include "algorithm.h"
 #include <signal.h>
+#include "axistag.h"
+#include "resultmodel.h"
 
 #undef QT_NO_DEBUG_OUTPUT
 
@@ -27,6 +29,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void GenerateExample();
+    void mousePressEvent(QMouseEvent *event);
 private slots:
 
     void on_spinBox_4_valueChanged(int arg1);
@@ -35,7 +38,18 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void yAxisChanged(QCPRange);
+
+    //void scrolledTable();
+
+    //void graphClicked(QCPAbstractItem* item, QMouseEvent* mouse_event);
+
+    //void on_verticalScrollBar_valueChanged(int value);
+
 private:
+    bool eventFilter(QObject *object, QEvent *event);
+    ResultModel* model;
+    std::vector<int> workers_indexes;
     int start_first_job_group_at = 0;
     Preference current_preference = NONE;
     Ui::MainWindow *ui;

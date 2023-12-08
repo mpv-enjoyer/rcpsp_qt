@@ -4,6 +4,7 @@
 #include "jobgroup.h"
 #include "workergroup.h"
 #include <QtDebug>
+#include <QProgressBar>
 
 struct JobPair
 {
@@ -11,6 +12,7 @@ struct JobPair
     int end_before;
     Job* job;
     std::vector<WorkerGroup*> worker_groups;
+    int id;
 };
 
 struct ResultPair
@@ -18,6 +20,9 @@ struct ResultPair
     Job* job;
     Worker* worker;
     int start;
+    int job_id;
+    int worker_group_id;
+    int worker_internal_id;
 };
 
 struct FrontData
@@ -52,6 +57,8 @@ class Algorithm
     bool check_nearest_front();
     int set_critical_time(JobPair current_job_pair);
     void begin_set_critical_time();
+    int initial_size_divided_by_100 = 1;
+    QProgressBar* log_bar = nullptr;
 public:
     Algorithm();
     void set_preference(Preference new_preference);
@@ -60,6 +67,7 @@ public:
     SearchResult binarySearch(const std::vector<FrontData>& arr, const FrontData& x);
     std::vector<ResultPair> get_completed();
     std::vector<JobPair> get_failed();
+    void set_log_bar(QProgressBar* bar);
 };
 
 #endif // ALGORITHM_H

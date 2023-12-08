@@ -10,6 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     algorithm.cpp \
+    axistag.cpp \
     colorlabel.cpp \
     job.cpp \
     jobgroup.cpp \
@@ -17,17 +18,20 @@ SOURCES += \
     mainwindow.cpp \
     plan.cpp \
     qcustomplot.cpp \
+    resultmodel.cpp \
     worker.cpp \
     workergroup.cpp
 
 HEADERS += \
     algorithm.h \
+    axistag.h \
     colorlabel.h \
     job.h \
     jobgroup.h \
     mainwindow.h \
     plan.h \
     qcustomplot.h \
+    resultmodel.h \
     worker.h \
     workergroup.h
 

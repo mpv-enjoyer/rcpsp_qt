@@ -11,7 +11,7 @@ void Algorithm::add_job_group(JobGroup* jobs, WorkerGroup* workers)
     {
         int start = jobs->get_start();
         int end = jobs->get_end();
-        JobPair new_pair = {start, end, jobs->get_job(i), { workers }};
+        JobPair new_pair = {start, end, jobs->get_job(i), { workers }, pending_jobs.size()};
         pending_jobs.push_back(new_pair);
     }
 }
@@ -39,6 +39,11 @@ bool compare_EST(JobPair lhs, JobPair rhs)
 bool compare_fronts(FrontData& lhs, FrontData& rhs)
 {
     return (lhs.time < rhs.time);
+}
+
+bool compare_result(ResultPair& lhs, ResultPair& rhs)
+{
+    return (lhs.job_id < rhs.job_id);
 }
 
 bool Algorithm::check_nearest_front()
@@ -92,14 +97,13 @@ bool Algorithm::check_nearest_front()
             if (earliest_placement == -1) continue;
             if (earliest_placement == 0)
             {
-                Worker* assigned_to = current_pending.worker_groups[j]->assign(current_pending.job);
-                assigned_jobs.push_back( {current_pending.job, assigned_to, current_time} );
+                AssignedWorker assigned_to = current_pending.worker_groups[j]->assign(current_pending.job);
+                assigned_jobs.push_back( {current_pending.job, assigned_to.worker, current_time, current_pending.id, j, assigned_to.internal_id} );
                 //qDebug() << "Moved to completed job" << current_pending.job->get_want_non_renewable() << " Time:" << current_time;
                 current_pending.worker_groups[j]->set_clock(&current_time);
                 current_front.job_pairs.erase(current_front.job_pairs.begin() + i);
                 assigned_count++;
                 new_front_time = -1;
-                if (assigned_count % 500 == 0) qDebug() << "Assigned job " << assigned_count;
                 i--;
                 break;
             }
@@ -162,6 +166,7 @@ void Algorithm::begin_set_critical_time()
 
 void Algorithm::run()
 {
+    initial_size_divided_by_100 = pending_jobs.size() < 100 ? 1 : pending_jobs.size() / 100;
     pending_fronts.clear();
     pending_fronts.push_back(FrontData{0, std::vector<JobPair>()});
     for (int i = 0; i < pending_jobs.size(); i++)
@@ -195,6 +200,8 @@ void Algorithm::run()
     {
         completed_jobs.push_back(assigned_jobs[i]);
     };
+
+    std::sort(completed_jobs.begin(), completed_jobs.end(), compare_result);
 
     qDebug() << "Ready to display";
 
@@ -232,4 +239,9 @@ std::vector<ResultPair> Algorithm::get_completed()
 std::vector<JobPair> Algorithm::get_failed()
 {
     return pending_jobs;
+}
+
+void Algorithm::set_log_bar(QProgressBar *bar)
+{
+    log_bar = bar;
 }
