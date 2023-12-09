@@ -33,6 +33,12 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <attribute name="horizontalHeaderVisible">
+       <bool>true</bool>
+      </attribute>
+      <attribute name="verticalHeaderMinimumSectionSize">
+       <number>1</number>
+      </attribute>
      </widget>
     </item>
     <item row="1" column="2">

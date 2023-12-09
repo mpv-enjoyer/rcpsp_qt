@@ -140,8 +140,8 @@ void MainWindow::updatePlot(QCustomPlot *customPlot, int overall_time)
         //workers_indexes[index] = index_worker;
         QCPItemRect* rect = new QCPItemRect( customPlot );
         rect->setBrush(QBrush(QColor("yellow")));
-        rect->topLeft->setCoords(QPointF(current_pair.start, index + 1));
-        rect->bottomRight->setCoords(QPointF(current_pair.start + current_pair.job->get_time_to_spend(), index));
+        rect->topLeft->setCoords(QPointF(current_pair.start, - index - 1));
+        rect->bottomRight->setCoords(QPointF(current_pair.start + current_pair.job->get_time_to_spend(), - index));
         model->append(current_pair);
     }
     ui->tableView->setModel(model);
@@ -153,6 +153,7 @@ void MainWindow::updatePlot(QCustomPlot *customPlot, int overall_time)
     customPlot->replot();
     customPlot->rescaleAxes();
     emit MainWindow::yAxisChanged(QCPRange(top_column, bottom_column));
+    //ui->tableView->scrollTo(index);
     //model->sort(0);
 }
 
@@ -163,12 +164,12 @@ void MainWindow::setupPlot(QCustomPlot *customPlot)
     customPlot->setInteraction(QCP::iRangeZoom, true);
     //customPlot->setInteraction(QCP::iSelectItems, true);
     //customPlot->setInteraction(QCP::);
-    customPlot->xAxis->setLabel("time");
+    customPlot->xAxis2->setLabel("time");
     customPlot->yAxis->setTicks(false);
-    //connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(yAxisChanged(QCPRange)));
+    connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(yAxisChanged(QCPRange)));
     //connect(ui->tableView->verticalScrollBar(), signal(valueChanged(int)));//, this, SLOT(yAxisChanged(QCPRange)))
     // initialize axis range (and scroll bar positions via signals we just connected):
-    customPlot->xAxis->setRange(0, 10, Qt::AlignLeft);
+    customPlot->xAxis2->setRange(0, 10, Qt::AlignLeft);
     customPlot->yAxis->setRange(0, 10, Qt::AlignLeft);
     //rightTag->setPen(mGraph1->pen());
     //connect(customPlot, SIGNAL(itemClick(QCPAbstractItem*,QMouseEvent*)), this, SLOT(graphClicked(QCPAbstractItem*,QMouseEvent*)));
@@ -176,6 +177,7 @@ void MainWindow::setupPlot(QCustomPlot *customPlot)
     QHeaderView* header=ui->tableView->verticalHeader();
     header->setDefaultSectionSize(20); // 20 px height
     header->sectionResizeMode(QHeaderView::Fixed);
+    //customPlot->axisRect(0)->addAxis(QCPAxis::atTop);
 }
 
 /*void MainWindow::graphClicked(QCPAbstractItem* item, QMouseEvent* mouse_event)
@@ -218,8 +220,21 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::yAxisChanged(QCPRange range)
 {
     //qDebug() << ui->plot->move();
-    ui->plot->yAxis->setRange(range.lower, range.upper, Qt::AlignCenter);
-    ui->tableView->showRow(range.lower);
+    //ui->plot->yAxis->setRange(range.lower, range.upper, Qt::AlignCenter);
+    //ui->tableView->showRow(range.lower);
+    range.lower *= -1;
+    range.upper *= -1;
+    if (!ui->tableView->model()) return;
+    auto index = ui->tableView->model()->index(range.lower, 0);
+    auto index2 = ui->tableView->model()->index(range.upper, 0);
+    ui->tableView->scrollTo(index);
+    ui->tableView->scrollTo(index2);
+    QHeaderView* header=ui->tableView->verticalHeader();
+    int bottom_child = ui->tableView->childrenRect().bottom();
+    int upper_child = ui->tableView->childrenRect().top() + 41;
+    header->setDefaultSectionSize((bottom_child - upper_child) / (range.lower - range.upper));
+
+    //header->sectionResizeMode(QHeaderView::Fixed);
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
@@ -230,9 +245,9 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
-    if ( object == ui->tableView && ( event->type() == QEvent::Scroll ) ) {
+    //if ( object == ui->tableView && ( event->type() == QEvent::Scroll ) ) {
         //event->Scroll
-        ui->tableView->showRow(1);
-    }
-    return false;
+      //  ui->tableView->showRow(1);
+    //}
+    return true;
 }
