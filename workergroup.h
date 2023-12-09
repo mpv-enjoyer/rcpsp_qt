@@ -20,6 +20,7 @@ public:
     void add_worker(Worker* new_worker);
     int get_earliest_placement_time(Job* job);
     AssignedWorker assign(Job* job);
+    int get_size();
 };
 
 #endif // WORKERGROUP_H

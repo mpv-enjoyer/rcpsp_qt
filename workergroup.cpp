@@ -57,3 +57,8 @@ AssignedWorker WorkerGroup::assign(Job *job)
     }
     throw std::exception();
 }
+
+int WorkerGroup::get_size()
+{
+    return workers.size();
+}

@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QStringList>
+#include <QString>
 #include "job.h"
 #include "qcustomplot.h"
 #include "colorlabel.h"
@@ -56,6 +58,47 @@ private:
     Algorithm algorithm;
     std::vector<Job*> all_jobs;
     std::vector<Worker*> all_workers;
+    void LoadCSV(QString file_name);
+};
+
+struct JobLoad
+{
+    Job* assign;
+    int id;
+    int time;
+    std::vector<int> ancestors;
+};
+
+struct WorkerLoad
+{
+    Worker* assign;
+    int id;
+    int plan;
+};
+
+struct PlanLoad
+{
+    Plan* assign;
+    int id;
+    int start_at;
+    std::vector<PlanElement> plan;
+};
+
+struct JobGroupLoad
+{
+    JobGroup* assign;
+    int id;
+    int start_after;
+    int end_before;
+    int worker_group;
+    std::vector<int> jobs;
+};
+
+struct WorkerGroupLoad
+{
+    WorkerGroup* assign;
+    int id;
+    std::vector<int> workers;
 };
 
 #endif // MAINWINDOW_H
