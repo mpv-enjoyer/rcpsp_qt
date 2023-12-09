@@ -1,0 +1,16 @@
+job;0;1;3;4
+job;1;7
+job;2;2
+job;3;8
+job;4;8
+job;5;8
+job;6;8
+plan;0;0;8;2
+worker;0;0
+worker;1;0
+worker;2;0
+worker_group;0;0;1
+worker_group;1;2
+job_group;0;1;50;1;0;1;6
+job_group;1;1;200;0;2;3;4;5
+preference;EST
