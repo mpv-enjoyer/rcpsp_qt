@@ -6,19 +6,19 @@ ChartView::ChartView(QWidget* base, std::vector<ResultPair>  result) : ContentWi
     waiting_set = new QBarSet("Ожидает");
     executed_set  = new QBarSet("Выполняется");
     critical_set = new QBarSet("Критическое время");
-    ready_set = new QBarSet("Время до окончания");
+    ready_set = new QBarSet("Остаток");
 
     QStringList left_list = QStringList();
 
     for (auto iter = result.begin(); iter != result.end(); iter++)
     {
-        QString current_left = "Job ";
+        QString current_left = "Работа №: ";
         current_left.append(QString().number(iter->job_id));
-        current_left.append(", Worker Group ");
+        current_left.append(", Рабочая группа: ");
         current_left.append(QString().number(iter->worker_group_id));
-        current_left.append(", Worker Internal ");
+        current_left.append(", ID работника: ");
         current_left.append(QString().number(iter->worker_internal_id));
-        current_left.append(", Start at ");
+        current_left.append(", Начало: ");
         current_left.append(QString().number(iter->start));
         left_list.append(current_left);
         //current_left.append(QString().number());
@@ -83,7 +83,7 @@ void ChartView::reload(const std::vector<ResultPair>&  result)
     waiting_set = new QBarSet("Ожидает");
     executed_set  = new QBarSet("Выполняется");
     critical_set = new QBarSet("Критическое время");
-    ready_set = new QBarSet("Время до окончания");
+    ready_set = new QBarSet("Остаток");
 
     axisY->clear();
 
@@ -133,4 +133,5 @@ void ChartView::reload(const std::vector<ResultPair>&  result)
     //auto axisX = new QValueAxis;
    // chart->addAxis(axisX, Qt::AlignBottom);
     currentseries->attachAxis(axisX);
+    axisX->setTickCount(15);
 }

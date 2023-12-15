@@ -43,7 +43,7 @@ bool compare_fronts(FrontData& lhs, FrontData& rhs)
 
 bool compare_result(ResultPair& lhs, ResultPair& rhs)
 {
-    return (lhs.job_id < rhs.job_id);
+    return (lhs.job_id > rhs.job_id);
 }
 
 bool Algorithm::check_nearest_front()
