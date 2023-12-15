@@ -8,12 +8,14 @@
 #include "qcustomplot.h"
 #include "colorlabel.h"
 #include <qmatrix.h>
+#include <QtCharts>
 #include <QRandomGenerator>
 #include <algorithm>
 #include "algorithm.h"
 #include <signal.h>
 #include "axistag.h"
 #include "resultmodel.h"
+#include "chartview.h"
 
 #undef QT_NO_DEBUG_OUTPUT
 
@@ -26,8 +28,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    void setupPlot(QCustomPlot *customPlot);
-    void updatePlot(QCustomPlot *customPlot, int overall_time);
+    void updatePlot(int overall_time);
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     void GenerateExample();
@@ -40,7 +41,7 @@ private slots:
 
     void on_pushButton_clicked();
 
-    void yAxisChanged(QCPRange);
+   // void yAxisChanged(QCPRange);
 
     //void scrolledTable();
 
@@ -59,6 +60,7 @@ private:
     std::vector<Job*> all_jobs;
     std::vector<Worker*> all_workers;
     void LoadCSV(QString file_name);
+    ChartView* chartview;
 };
 
 struct JobLoad

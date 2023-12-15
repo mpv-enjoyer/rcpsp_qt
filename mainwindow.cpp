@@ -43,7 +43,48 @@ MainWindow::MainWindow(QWidget *parent)
     algorithm.set_preference(EST);
     algorithm.run();*/
     ui->setupUi(this);
-    setupPlot(ui->plot);
+    //setupPlot(ui->plot);
+
+    // chartview = ui->widget;
+    /*
+    auto set0 = new QBarSet("Jane");
+    auto set1 = new QBarSet("John");
+    auto set2 = new QBarSet("Axel");
+    auto set3 = new QBarSet("Mary");
+    auto set4 = new QBarSet("Samantha");
+    *set0 << 1 << 2 << 3 << 4 << 5 << 6;
+    *set1 << 5 << 0 << 0 << 4 << 0 << 7;
+    *set2 << 3 << 5 << 8 << 13 << 8 << 5;
+    *set3 << 5 << 6 << 7 << 3 << 4 << 5;
+    *set4 << 9 << 7 << 5 << 3 << 1 << 2;
+
+    auto series = new QHorizontalStackedBarSeries;
+    series->append(set0);
+    series->append(set1);
+    series->append(set2);
+    series->append(set3);
+    series->append(set4);
+
+    chart = new QChart();
+    chart->addSeries(series);
+    chart->setTitle("Simple Horizontal Stacked Bar Chart");
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+    QStringList categories {"Jan", "Feb", "Mar", "Apr", "May", "Jun"};
+    auto axisY = new QBarCategoryAxis;
+    axisY->append(categories);
+    chart->addAxis(axisY, Qt::AlignLeft);
+    series->attachAxis(axisY);
+    auto axisX = new QValueAxis;
+    chart->addAxis(axisX, Qt::AlignBottom);
+    series->attachAxis(axisX);
+    chart->legend()->setVisible(true);
+    chart->legend()->setAlignment(Qt::AlignBottom);
+    auto chartview = new QChartView(ui->chartWidget);
+    chartview->setChart(chart);
+    chartview->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    chartview->setBaseSize(500, 500);
+    chartview->setMinimumSize(500, 500);
+    chartview->setRubberBand(QChartView::RectangleRubberBand);*/
     //updatePlot(ui->plot, 15);
 
 }
@@ -121,11 +162,50 @@ void MainWindow::GenerateExample()
     qDebug() << "example generated";
 }
 
-void MainWindow::updatePlot(QCustomPlot *customPlot, int overall_time)
+void MainWindow::updatePlot(int overall_time)
 {
-    customPlot->clearItems();
-    customPlot->addGraph();
     std::vector<ResultPair> current_completed = algorithm.get_completed();
+    ui->widget->reload(current_completed);
+    //chartview->reload(current_completed);
+    //chartview = new ChartView(ui->centralwidget, current_completed);
+    /*
+    auto unable_set  = new QBarSet("Не может выполняться");
+    auto waiting_set = new QBarSet("Ожидает");
+    auto executed_set  = new QBarSet("Выполняется");
+    auto ready_set = new QBarSet("Работа выполнена");
+    std::vector<ResultPair> current_completed = algorithm.get_completed();
+
+    auto series = new QHorizontalStackedBarSeries;
+    series->append(unable_set);
+    series->append(waiting_set);
+    series->append(executed_set);
+    series->append(ready_set);
+
+    chart = new QChart();
+    chart->addSeries(series);
+    chart->setTitle("Диаграмма Ганта");
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+    QStringList categories {"Jan", "Feb", "Mar", "Apr", "May", "Jun"};
+    auto axisY = new QBarCategoryAxis;
+    axisY->append(categories);
+    chart->addAxis(axisY, Qt::AlignLeft);
+    series->attachAxis(axisY);
+    auto axisX = new QValueAxis;
+    chart->addAxis(axisX, Qt::AlignBottom);
+    series->attachAxis(axisX);
+    chart->legend()->setVisible(true);
+    chart->legend()->setAlignment(Qt::AlignBottom);
+    auto chartview = new QChartView(ui->chartWidget);
+    chartview->setChart(chart);
+    chartview->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    //chartview->setBaseSize(500, 500);
+    //chartview->setMinimumSize(500, 500);
+    chartview->setRubberBand(QChartView::RectangleRubberBand);*/
+
+
+
+    /*customPlot->clearItems();
+    customPlot->addGraph();
     //workers_indexes = std::vector<int>(all_jobs.size(), -1);
     model = new ResultModel();
     for (int i = 0; i < current_completed.size(); i++)
@@ -153,11 +233,11 @@ void MainWindow::updatePlot(QCustomPlot *customPlot, int overall_time)
     customPlot->rescaleAxes();
     emit MainWindow::yAxisChanged(QCPRange(top_column, bottom_column));
     //ui->tableView->scrollTo(index);
-    //model->sort(0);
+    //model->sort(0);*/
 }
 
 //Thanks to https://www.qcustomplot.com/index.php/support/forum/2213
-void MainWindow::setupPlot(QCustomPlot *customPlot)
+/*void MainWindow::setupPlot(QCustomPlot *customPlot)
 {
     customPlot->setInteraction(QCP::iRangeDrag, true);
     customPlot->setInteraction(QCP::iRangeZoom, true);
@@ -165,7 +245,7 @@ void MainWindow::setupPlot(QCustomPlot *customPlot)
     //customPlot->setInteraction(QCP::);
     customPlot->xAxis2->setLabel("time");
     customPlot->yAxis->setTicks(false);
-    connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(yAxisChanged(QCPRange)));
+    //connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(yAxisChanged(QCPRange)));
     //connect(ui->tableView->verticalScrollBar(), signal(valueChanged(int)));//, this, SLOT(yAxisChanged(QCPRange)))
     // initialize axis range (and scroll bar positions via signals we just connected):
     customPlot->xAxis2->setRange(0, 10, Qt::AlignLeft);
@@ -177,7 +257,7 @@ void MainWindow::setupPlot(QCustomPlot *customPlot)
     header->setDefaultSectionSize(20); // 20 px height
     header->sectionResizeMode(QHeaderView::Fixed);
     //customPlot->axisRect(0)->addAxis(QCPAxis::atTop);
-}
+}*/
 
 /*void MainWindow::graphClicked(QCPAbstractItem* item, QMouseEvent* mouse_event)
 {
@@ -213,11 +293,11 @@ void MainWindow::on_pushButton_clicked()
     if (used) return;
     //GenerateExample();
     algorithm.run();
-    updatePlot(ui->plot, 10);
+    updatePlot(10);
     used = true;
 }
 
-void MainWindow::yAxisChanged(QCPRange range)
+/*void MainWindow::yAxisChanged(QCPRange range)
 {
     //qDebug() << ui->plot->move();
     //ui->plot->yAxis->setRange(range.lower, range.upper, Qt::AlignCenter);
@@ -235,7 +315,7 @@ void MainWindow::yAxisChanged(QCPRange range)
     header->setDefaultSectionSize((bottom_child - upper_child) / (range.lower - range.upper));
 
     //header->sectionResizeMode(QHeaderView::Fixed);
-}
+}*/
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {

@@ -1,6 +1,8 @@
 QT       += core gui
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
+QT       +=  widgets
+QT       += charts
+QT +=  printsupport
+greaterThan(QT_MAJOR_VERSION, 5):
 
 CONFIG += c++17
 
@@ -20,7 +22,9 @@ SOURCES += \
     qcustomplot.cpp \
     resultmodel.cpp \
     worker.cpp \
-    workergroup.cpp
+    workergroup.cpp \
+    chartview.cpp \
+    contentwidget.cpp
 
 HEADERS += \
     algorithm.h \
@@ -31,9 +35,12 @@ HEADERS += \
     mainwindow.h \
     plan.h \
     qcustomplot.h \
+    qcustomplot.h \
     resultmodel.h \
     worker.h \
-    workergroup.h
+    workergroup.h \
+    chartview.h \
+    contentwidget.h
 
 FORMS += \
     mainwindow.ui
