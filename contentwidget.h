@@ -30,6 +30,9 @@ protected:
 private:
     QChartView *m_defaultChartView = nullptr;
     bool m_loaded = false;
+
+private slots:
+    void rangeChanged(qreal,qreal);
 };
 
 #endif

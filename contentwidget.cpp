@@ -62,3 +62,11 @@ void ContentWidget::setDefaultChartView(QChartView *view)
     m_defaultChartView = view;
     m_defaultChartView->setRenderHint(QPainter::Antialiasing);
 }
+
+void ContentWidget::rangeChanged(qreal min, qreal max)
+{
+    qreal diff = max - min;
+    int interval = diff / 15;
+    auto axX = ((QValueAxis*)sender());// m_defaultChartView->chart()->axisX();
+    axX->setTickInterval(interval);
+}

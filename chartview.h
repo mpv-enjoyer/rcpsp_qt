@@ -19,6 +19,8 @@ class ChartView: public ContentWidget
     QBarSet* ready_set;
     QBarCategoryAxis* axisY;
     QHorizontalStackedBarSeries* series = nullptr;
+private slots:
+    void rangeChanged(qreal min, qreal max);
 public:
     ChartView(QWidget* base, std::vector<ResultPair>  result = std::vector<ResultPair>());
     void reload(const std::vector<ResultPair>& result);
