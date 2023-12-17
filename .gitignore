@@ -1,3 +1,5 @@
 qcustomplot.cpp
 qcustomplot.h
 .oldgit
+*.o
+moc_*
