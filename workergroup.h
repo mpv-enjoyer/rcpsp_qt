@@ -9,6 +9,12 @@ struct AssignedWorker
     int internal_id;
 };
 
+struct Placement
+{
+    Worker* worker;
+    int time_before;
+};
+
 class WorkerGroup
 {
 private:
@@ -18,7 +24,7 @@ public:
     WorkerGroup();
     void set_clock(int* clock);
     void add_worker(Worker* new_worker);
-    int get_earliest_placement_time(Job* job);
+    Placement get_earliest_placement_time(Job* job);
     AssignedWorker assign(Job* job);
     int get_size();
 };

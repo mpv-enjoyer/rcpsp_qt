@@ -20,9 +20,9 @@ void WorkerGroup::add_worker(Worker* new_worker)
     workers.push_back(new_worker);
 }
 
-int WorkerGroup::get_earliest_placement_time(Job *job)
+Placement WorkerGroup::get_earliest_placement_time(Job *job)
 {
-    int min = -1;
+    Placement output = {nullptr, -1};
     int job_time = job->get_time_to_spend();
     for (int i = 0; i < workers.size(); i++)
     {
@@ -38,13 +38,15 @@ int WorkerGroup::get_earliest_placement_time(Job *job)
             if (current_nearest == -1) continue;
             current_nearest = current_nearest + will_be_free_at - *current_time;
             //current_nearest += (will_end_current_work - *current_time);
-            if (current_nearest == -2) throw std::exception();
         }
         if (current_nearest == -1) continue;
-        if (min == -1) min = current_nearest;
-        if (min > current_nearest) min = current_nearest;
+        if (!output.worker || output.time_before > current_nearest)
+        {
+            output.worker = workers[i];
+            output.time_before = current_nearest;
+        }
     }
-    return min;
+    return output;
 }
 
 AssignedWorker WorkerGroup::assign(Job *job)

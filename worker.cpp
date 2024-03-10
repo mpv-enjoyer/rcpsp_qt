@@ -17,6 +17,10 @@ void Worker::assign(Job *job)
     {
         throw std::exception();
     }
+    if (preserved_until > *clock)
+    {
+        throw std::exception();
+    }
     int job_ends_at = *clock + job->get_time_to_spend();
     int time_ready = job_ends_at + plan.get_time_until_ready(job_ends_at);
     current_jobs.push_back({*clock, job, time_ready});
@@ -25,6 +29,10 @@ void Worker::assign(Job *job)
 
 void Worker::update()
 {
+    if (preserved_until != -1 && preserved_until <= *clock)
+    {
+        preserved_until = -1;
+    }
     for (int i = 0; i < current_jobs.size(); i++)
     {
         if (*clock >= current_jobs[i].will_be_free_at)
@@ -39,6 +47,7 @@ void Worker::update()
 bool Worker::is_free(float occupancy)
 {
     update();
+    if (preserved_until != -1) return false;
     if (!plan.is_ready(*clock)) return false;
     return 1.0f - current_occupancy >= occupancy;
 }
@@ -62,19 +71,47 @@ int Worker::will_be_free_after(float occupancy)
     bool ready = plan.is_ready(current_time);
     if (!ready)
     {
-        return plan.get_time_until_ready(current_time);// + current_time; THIS DOESN'T MAKE SENSE
+        return plan.get_time_until_ready(current_time);
     }
     if (is_free(occupancy))
     {
         return 0;
     }
     float need_occupancy = occupancy + current_occupancy - 1.0f;
-    for (int i = 0; i < current_jobs.size(); i++)
+    if (preserved_until != -1)
+    {
+        for (int i = 0; i < current_jobs.size(); i++)
+        {
+            if (current_jobs[i].will_be_free_at >= preserved_until)
+            {
+                need_occupancy -= current_jobs[i].job->get_occupancy();
+            }
+        }
+        if (need_occupancy <= 0) return preserved_until - current_time;
+        for (int i = 0; i < current_jobs.size(); i++)
+        {
+            if (current_jobs[i].will_be_free_at < preserved_until)
+            {
+                need_occupancy -= current_jobs[i].job->get_occupancy();
+            }
+            if (need_occupancy <= 0) return current_jobs[i].will_be_free_at - current_time;
+        }
+    }
+    else for (int i = 0; i < current_jobs.size(); i++)
     {
         need_occupancy -= current_jobs[i].job->get_occupancy();
         if (need_occupancy <= 0) return current_jobs[i].will_be_free_at - current_time;
     }
     throw std::exception();
+}
+
+void Worker::preserve(int interval)
+{
+    update();
+    if (!is_free(1.0f)) throw std::exception();
+    if (preserved_until != -1) throw std::exception();
+    if (interval <= 0) return;
+    preserved_until = *clock + interval;
 }
 
 const Plan Worker::get_plan()

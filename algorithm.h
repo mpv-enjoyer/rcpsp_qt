@@ -59,6 +59,7 @@ class Algorithm
     void begin_set_critical_time();
     int initial_size_divided_by_100 = 1;
     QProgressBar* log_bar = nullptr;
+    int look_ahead_time = 0;
 public:
     Algorithm();
     void set_preference(Preference new_preference);

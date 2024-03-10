@@ -18,6 +18,7 @@ private:
     Plan plan;
     std::vector<CurrentJob> current_jobs;
     float current_occupancy = 0.0f;
+    int preserved_until = -1;
 public:
     Worker(Plan want_plan);
     void update();
@@ -27,6 +28,7 @@ public:
     const Job* get_job(int index);
     int get_job_count();
     int will_be_free_after(float occupancy = 1.0f);
+    void preserve(int interval);
     const Plan get_plan();
 };
 
