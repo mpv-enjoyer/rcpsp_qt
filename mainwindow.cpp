@@ -98,13 +98,21 @@ void MainWindow::GenerateExample()
 {
     const int LOWEST_JOB_TIME = 3;
     const int HIGHEST_JOB_TIME = 20;
-    const int ALL_JOBS_SIZE = 10000;
-    const int ALL_WORKERS_SIZE = 500;
+    const int ALL_JOBS_SIZE = 1000;
+    const int ALL_WORKERS_SIZE = 50;
     const int JOB_GROUP_LOWEST_BEGIN = 0;
     const int JOB_GROUP_HIGHEST_BEGIN = 1000;
-    const int JOB_GROUP_LOWEST_END  = 100000;
+    const int JOB_GROUP_LOWEST_END  = 10000;
     const int JOB_GROUP_HIGHEST_END = 10000000;
-    const int JOB_GROUPS_COUNT = 100;
+    const int JOB_GROUPS_COUNT = 1;
+    const int GROUP_SIZE_ENTROPY = 2;
+    const Plan COMMON_PLAN = Plan({{30, 2}});
+
+    QString filename = "generated.csv";
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadWrite)) qDebug() << "cannot create generated.csv";
+    QTextStream stream(&file);
+
     qDebug() << "Begin example generation";
     all_jobs.clear();
     for (int i = 0; i < ALL_JOBS_SIZE; i++)
@@ -113,52 +121,71 @@ void MainWindow::GenerateExample()
         Job* generated = new Job(0, 0, time);
         all_jobs.push_back(generated);
         int predecessor = QRandomGenerator::global()->bounded(0, ALL_JOBS_SIZE);
+        stream << "job;" << i << ";" << time;
         if (predecessor < i)
         {
             generated->set_ancestors({all_jobs[predecessor]});
+            stream << ";" << predecessor;
         }
+        stream << '\n';
     }
     auto rng = std::default_random_engine {};
-    std::shuffle(all_jobs.begin(), all_jobs.end(), rng);
+    stream << "plan;" << 0 << ";" << 0;
+    for (int i = 0; i < COMMON_PLAN.get_elements().size(); i++)
+    {
+        stream << ";" << COMMON_PLAN.get_elements()[i].work << ";" << COMMON_PLAN.get_elements()[i].rest;
+    }
+    stream << '\n';
+    //std::shuffle(all_jobs.begin(), all_jobs.end(), rng);
     int current_job = 0;
     std::vector<JobGroup*> job_groups = std::vector<JobGroup*>();
-    int true_job_groups_count = 0;
     for (int i = 0; i < JOB_GROUPS_COUNT; i++)
     {
-        int new_group_size = QRandomGenerator::global()->bounded(ALL_JOBS_SIZE / JOB_GROUPS_COUNT - 20, ALL_JOBS_SIZE / JOB_GROUPS_COUNT + 20);
+        stream << "job_group;" << i << ";";
+        int new_group_size = QRandomGenerator::global()->bounded(ALL_JOBS_SIZE / JOB_GROUPS_COUNT - GROUP_SIZE_ENTROPY, ALL_JOBS_SIZE / JOB_GROUPS_COUNT + GROUP_SIZE_ENTROPY);
         if (current_job + new_group_size >= ALL_JOBS_SIZE || i == JOB_GROUPS_COUNT - 1)
         {
             new_group_size = ALL_JOBS_SIZE - current_job;
         }
         std::vector<Job*> new_group_jobs = std::vector<Job*>(new_group_size);
-        for (int j = current_job; j < new_group_size + current_job; j++)
-        {
-            new_group_jobs[j - current_job] = all_jobs[j];
-        }
         int begin = QRandomGenerator::global()->bounded(JOB_GROUP_LOWEST_BEGIN, JOB_GROUP_HIGHEST_BEGIN);
         int end = QRandomGenerator::global()->bounded(JOB_GROUP_LOWEST_END, JOB_GROUP_HIGHEST_END);
+        stream << begin << ";" << end << ";0";
+        for (int j = current_job; j < new_group_size + current_job; j++)
+        {
+            stream << ";" << j;
+            new_group_jobs[j - current_job] = all_jobs[j];
+        }
+        stream << '\n';
         job_groups.push_back(new JobGroup(new_group_jobs, begin, end));
         current_job += new_group_size;
         if (current_job >= ALL_JOBS_SIZE) break;
     }
 
-    all_workers.clear();
-    WorkerGroup* worker_group = new WorkerGroup();
-    Plan common_plan = Plan({{30, 2}});
     for (int i = 0; i < ALL_WORKERS_SIZE; i++)
     {
-        Worker* generated = new Worker(common_plan);
+        stream << "worker;" << i << ";0\n";
+    }
+
+    all_workers.clear();
+    WorkerGroup* worker_group = new WorkerGroup();
+    stream << "worker_group;0";
+    for (int i = 0; i < ALL_WORKERS_SIZE; i++)
+    {
+        Worker* generated = new Worker(COMMON_PLAN);
         all_workers.push_back(generated);
         worker_group->add_worker(generated);
+        stream << ";" << i;
     }
+    stream << '\n';
 
     for (int i = 0; i < job_groups.size(); i++)
     {
-        algorithm.add_job_group(job_groups[i], worker_group);
+        //algorithm.add_job_group(job_groups[i], worker_group);
     }
 
-    std::shuffle(all_jobs.begin(), all_jobs.end(), rng);
-    algorithm.set_preference(NONE);
+    //std::shuffle(all_jobs.begin(), all_jobs.end(), rng);
+    //algorithm.set_preference(NONE);
     qDebug() << "example generated";
 }
 
@@ -166,6 +193,7 @@ void MainWindow::updatePlot(int overall_time)
 {
     std::vector<ResultPair> current_completed = algorithm.get_completed();
     ui->widget->reload(current_completed);
+    qDebug() << "result should be shown";
     //chartview->reload(current_completed);
     //chartview = new ChartView(ui->centralwidget, current_completed);
     /*
@@ -398,7 +426,7 @@ void MainWindow::LoadCSV(QString file_name)
         {
             if (list[1] == "SPT") algorithm.set_preference(SPT);
             if (list[1] == "LPT") algorithm.set_preference(LPT);
-            if (list[1] == "EST") algorithm.set_preference(EST);
+            if (list[1] == "FLS") algorithm.set_preference(EST);
         }
         // 1) job | worker | plan | job_group | worker_group | preference
         // 2) id (from 0 without skips) | preference: "SPT | LPT | EST"
@@ -489,3 +517,11 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
     //}
     return true;
 }
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    GenerateExample();
+    algorithm.run();
+    updatePlot(10);
+}
+

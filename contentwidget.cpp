@@ -53,14 +53,14 @@ void ContentWidget::resizeEvent(QResizeEvent *)
 void ContentWidget::createDefaultChartView(QChart *chart)
 {
     m_defaultChartView = new QChartView(chart, this);
-    m_defaultChartView->setRenderHint(QPainter::Antialiasing);
+    //m_defaultChartView->setRenderHint(QPainter::Antialiasing);
     m_defaultChartView->setRubberBand(QChartView::RectangleRubberBand);
 }
 
 void ContentWidget::setDefaultChartView(QChartView *view)
 {
     m_defaultChartView = view;
-    m_defaultChartView->setRenderHint(QPainter::Antialiasing);
+    //m_defaultChartView->setRenderHint(QPainter::Antialiasing);
 }
 
 void ContentWidget::rangeChanged(qreal min, qreal max)

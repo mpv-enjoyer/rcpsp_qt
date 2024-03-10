@@ -21,6 +21,7 @@ public:
     int get_time_until_ready(int current_time) const;
     int get_time_until_rest(int current_time) const;
     int get_time_nearest_possible(int current_time, int job_time) const;
+    const std::vector<PlanElement>& get_elements() const;
 };
 
 #endif // PLAN_H

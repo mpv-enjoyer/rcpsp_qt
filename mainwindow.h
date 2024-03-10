@@ -49,6 +49,8 @@ private slots:
 
     //void on_verticalScrollBar_valueChanged(int value);
 
+    void on_pushButton_2_clicked();
+
 private:
     bool eventFilter(QObject *object, QEvent *event);
     ResultModel* model;

@@ -1,0 +1,32 @@
+job;0;1;3;4
+job;1;7;2
+job;2;2;5
+job;3;8;5;6
+job;4;8;5
+job;5;8;6
+job;6;8
+job;7;8
+job;8;8
+job;9;8
+job;10;8
+job;11;8
+job;12;8
+job;13;8
+job;14;8
+job;15;8
+job;16;8
+job;17;8
+job;18;8
+job;19;8
+plan;0;0;10;2
+worker;0;0
+worker;1;0
+worker_group;0;0;1
+job_group;0;1;200;0;0;1;2;3;4;5;6;7;8;9;10;11;12;13;14;15;16;17;18;19
+preference;EST
+// 1) job | worker | plan | job_group | worker_group | preference
+// 2) id (from 0 without skips) | preference: "SPT | LPT | EST"
+// 3) job: time | worker: plan_id | plan: start_at | job_group: start_after | worker_group: workers...
+// 4) job: ancestors... | worker: | plan: work, rest... | job_group: end_before |
+// 5) | | | job_group: worker_group
+// 6) | | | job_group: jobs...

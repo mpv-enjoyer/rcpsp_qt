@@ -1,4 +1,5 @@
 #include "plan.h"
+#include <functional>
 
 Plan::Plan(std::vector<PlanElement> want_elements, int want_start) :
     elements(want_elements), start(want_start)
@@ -95,4 +96,9 @@ int Plan::get_time_nearest_possible(int current_time, int job_time) const
         current_time -= elements[current_element].rest;
     }
     return -1;
+}
+
+const std::vector<PlanElement>& Plan::get_elements() const
+{
+    return std::ref(elements);
 }
