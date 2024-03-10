@@ -1,9 +1,9 @@
 #include "job.h"
 
-Job::Job(int renewable, int non_renewable, int want_time_to_spend) :
+Job::Job(int renewable, int non_renewable, int want_time_to_spend, float occupancy) :
     want_renewable(renewable), want_non_renewable(non_renewable), time_to_spend(want_time_to_spend)
 {
-
+    this->occupancy = occupancy;
 }
 
 int Job::get_time_to_spend() const
@@ -126,4 +126,9 @@ void Job::set_end_before(int time)
 int Job::get_end_before() const
 {
     return end_max;
+}
+
+float Job::get_occupancy() const
+{
+    return occupancy;
 }

@@ -485,7 +485,7 @@ void MainWindow::LoadCSV(QString file_name)
             }
             if (!all_ancestors_assigned) continue;
             changed = true;
-            Job* job = new Job(0, 0, jobs_load[i].time);
+            Job* job = new Job(0, 0, jobs_load[i].time, 0.5f);
             job->set_ancestors(ancestors);
             jobs_load[i].assign = job;
             all_jobs[i] = job;

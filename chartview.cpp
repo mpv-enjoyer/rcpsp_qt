@@ -70,14 +70,6 @@ ChartView::ChartView(QWidget* base, std::vector<ResultPair>  result) : ContentWi
 void ChartView::reload(const std::vector<ResultPair>&  result)
 {
     auto cview = defaultChartView();
-    //chartview->chart()->series()
-            //cview->chart()->removeAllSeries();
-        /*auto barset = new QBarSet("sample data");
-        *barset << 1;
-        *barset << 2;
-        auto currentseries = new QHorizontalStackedBarSeries;
-        currentseries->append(barset);
-        cview->chart()->addSeries(currentseries);*/
     unable_set  = new QBarSet("");//("Нулевой момент времени - Поступление работы");
     waiting_set = new QBarSet("Поступление работы - Начало обслуживания");
     executed_set  = new QBarSet("Начало обслуживания - Конец обслуживания");
@@ -102,23 +94,12 @@ void ChartView::reload(const std::vector<ResultPair>&  result)
         current_left.append(QString().number(iter->worker_internal_id));
         current_left.append(", Начало: ");
         current_left.append(QString().number(iter->start));
-       // left_list.append(current_left);
-        //current_left.append(QString().number());
         axisY->append(current_left);
         int start_after = iter->job->get_start_after();
         int waiting = iter->start - start_after;
         int in_progress = iter->job->get_time_to_spend();
         int critical = iter->job->get_critical_time() - start_after - waiting - in_progress;
         int ready = iter->job->get_end_before() - start_after - waiting - in_progress - critical;
-       // QDebug() << start_after << waiting << in_progress << critical << ready;
-        //series->append(start_after, waiting, in_progress, critical, ready);
-
-        //series->append(barset);
-        //series->barSets()[0]->append(start_after);
-        //series->barSets()[1]->append(waiting);
-        //series->barSets()[2]->append(in_progress);
-        //series->barSets()[3]->append(critical);
-        //series->barSets()[4]->append(ready);
         *unable_set << start_after;
         *waiting_set << waiting;
         *executed_set << in_progress;

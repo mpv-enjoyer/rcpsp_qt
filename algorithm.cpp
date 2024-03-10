@@ -56,7 +56,13 @@ bool Algorithm::check_nearest_front()
     for (int i = 0; i < assigned_jobs.size(); i++)
     {
         assigned_jobs[i].worker->update();
-        if (assigned_jobs[i].worker->is_free())
+        bool found = false;
+        for (int j = 0; j < assigned_jobs[i].worker->get_job_count(); j++)
+        {
+            found |= (assigned_jobs[i].worker->get_job(j) == assigned_jobs[i].job);
+        }
+        //TODO: increased complexity here
+        if (!found)
         {
             completed_jobs.push_back(assigned_jobs[i]);
             assigned_jobs.erase(assigned_jobs.begin() + i);
@@ -93,7 +99,6 @@ bool Algorithm::check_nearest_front()
         int new_front_time = -1;
         for (int j = 0; j < current_pending.worker_groups.size(); j++)
         {
-
             int earliest_placement = current_pending.worker_groups[j]->get_earliest_placement_time(current_pending.job);
             qDebug() << "check" << current_pending.id << "job, got" << earliest_placement << "current:" << current_time << "groupsize:" << current_pending.worker_groups[0]->get_size();
             if (earliest_placement == -1) continue;

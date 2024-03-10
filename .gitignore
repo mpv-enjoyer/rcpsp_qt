@@ -3,3 +3,5 @@ qcustomplot.h
 .oldgit
 *.o
 moc_*
+build
+release
