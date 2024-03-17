@@ -96,16 +96,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::GenerateExample()
 {
-    const int LOWEST_JOB_TIME = 3;
+    const int LOWEST_JOB_TIME = 10;
     const int HIGHEST_JOB_TIME = 20;
-    const int ALL_JOBS_SIZE = 1000;
-    const int ALL_WORKERS_SIZE = 50;
+    const int ALL_JOBS_SIZE = 100000;
+    const int ALL_WORKERS_SIZE = 500;
     const int JOB_GROUP_LOWEST_BEGIN = 0;
     const int JOB_GROUP_HIGHEST_BEGIN = 1000;
     const int JOB_GROUP_LOWEST_END  = 10000;
     const int JOB_GROUP_HIGHEST_END = 10000000;
     const int JOB_GROUPS_COUNT = 1;
-    const int GROUP_SIZE_ENTROPY = 2;
+    const int GROUP_SIZE_ENTROPY = 1;
     const Plan COMMON_PLAN = Plan({{30, 2}});
 
     QString filename = "generated.csv";
@@ -192,8 +192,9 @@ void MainWindow::GenerateExample()
 void MainWindow::updatePlot(int overall_time)
 {
     std::vector<ResultPair> current_completed = algorithm.get_completed();
-    ui->widget->reload(current_completed);
-    qDebug() << "result should be shown";
+    setupPlot(ui->plot, current_completed);
+    //ui->widget->reload(current_completed);
+
     //chartview->reload(current_completed);
     //chartview = new ChartView(ui->centralwidget, current_completed);
     /*
@@ -262,6 +263,121 @@ void MainWindow::updatePlot(int overall_time)
     emit MainWindow::yAxisChanged(QCPRange(top_column, bottom_column));
     //ui->tableView->scrollTo(index);
     //model->sort(0);*/
+}
+
+QCPBars* createBars(QString name, QColor color, QCustomPlot* plot)
+{
+    QCPBars *set = new QCPBars(plot->yAxis, plot->xAxis);
+    set->setAntialiased(false);
+    set->setStackingGap(0);
+    set->setName(name);
+    set->setPen(QColor::fromRgb(0, 0, 0, 0));
+    set->setBrush(color);
+    return set;
+}
+
+void MainWindow::setupPlot(QCustomPlot *customPlot, const std::vector<ResultPair>& current_completed)
+{
+    // set dark background gradient:
+    QLinearGradient gradient(0, 0, 0, 400);
+    gradient.setColorAt(0, QColor(90, 90, 90));
+    gradient.setColorAt(0.38, QColor(105, 105, 105));
+    gradient.setColorAt(1, QColor(70, 70, 70));
+    customPlot->setBackground(QBrush(gradient));
+
+    // create empty bar chart objects:
+    QCPBars *unable_set = createBars("", QColor::fromRgb(255, 255, 255, 0), customPlot);
+    QCPBars *waiting_set = createBars("Поступление работы - Начало обслуживания", QColor::fromRgb(200, 200, 200), customPlot);
+    QCPBars *executed_set = createBars("Начало обслуживания - Конец обслуживания", QColor::fromRgb(0, 0, 0), customPlot);
+    QCPBars *critical_set = createBars("Конец обслуживания - Позднее время начала", QColor::fromRgb(200, 150, 150), customPlot);
+    QCPBars *ready_set = createBars("Позднее время начала - Директивный срок", QColor::fromRgb(200, 200, 200), customPlot);
+    // stack bars on top of each other:
+    waiting_set->moveAbove(unable_set);
+    executed_set->moveAbove(waiting_set);
+    critical_set->moveAbove(executed_set);
+    ready_set->moveAbove(critical_set);
+    // prepare y axis with country labels:
+    auto y_axis_size = current_completed.size();
+    QVector<double> ticks(y_axis_size);
+    QVector<QString> labels(y_axis_size);
+
+    for (auto i = 0; i < y_axis_size; i++)
+    {
+        ticks[i] = i + 1;
+        QString current_left = "Работа №: ";
+        current_left.append(QString().number(current_completed[i].job_id));
+        current_left.append(", Рабочая группа: ");
+        current_left.append(QString().number(current_completed[i].worker_group_id));
+        current_left.append(", ID работника: ");
+        current_left.append(QString().number(current_completed[i].worker_internal_id));
+        current_left.append(", Начало: ");
+        current_left.append(QString().number(current_completed[i].start));
+        labels[i] = current_left;
+    }
+
+    customPlot->xAxis->setTickLabelRotation(60);
+    customPlot->xAxis->setSubTicks(false);
+    customPlot->xAxis->setTickLength(0, 4);
+    customPlot->xAxis->setRange(0, 8);
+    customPlot->xAxis->setBasePen(QPen(Qt::white));
+    customPlot->xAxis->setTickPen(QPen(Qt::white));
+    customPlot->xAxis->grid()->setVisible(true);
+    customPlot->xAxis->grid()->setPen(QPen(QColor(130, 130, 130), 0, Qt::DotLine));
+    customPlot->xAxis->setTickLabelColor(Qt::white);
+    customPlot->xAxis->setLabelColor(Qt::white);
+
+    // prepare y axis:
+    QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+    textTicker->addTicks(ticks, labels);
+    customPlot->yAxis->setTicker(textTicker);
+    customPlot->yAxis->setRange(0, 12.1);
+    customPlot->yAxis->setPadding(5); // a bit more space to the left border
+    customPlot->yAxis->setLabel("Gantt chart (QCustomPlot)");
+    customPlot->yAxis->setBasePen(QPen(Qt::white));
+    customPlot->yAxis->setTickPen(QPen(Qt::white));
+    customPlot->yAxis->setSubTickPen(QPen(Qt::white));
+    customPlot->yAxis->grid()->setSubGridVisible(true);
+    customPlot->yAxis->setTickLabelColor(Qt::white);
+    customPlot->yAxis->setLabelColor(Qt::white);
+    customPlot->yAxis->grid()->setPen(QPen(QColor(130, 130, 130), 0, Qt::SolidLine));
+    customPlot->yAxis->grid()->setSubGridPen(QPen(QColor(130, 130, 130), 0, Qt::DotLine));
+
+    // Add data:
+
+    QVector<double> start_after_data(y_axis_size);
+    QVector<double> waiting_data(y_axis_size);
+    QVector<double> in_progress_data(y_axis_size);
+    QVector<double> critical_data(y_axis_size);
+    QVector<double> ready_data(y_axis_size);
+    for (auto i = 0; i < y_axis_size; i++)
+    {
+        auto start_after = current_completed[i].job->get_start_after();
+        auto waiting = current_completed[i].start - start_after;
+        auto in_progress = current_completed[i].job->get_time_to_spend();
+        auto critical = current_completed[i].job->get_critical_time() - start_after - waiting - in_progress;
+        auto ready = current_completed[i].job->get_end_before() - start_after - waiting - in_progress - critical;
+        start_after_data[i] = start_after;
+        waiting_data[i] = waiting;
+        in_progress_data[i] = in_progress;
+        critical_data[i] = critical;
+        ready_data[i] = ready;
+    }
+    unable_set->setData(ticks, start_after_data);
+    waiting_set->setData(ticks, waiting_data);
+    executed_set->setData(ticks, in_progress_data);
+    critical_set->setData(ticks, critical_data);
+    ready_set->setData(ticks, ready_data);
+
+    // setup legend:
+    customPlot->legend->setVisible(true);
+    customPlot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignTop|Qt::AlignHCenter);
+    customPlot->legend->setBrush(QColor(255, 255, 255, 100));
+    customPlot->legend->setBorderPen(Qt::NoPen);
+    QFont legendFont = font();
+    legendFont.setPointSize(10);
+    customPlot->legend->setFont(legendFont);
+    customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    customPlot->replot();
 }
 
 //Thanks to https://www.qcustomplot.com/index.php/support/forum/2213

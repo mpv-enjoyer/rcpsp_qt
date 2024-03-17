@@ -41,6 +41,7 @@ ChartView::ChartView(QWidget* base, std::vector<ResultPair>  result) : ContentWi
     series->append(executed_set);
     series->append(critical_set);
     series->append(ready_set);
+
     chart = new QChart();
     chart->addSeries(series);
     chart->setTitle("Диаграмма Ганта");

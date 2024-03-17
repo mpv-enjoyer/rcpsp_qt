@@ -45,6 +45,8 @@ private slots:
 
     //void scrolledTable();
 
+    void setupPlot(QCustomPlot *customPlot, const std::vector<ResultPair>& current_completed);
+
     //void graphClicked(QCPAbstractItem* item, QMouseEvent* mouse_event);
 
     //void on_verticalScrollBar_valueChanged(int value);
