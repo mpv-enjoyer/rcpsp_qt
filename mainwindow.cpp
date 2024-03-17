@@ -5,88 +5,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
-
-    /*Job* first_job = new Job(0, 1, 1);
-    Job* second_job = new Job(0, 2, 7);
-    Job* third_job = new Job(0, 3, 2);
-    Job* fourth_job = new Job(0, 4, 8);
-    Job* fifth_job = new Job(0, 5, 8);
-    Job* sixth_job = new Job(0, 6, 8);
-    Job* seventh_job = new Job(0, 7, 8);
-    all_jobs.push_back(first_job);
-    all_jobs.push_back(second_job);
-    all_jobs.push_back(third_job);
-    all_jobs.push_back(fourth_job);
-    all_jobs.push_back(fifth_job);
-    all_jobs.push_back(sixth_job);
-    all_jobs.push_back(seventh_job);
-    first_job->set_ancestors({fourth_job, fifth_job});
-
-    Plan common_plan = Plan({{8, 2}});
-    Worker* first_worker = new Worker(common_plan);
-    Worker* second_worker = new Worker(common_plan);
-    Worker* third_worker = new Worker(common_plan);
-    all_workers.push_back(first_worker);
-    all_workers.push_back(second_worker);
-    all_workers.push_back(third_worker);
-    WorkerGroup first_worker_group = WorkerGroup();
-    WorkerGroup second_worker_group = WorkerGroup();
-    first_worker_group.add_worker(first_worker);
-    first_worker_group.add_worker(second_worker);
-    second_worker_group.add_worker(third_worker);
-
-    int start_first_job_group_at = 1;
-    JobGroup* first_job_group = new JobGroup({first_job, second_job, seventh_job}, start_first_job_group_at, 50);
-    JobGroup* second_job_group = new JobGroup({third_job, fourth_job, fifth_job, sixth_job}, start_first_job_group_at, 200);
-    algorithm.add_job_group(first_job_group, &second_worker_group);
-    algorithm.add_job_group(second_job_group, &first_worker_group);
-    algorithm.set_preference(EST);
-    algorithm.run();*/
     ui->setupUi(this);
-    //setupPlot(ui->plot);
-
-    // chartview = ui->widget;
-    /*
-    auto set0 = new QBarSet("Jane");
-    auto set1 = new QBarSet("John");
-    auto set2 = new QBarSet("Axel");
-    auto set3 = new QBarSet("Mary");
-    auto set4 = new QBarSet("Samantha");
-    *set0 << 1 << 2 << 3 << 4 << 5 << 6;
-    *set1 << 5 << 0 << 0 << 4 << 0 << 7;
-    *set2 << 3 << 5 << 8 << 13 << 8 << 5;
-    *set3 << 5 << 6 << 7 << 3 << 4 << 5;
-    *set4 << 9 << 7 << 5 << 3 << 1 << 2;
-
-    auto series = new QHorizontalStackedBarSeries;
-    series->append(set0);
-    series->append(set1);
-    series->append(set2);
-    series->append(set3);
-    series->append(set4);
-
-    chart = new QChart();
-    chart->addSeries(series);
-    chart->setTitle("Simple Horizontal Stacked Bar Chart");
-    chart->setAnimationOptions(QChart::SeriesAnimations);
-    QStringList categories {"Jan", "Feb", "Mar", "Apr", "May", "Jun"};
-    auto axisY = new QBarCategoryAxis;
-    axisY->append(categories);
-    chart->addAxis(axisY, Qt::AlignLeft);
-    series->attachAxis(axisY);
-    auto axisX = new QValueAxis;
-    chart->addAxis(axisX, Qt::AlignBottom);
-    series->attachAxis(axisX);
-    chart->legend()->setVisible(true);
-    chart->legend()->setAlignment(Qt::AlignBottom);
-    auto chartview = new QChartView(ui->chartWidget);
-    chartview->setChart(chart);
-    chartview->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-    chartview->setBaseSize(500, 500);
-    chartview->setMinimumSize(500, 500);
-    chartview->setRubberBand(QChartView::RectangleRubberBand);*/
-    //updatePlot(ui->plot, 15);
-
 }
 
 MainWindow::~MainWindow()
@@ -94,175 +13,10 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::GenerateExample()
-{
-    const int LOWEST_JOB_TIME = 10;
-    const int HIGHEST_JOB_TIME = 20;
-    const int ALL_JOBS_SIZE = 100000;
-    const int ALL_WORKERS_SIZE = 500;
-    const int JOB_GROUP_LOWEST_BEGIN = 0;
-    const int JOB_GROUP_HIGHEST_BEGIN = 1000;
-    const int JOB_GROUP_LOWEST_END  = 10000;
-    const int JOB_GROUP_HIGHEST_END = 10000000;
-    const int JOB_GROUPS_COUNT = 1;
-    const int GROUP_SIZE_ENTROPY = 1;
-    const Plan COMMON_PLAN = Plan({{30, 2}});
-
-    QString filename = "generated.csv";
-    QFile file(filename);
-    if (!file.open(QIODevice::ReadWrite)) qDebug() << "cannot create generated.csv";
-    QTextStream stream(&file);
-
-    qDebug() << "Begin example generation";
-    all_jobs.clear();
-    for (int i = 0; i < ALL_JOBS_SIZE; i++)
-    {
-        int time = QRandomGenerator::global()->bounded(LOWEST_JOB_TIME, HIGHEST_JOB_TIME);
-        Job* generated = new Job(0, 0, time);
-        all_jobs.push_back(generated);
-        int predecessor = QRandomGenerator::global()->bounded(0, ALL_JOBS_SIZE);
-        stream << "job;" << i << ";" << time;
-        if (predecessor < i)
-        {
-            generated->set_ancestors({all_jobs[predecessor]});
-            stream << ";" << predecessor;
-        }
-        stream << '\n';
-    }
-    auto rng = std::default_random_engine {};
-    stream << "plan;" << 0 << ";" << 0;
-    for (int i = 0; i < COMMON_PLAN.get_elements().size(); i++)
-    {
-        stream << ";" << COMMON_PLAN.get_elements()[i].work << ";" << COMMON_PLAN.get_elements()[i].rest;
-    }
-    stream << '\n';
-    //std::shuffle(all_jobs.begin(), all_jobs.end(), rng);
-    int current_job = 0;
-    std::vector<JobGroup*> job_groups = std::vector<JobGroup*>();
-    for (int i = 0; i < JOB_GROUPS_COUNT; i++)
-    {
-        stream << "job_group;" << i << ";";
-        int new_group_size = QRandomGenerator::global()->bounded(ALL_JOBS_SIZE / JOB_GROUPS_COUNT - GROUP_SIZE_ENTROPY, ALL_JOBS_SIZE / JOB_GROUPS_COUNT + GROUP_SIZE_ENTROPY);
-        if (current_job + new_group_size >= ALL_JOBS_SIZE || i == JOB_GROUPS_COUNT - 1)
-        {
-            new_group_size = ALL_JOBS_SIZE - current_job;
-        }
-        std::vector<Job*> new_group_jobs = std::vector<Job*>(new_group_size);
-        int begin = QRandomGenerator::global()->bounded(JOB_GROUP_LOWEST_BEGIN, JOB_GROUP_HIGHEST_BEGIN);
-        int end = QRandomGenerator::global()->bounded(JOB_GROUP_LOWEST_END, JOB_GROUP_HIGHEST_END);
-        stream << begin << ";" << end << ";0";
-        for (int j = current_job; j < new_group_size + current_job; j++)
-        {
-            stream << ";" << j;
-            new_group_jobs[j - current_job] = all_jobs[j];
-        }
-        stream << '\n';
-        job_groups.push_back(new JobGroup(new_group_jobs, begin, end));
-        current_job += new_group_size;
-        if (current_job >= ALL_JOBS_SIZE) break;
-    }
-
-    for (int i = 0; i < ALL_WORKERS_SIZE; i++)
-    {
-        stream << "worker;" << i << ";0\n";
-    }
-
-    all_workers.clear();
-    WorkerGroup* worker_group = new WorkerGroup();
-    stream << "worker_group;0";
-    for (int i = 0; i < ALL_WORKERS_SIZE; i++)
-    {
-        Worker* generated = new Worker(COMMON_PLAN);
-        all_workers.push_back(generated);
-        worker_group->add_worker(generated);
-        stream << ";" << i;
-    }
-    stream << '\n';
-
-    for (int i = 0; i < job_groups.size(); i++)
-    {
-        //algorithm.add_job_group(job_groups[i], worker_group);
-    }
-
-    //std::shuffle(all_jobs.begin(), all_jobs.end(), rng);
-    //algorithm.set_preference(NONE);
-    qDebug() << "example generated";
-}
-
 void MainWindow::updatePlot(int overall_time)
 {
     std::vector<ResultPair> current_completed = algorithm.get_completed();
     setupPlot(ui->plot, current_completed);
-    //ui->widget->reload(current_completed);
-
-    //chartview->reload(current_completed);
-    //chartview = new ChartView(ui->centralwidget, current_completed);
-    /*
-    auto unable_set  = new QBarSet("Не может выполняться");
-    auto waiting_set = new QBarSet("Ожидает");
-    auto executed_set  = new QBarSet("Выполняется");
-    auto ready_set = new QBarSet("Работа выполнена");
-    std::vector<ResultPair> current_completed = algorithm.get_completed();
-
-    auto series = new QHorizontalStackedBarSeries;
-    series->append(unable_set);
-    series->append(waiting_set);
-    series->append(executed_set);
-    series->append(ready_set);
-
-    chart = new QChart();
-    chart->addSeries(series);
-    chart->setTitle("Диаграмма Ганта");
-    chart->setAnimationOptions(QChart::SeriesAnimations);
-    QStringList categories {"Jan", "Feb", "Mar", "Apr", "May", "Jun"};
-    auto axisY = new QBarCategoryAxis;
-    axisY->append(categories);
-    chart->addAxis(axisY, Qt::AlignLeft);
-    series->attachAxis(axisY);
-    auto axisX = new QValueAxis;
-    chart->addAxis(axisX, Qt::AlignBottom);
-    series->attachAxis(axisX);
-    chart->legend()->setVisible(true);
-    chart->legend()->setAlignment(Qt::AlignBottom);
-    auto chartview = new QChartView(ui->chartWidget);
-    chartview->setChart(chart);
-    chartview->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-    //chartview->setBaseSize(500, 500);
-    //chartview->setMinimumSize(500, 500);
-    chartview->setRubberBand(QChartView::RectangleRubberBand);*/
-
-
-
-    /*customPlot->clearItems();
-    customPlot->addGraph();
-    //workers_indexes = std::vector<int>(all_jobs.size(), -1);
-    model = new ResultModel();
-    for (int i = 0; i < current_completed.size(); i++)
-    {
-        ResultPair current_pair = current_completed[i];
-        //auto found = std::find(all_jobs.begin(), all_jobs.end(), current_pair.job);
-        //int index = std::distance(all_jobs.begin(), found);
-        int index = current_pair.job_id;
-        //auto found_worker = std::find(all_workers.begin(), all_workers.end(), current_pair.worker);
-        //int index_worker = std::distance(all_workers.begin(), found_worker);
-        //workers_indexes[index] = index_worker;
-        QCPItemRect* rect = new QCPItemRect( customPlot );
-        rect->setBrush(QBrush(QColor("yellow")));
-        rect->topLeft->setCoords(QPointF(current_pair.start, - index - 1));
-        rect->bottomRight->setCoords(QPointF(current_pair.start + current_pair.job->get_time_to_spend(), - index));
-        model->append(current_pair);
-    }
-    ui->tableView->setModel(model);
-    int top_column = ui->tableView->indexAt(ui->tableView->rect().topLeft()).row();
-    int bottom_column = ui->tableView->indexAt(ui->tableView->rect().bottomLeft()).row();
-    customPlot->yAxis->setRange(top_column, bottom_column, Qt::AlignCenter);
-    //customPlot->setViewport(QRect(0, bottom_column, 100, top_column));
-    //customPlot->setFixedHeight(bottom_column - top_column);
-    customPlot->replot();
-    customPlot->rescaleAxes();
-    emit MainWindow::yAxisChanged(QCPRange(top_column, bottom_column));
-    //ui->tableView->scrollTo(index);
-    //model->sort(0);*/
 }
 
 QCPBars* createBars(QString name, QColor color, QCustomPlot* plot)
@@ -380,56 +134,6 @@ void MainWindow::setupPlot(QCustomPlot *customPlot, const std::vector<ResultPair
     customPlot->replot();
 }
 
-//Thanks to https://www.qcustomplot.com/index.php/support/forum/2213
-/*void MainWindow::setupPlot(QCustomPlot *customPlot)
-{
-    customPlot->setInteraction(QCP::iRangeDrag, true);
-    customPlot->setInteraction(QCP::iRangeZoom, true);
-    //customPlot->setInteraction(QCP::iSelectItems, true);
-    //customPlot->setInteraction(QCP::);
-    customPlot->xAxis2->setLabel("time");
-    customPlot->yAxis->setTicks(false);
-    //connect(customPlot->yAxis, SIGNAL(rangeChanged(QCPRange)), this, SLOT(yAxisChanged(QCPRange)));
-    //connect(ui->tableView->verticalScrollBar(), signal(valueChanged(int)));//, this, SLOT(yAxisChanged(QCPRange)))
-    // initialize axis range (and scroll bar positions via signals we just connected):
-    customPlot->xAxis2->setRange(0, 10, Qt::AlignLeft);
-    customPlot->yAxis->setRange(0, 10, Qt::AlignLeft);
-    //rightTag->setPen(mGraph1->pen());
-    //connect(customPlot, SIGNAL(itemClick(QCPAbstractItem*,QMouseEvent*)), this, SLOT(graphClicked(QCPAbstractItem*,QMouseEvent*)));
-    //connect(customPlot, SIGNAL(selectionChangedByUser()), this, SLOT(graphClicked()));
-    QHeaderView* header=ui->tableView->verticalHeader();
-    header->setDefaultSectionSize(20); // 20 px height
-    header->sectionResizeMode(QHeaderView::Fixed);
-    //customPlot->axisRect(0)->addAxis(QCPAxis::atTop);
-}*/
-
-/*void MainWindow::graphClicked(QCPAbstractItem* item, QMouseEvent* mouse_event)
-{
-    //QCPSelectionRect* current_rect = ui->plot->selectionRect();
-    int left = item->clipAxisRect()->left();
-    int bottom = item->clipAxisRect()->top();
-    if (bottom == -1) return;
-    //if (workers_indexes[current_rect->rect().bottom()] == -1) return;
-    QString message = QString("Job '%1' Worker #%2 at %3 tick.").arg(bottom).arg(workers_indexes[bottom]).arg(left);
-    ui->textBrowser->append(message);
-    // since we know we only have QCPGraphs in the plot, we can immediately access interface1D()
-    // usually it's better to first check whether interface1D() returns non-zero, and only then use it.
-    //double dataValue = plottable->interface1D()->dataMainValue(dataIndex);
-    //QString message = QString("Clicked on graph '%1' at data point #%2 with value %3.").arg(plottable->name()).arg(dataIndex).arg(dataValue);
-    //ui->textBrowser->append(message);
-    //ui->statusbar->showMessage(message, 2500);
-}*/
-
-void MainWindow::on_spinBox_4_valueChanged(int arg1)
-{
-    start_first_job_group_at = arg1;
-}
-
-void MainWindow::on_spinBox_5_valueChanged(int arg1)
-{
-    current_preference = (Preference)arg1;
-}
-
 void MainWindow::on_pushButton_clicked()
 {
     LoadCSV("input.csv");
@@ -439,31 +143,6 @@ void MainWindow::on_pushButton_clicked()
     algorithm.run();
     updatePlot(10);
     used = true;
-}
-
-/*void MainWindow::yAxisChanged(QCPRange range)
-{
-    //qDebug() << ui->plot->move();
-    //ui->plot->yAxis->setRange(range.lower, range.upper, Qt::AlignCenter);
-    //ui->tableView->showRow(range.lower);
-    range.lower *= -1;
-    range.upper *= -1;
-    if (!ui->tableView->model()) return;
-    auto index = ui->tableView->model()->index(range.lower, 0);
-    auto index2 = ui->tableView->model()->index(range.upper, 0);
-    ui->tableView->scrollTo(index);
-    ui->tableView->scrollTo(index2);
-    QHeaderView* header=ui->tableView->verticalHeader();
-    int bottom_child = ui->tableView->childrenRect().bottom();
-    int upper_child = ui->tableView->childrenRect().top() + 41;
-    header->setDefaultSectionSize((bottom_child - upper_child) / (range.lower - range.upper));
-
-    //header->sectionResizeMode(QHeaderView::Fixed);
-}*/
-
-void MainWindow::mousePressEvent(QMouseEvent *event)
-{
-
 }
 
 void MainWindow::LoadCSV(QString file_name)
@@ -625,19 +304,25 @@ void MainWindow::LoadCSV(QString file_name)
     }
 }
 
-bool MainWindow::eventFilter(QObject *object, QEvent *event)
-{
-    //if ( object == ui->tableView && ( event->type() == QEvent::Scroll ) ) {
-        //event->Scroll
-      //  ui->tableView->showRow(1);
-    //}
-    return true;
-}
-
 void MainWindow::on_pushButton_2_clicked()
 {
-    GenerateExample();
+    Generator generator("generated.csv", Plan({{30, 2}}));
+    generator.lowestJobTime = 10;
+    generator.highestJobTime = 20;
+
+    generator.allJobsSize = 100000;
+    generator.allWorkersSize = 500;
+
+    generator.jobGroupLowestBegin = 0;
+    generator.jobGroupHighestBegin = 1000;
+    generator.jobGroupLowestEnd  = 10000;
+    generator.jobGroupHighestEnd = 10000000;
+
+    generator.jobGroupsCount = 1;
+    generator.groupSizeEntropy = 1;
+
+    generator.generate_and_write();
+
     algorithm.run();
     updatePlot(10);
 }
-

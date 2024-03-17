@@ -12,15 +12,13 @@ CONFIG += c++17
 
 SOURCES += \
     algorithm.cpp \
-    axistag.cpp \
-    colorlabel.cpp \
+    generator.cpp \
     job.cpp \
     jobgroup.cpp \
     main.cpp \
     mainwindow.cpp \
     plan.cpp \
     qcustomplot.cpp \
-    resultmodel.cpp \
     worker.cpp \
     workergroup.cpp \
     chartview.cpp \
@@ -28,15 +26,13 @@ SOURCES += \
 
 HEADERS += \
     algorithm.h \
-    axistag.h \
-    colorlabel.h \
+    generator.h \
     job.h \
     jobgroup.h \
     mainwindow.h \
     plan.h \
     qcustomplot.h \
     qcustomplot.h \
-    resultmodel.h \
     worker.h \
     workergroup.h \
     chartview.h \

@@ -5,3 +5,6 @@ qcustomplot.h
 moc_*
 build
 release
+.qmake.stash
+plot_test.pro.user.*
+rcpsp_qt-main.kd*
