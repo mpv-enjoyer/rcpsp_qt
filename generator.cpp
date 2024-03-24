@@ -37,10 +37,14 @@ void Generator::generate_and_write()
     for (int i = 0; i < allJobsSize; i++)
     {
         int time = QRandomGenerator::global()->bounded(lowestJobTime, highestJobTime);
-        Job* generated = new Job(0, 0, time);
+        Job* generated = new Job(0, 0, {{time, 0.25f}, {time, 0.50f}, {time, 0.1f}});
         all_jobs.push_back(generated);
         int predecessor = QRandomGenerator::global()->bounded(0, allJobsSize);
-        stream << "job;" << i << ";" << time;
+        stream << "job;" << i << ";";
+        stream << time << ";" << 0.25f << ";";
+        stream << time << ";" << 0.50f << ";";
+        stream << time << ";" << 0.1f << ";";
+        stream << "]";
         if (predecessor < i)
         {
             generated->set_ancestors({all_jobs[predecessor]});

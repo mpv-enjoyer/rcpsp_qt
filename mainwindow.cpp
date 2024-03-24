@@ -6,6 +6,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    _plot = Plot(ui->plot);
 }
 
 MainWindow::~MainWindow()
@@ -13,136 +14,17 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::updatePlot(int overall_time)
-{
-    std::vector<ResultPair> current_completed = algorithm.get_completed();
-    setupPlot(ui->plot, current_completed);
-}
-
-QCPBars* createBars(QString name, QColor color, QCustomPlot* plot)
-{
-    QCPBars *set = new QCPBars(plot->yAxis, plot->xAxis);
-    set->setAntialiased(false);
-    set->setStackingGap(0);
-    set->setName(name);
-    set->setPen(QColor::fromRgb(0, 0, 0, 0));
-    set->setBrush(color);
-    return set;
-}
-
-void MainWindow::setupPlot(QCustomPlot *customPlot, const std::vector<ResultPair>& current_completed)
-{
-    // set dark background gradient:
-    QLinearGradient gradient(0, 0, 0, 400);
-    gradient.setColorAt(0, QColor(90, 90, 90));
-    gradient.setColorAt(0.38, QColor(105, 105, 105));
-    gradient.setColorAt(1, QColor(70, 70, 70));
-    customPlot->setBackground(QBrush(gradient));
-
-    // create empty bar chart objects:
-    QCPBars *unable_set = createBars("", QColor::fromRgb(255, 255, 255, 0), customPlot);
-    QCPBars *waiting_set = createBars("Поступление работы - Начало обслуживания", QColor::fromRgb(200, 200, 200), customPlot);
-    QCPBars *executed_set = createBars("Начало обслуживания - Конец обслуживания", QColor::fromRgb(0, 0, 0), customPlot);
-    QCPBars *critical_set = createBars("Конец обслуживания - Позднее время начала", QColor::fromRgb(200, 150, 150), customPlot);
-    QCPBars *ready_set = createBars("Позднее время начала - Директивный срок", QColor::fromRgb(200, 200, 200), customPlot);
-    // stack bars on top of each other:
-    waiting_set->moveAbove(unable_set);
-    executed_set->moveAbove(waiting_set);
-    critical_set->moveAbove(executed_set);
-    ready_set->moveAbove(critical_set);
-    // prepare y axis with country labels:
-    auto y_axis_size = current_completed.size();
-    QVector<double> ticks(y_axis_size);
-    QVector<QString> labels(y_axis_size);
-
-    for (auto i = 0; i < y_axis_size; i++)
-    {
-        ticks[i] = i + 1;
-        QString current_left = "Работа №: ";
-        current_left.append(QString().number(current_completed[i].job_id));
-        current_left.append(", Рабочая группа: ");
-        current_left.append(QString().number(current_completed[i].worker_group_id));
-        current_left.append(", ID работника: ");
-        current_left.append(QString().number(current_completed[i].worker_internal_id));
-        current_left.append(", Начало: ");
-        current_left.append(QString().number(current_completed[i].start));
-        labels[i] = current_left;
-    }
-
-    customPlot->xAxis->setTickLabelRotation(60);
-    customPlot->xAxis->setSubTicks(false);
-    customPlot->xAxis->setTickLength(0, 4);
-    customPlot->xAxis->setRange(0, 8);
-    customPlot->xAxis->setBasePen(QPen(Qt::white));
-    customPlot->xAxis->setTickPen(QPen(Qt::white));
-    customPlot->xAxis->grid()->setVisible(true);
-    customPlot->xAxis->grid()->setPen(QPen(QColor(130, 130, 130), 0, Qt::DotLine));
-    customPlot->xAxis->setTickLabelColor(Qt::white);
-    customPlot->xAxis->setLabelColor(Qt::white);
-
-    // prepare y axis:
-    QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
-    textTicker->addTicks(ticks, labels);
-    customPlot->yAxis->setTicker(textTicker);
-    customPlot->yAxis->setRange(0, 12.1);
-    customPlot->yAxis->setPadding(5); // a bit more space to the left border
-    customPlot->yAxis->setLabel("Gantt chart (QCustomPlot)");
-    customPlot->yAxis->setBasePen(QPen(Qt::white));
-    customPlot->yAxis->setTickPen(QPen(Qt::white));
-    customPlot->yAxis->setSubTickPen(QPen(Qt::white));
-    customPlot->yAxis->grid()->setSubGridVisible(true);
-    customPlot->yAxis->setTickLabelColor(Qt::white);
-    customPlot->yAxis->setLabelColor(Qt::white);
-    customPlot->yAxis->grid()->setPen(QPen(QColor(130, 130, 130), 0, Qt::SolidLine));
-    customPlot->yAxis->grid()->setSubGridPen(QPen(QColor(130, 130, 130), 0, Qt::DotLine));
-
-    // Add data:
-
-    QVector<double> start_after_data(y_axis_size);
-    QVector<double> waiting_data(y_axis_size);
-    QVector<double> in_progress_data(y_axis_size);
-    QVector<double> critical_data(y_axis_size);
-    QVector<double> ready_data(y_axis_size);
-    for (auto i = 0; i < y_axis_size; i++)
-    {
-        auto start_after = current_completed[i].job->get_start_after();
-        auto waiting = current_completed[i].start - start_after;
-        auto in_progress = current_completed[i].job->get_time_to_spend();
-        auto critical = current_completed[i].job->get_critical_time() - start_after - waiting - in_progress;
-        auto ready = current_completed[i].job->get_end_before() - start_after - waiting - in_progress - critical;
-        start_after_data[i] = start_after;
-        waiting_data[i] = waiting;
-        in_progress_data[i] = in_progress;
-        critical_data[i] = critical;
-        ready_data[i] = ready;
-    }
-    unable_set->setData(ticks, start_after_data);
-    waiting_set->setData(ticks, waiting_data);
-    executed_set->setData(ticks, in_progress_data);
-    critical_set->setData(ticks, critical_data);
-    ready_set->setData(ticks, ready_data);
-
-    // setup legend:
-    customPlot->legend->setVisible(true);
-    customPlot->axisRect()->insetLayout()->setInsetAlignment(0, Qt::AlignTop|Qt::AlignHCenter);
-    customPlot->legend->setBrush(QColor(255, 255, 255, 100));
-    customPlot->legend->setBorderPen(Qt::NoPen);
-    QFont legendFont = font();
-    legendFont.setPointSize(10);
-    customPlot->legend->setFont(legendFont);
-    customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-    customPlot->replot();
-}
-
 void MainWindow::on_pushButton_clicked()
 {
+    all_jobs.clear();
+    all_workers.clear();
+    workers_indexes.clear();
+    start_first_job_group_at = 0;
+    algorithm = Algorithm();
     LoadCSV("input.csv");
-    static bool used = false;
-    if (used) return;
-    //GenerateExample();
+
     algorithm.run();
-    updatePlot(10);
-    used = true;
+    _plot.updatePlot(algorithm.get_completed());
 }
 
 void MainWindow::LoadCSV(QString file_name)
@@ -167,10 +49,15 @@ void MainWindow::LoadCSV(QString file_name)
         QStringList list = line.split(";");
         if (list[0] == "job")
         {
-            JobLoad current = { nullptr, 0, 0, std::vector<int>() };
+            JobLoad current = { nullptr, 0, {{0, 0}}, std::vector<int>() };
             current.id = list[1].toInt();
-            current.time = list[2].toInt();
-            for (int i = 3; i < list.size(); i++)
+            int i = 2;
+            for (; list[i] != ']'; i += 2)
+            {
+                current.occupancy.push_back({list[i].toInt(), list[i+1].toFloat()});
+            }
+            i++;
+            for (; i < list.size(); i++)
             {
                 current.ancestors.push_back(list[i].toInt());
             }
@@ -225,9 +112,9 @@ void MainWindow::LoadCSV(QString file_name)
         }
         // 1) job | worker | plan | job_group | worker_group | preference
         // 2) id (from 0 without skips) | preference: "SPT | LPT | EST"
-        // 3) job: time | worker: plan_id | plan: start_at | job_group: start_after | worker_group: workers...
-        // 4) job: ancestors... | worker: | plan: work, rest... | job_group: end_before |
-        // 5) | | | job_group: worker_group
+        // 3) job: time, busyness... | worker: plan_id | plan: start_at | job_group: start_after | worker_group: workers...
+        // 4) job: ] | worker: | plan: work, rest... | job_group: end_before |
+        // 5) job: ancestors... | | | job_group: worker_group
         // 6) | | | job_group: jobs...
     }
     file.close();
@@ -280,7 +167,7 @@ void MainWindow::LoadCSV(QString file_name)
             }
             if (!all_ancestors_assigned) continue;
             changed = true;
-            Job* job = new Job(0, 0, jobs_load[i].time, 0.5f);
+            Job* job = new Job(0, 0, jobs_load[i].occupancy);
             job->set_ancestors(ancestors);
             jobs_load[i].assign = job;
             all_jobs[i] = job;
@@ -324,5 +211,4 @@ void MainWindow::on_pushButton_2_clicked()
     generator.generate_and_write();
 
     algorithm.run();
-    updatePlot(10);
 }

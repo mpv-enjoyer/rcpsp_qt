@@ -13,6 +13,7 @@
 #include <signal.h>
 #include "chartview.h"
 #include "generator.h"
+#include "plot.h"
 
 #undef QT_NO_DEBUG_OUTPUT
 
@@ -25,16 +26,16 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    void updatePlot(int overall_time);
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private slots:
     void on_pushButton_clicked();
-    void setupPlot(QCustomPlot *customPlot, const std::vector<ResultPair>& current_completed);
+    //void setupPlot(QCustomPlot *customPlot, const std::vector<ResultPair>& current_completed);
     void on_pushButton_2_clicked();
 
 private:
+    Plot _plot;
     std::vector<int> workers_indexes;
     int start_first_job_group_at = 0;
     Preference current_preference = NONE;
@@ -50,7 +51,7 @@ struct JobLoad
 {
     Job* assign;
     int id;
-    int time;
+    std::vector<OccupancyPair> occupancy;
     std::vector<int> ancestors;
 };
 

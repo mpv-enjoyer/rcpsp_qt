@@ -18,6 +18,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     plan.cpp \
+    plot.cpp \
     qcustomplot.cpp \
     worker.cpp \
     workergroup.cpp \
@@ -31,6 +32,7 @@ HEADERS += \
     jobgroup.h \
     mainwindow.h \
     plan.h \
+    plot.h \
     qcustomplot.h \
     qcustomplot.h \
     worker.h \

@@ -5,6 +5,12 @@
 #include <QRandomGenerator>
 #include <QColor>
 
+struct OccupancyPair
+{
+    int time;
+    float occupancy;
+};
+
 class Job
 {
 private:
@@ -18,9 +24,9 @@ private:
     int want_renewable;
     int want_non_renewable;
     int time_to_spend;
-    float occupancy = 1.0f;
+    std::vector<OccupancyPair> occupancy;
 public:
-    Job(int renewable, int non_renewable, int time_to_spend, float occupancy = 1.0f);
+    Job(int renewable, int non_renewable, std::vector<OccupancyPair> occupancy);
     int get_time_to_spend() const;
     int get_want_renewable() const;
     int get_want_non_renewable() const;
@@ -41,7 +47,7 @@ public:
     int get_start_after() const;
     void set_end_before(int time);
     int get_end_before() const;
-    float get_occupancy() const;
+    std::vector<OccupancyPair> get_occupancy() const;
 };
 
 #endif // JOB_H
