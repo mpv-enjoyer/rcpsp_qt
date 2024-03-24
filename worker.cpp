@@ -83,6 +83,7 @@ bool Worker::is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time)
             {
                 difference -= current[i].time;
                 current.erase(current.begin());
+                i--;
             }
             else
             {
@@ -90,6 +91,7 @@ bool Worker::is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time)
                 break;
             }
         }
+        if (current.size() != 0) all_occupancies.push_back(current);
     }
     while (want_occupancy.size() != 0)
     {
@@ -105,7 +107,7 @@ bool Worker::is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time)
         }
         if (occupancy > 1.0f) return false;
     }
-    return false;
+    return true;
 }
 
 const Job* Worker::get_job(int index)

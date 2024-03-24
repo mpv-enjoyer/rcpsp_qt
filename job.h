@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <QRandomGenerator>
-#include <QColor>
 
 struct OccupancyPair
 {
