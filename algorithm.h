@@ -37,7 +37,7 @@ enum Preference
     NONE = 0,
     SPT = 1,
     LPT = 2,
-    EST = 3
+    FLS = 3
 };
 
 struct SearchResult

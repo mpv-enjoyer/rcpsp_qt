@@ -82,7 +82,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
         {
             if (list[1] == "SPT") algorithm.set_preference(SPT);
             if (list[1] == "LPT") algorithm.set_preference(LPT);
-            if (list[1] == "FLS") algorithm.set_preference(EST);
+            if (list[1] == "FLS") algorithm.set_preference(FLS);
         }
         // 1) job | worker | plan | job_group | worker_group | preference
         // 2) id (from 0 without skips) | preference: "SPT | LPT | EST"

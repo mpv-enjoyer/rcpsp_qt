@@ -89,7 +89,7 @@ bool Algorithm::check_nearest_front()
     case LPT:
         std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_LPT);
         break;
-    case EST:
+    case FLS:
         std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_EST);
         break;
     }
