@@ -15,6 +15,11 @@ void WorkerGroup::set_clock(int* clock)
     }
 }
 
+void WorkerGroup::set_global_id(int id)
+{
+    global_id = id;
+}
+
 void WorkerGroup::add_worker(Worker* new_worker)
 {
     workers.push_back(new_worker);
@@ -66,4 +71,9 @@ AssignedWorker WorkerGroup::assign(Job *job)
 int WorkerGroup::get_size()
 {
     return workers.size();
+}
+
+int WorkerGroup::get_global_id()
+{
+    return global_id;
 }

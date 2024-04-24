@@ -109,6 +109,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
     for (int i = 0; i < worker_groups_load.size(); i++)
     {
         WorkerGroup* worker_group = new WorkerGroup();
+        worker_group->set_global_id(worker_groups_load[i].id);
         worker_groups_load[i].assign = worker_group;
         std::swap(worker_groups_load[i], worker_groups_load[worker_groups_load[i].id]);
         for (int j = 0; j < worker_groups_load[i].workers.size(); j++)
@@ -143,6 +144,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             changed = true;
             Job* job = new Job(0, 0, jobs_load[i].occupancy);
             job->set_ancestors(ancestors);
+            job->set_global_id(i);
             jobs_load[i].assign = job;
             all_jobs[i] = job;
         }

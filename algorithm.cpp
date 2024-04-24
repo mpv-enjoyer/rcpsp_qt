@@ -105,7 +105,7 @@ bool Algorithm::check_nearest_front()
             if (earliest_placement.time_before == 0)
             {
                 AssignedWorker assigned_to = current_pending.worker_groups[j]->assign(current_pending.job);
-                assigned_jobs.push_back( {current_pending.job, assigned_to.worker, current_time, current_pending.id, j, assigned_to.internal_id} );
+                assigned_jobs.push_back( {current_pending.job, assigned_to.worker, current_time, current_pending.job->get_global_id(), current_pending.worker_groups[j]->get_global_id(), assigned_to.internal_id} );
                 //qDebug() << "Moved to completed job" << current_pending.job->get_want_non_renewable() << " Time:" << current_time;
                 current_pending.worker_groups[j]->set_clock(&current_time);
                 current_front.job_pairs.erase(current_front.job_pairs.begin() + i);

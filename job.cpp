@@ -131,6 +131,16 @@ int Job::get_end_before() const
     return end_max;
 }
 
+void Job::set_global_id(int id)
+{
+    global_id = id;
+}
+
+int Job::get_global_id()
+{
+    return global_id;
+}
+
 std::vector<OccupancyPair> Job::get_occupancy() const
 {
     return occupancy;
