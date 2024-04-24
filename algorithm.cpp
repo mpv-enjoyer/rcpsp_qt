@@ -256,3 +256,4 @@ void Algorithm::set_log_bar(QProgressBar *bar)
 {
     log_bar = bar;
 }
+

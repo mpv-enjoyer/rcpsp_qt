@@ -33,7 +33,7 @@ Placement WorkerGroup::get_earliest_placement_time(Job *job)
         }
         else
         {
-            int will_be_free_at = workers[i]->will_be_free_after(job->get_occupancy()) + *current_time;// + *current_time;
+            int will_be_free_at = workers[i]->can_be_placed_after(job->get_occupancy()) + *current_time;// + *current_time;
             current_nearest = workers[i]->get_plan().get_time_nearest_possible(will_be_free_at, job_time);
             if (current_nearest == -1) continue;
             current_nearest = current_nearest + will_be_free_at - *current_time;

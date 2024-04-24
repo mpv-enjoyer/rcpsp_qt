@@ -5,6 +5,7 @@
 #include "workergroup.h"
 #include <QtDebug>
 #include <QProgressBar>
+#include <QFile>
 
 struct JobPair
 {
@@ -69,6 +70,47 @@ public:
     std::vector<ResultPair> get_completed();
     std::vector<JobPair> get_failed();
     void set_log_bar(QProgressBar* bar);
+    void LoadCSV(QString file_name, std::vector<Worker *> &all_workers, std::vector<Job *> &all_jobs);
+};
+
+struct JobLoad
+{
+    Job* assign;
+    int id;
+    std::vector<OccupancyPair> occupancy;
+    std::vector<int> ancestors;
+};
+
+struct WorkerLoad
+{
+    Worker* assign;
+    int id;
+    int plan;
+};
+
+struct PlanLoad
+{
+    Plan* assign;
+    int id;
+    int start_at;
+    std::vector<PlanElement> plan;
+};
+
+struct JobGroupLoad
+{
+    JobGroup* assign;
+    int id;
+    int start_after;
+    int end_before;
+    int worker_group;
+    std::vector<int> jobs;
+};
+
+struct WorkerGroupLoad
+{
+    WorkerGroup* assign;
+    int id;
+    std::vector<int> workers;
 };
 
 #endif // ALGORITHM_H

@@ -16,6 +16,7 @@ SOURCES += \
     generator.cpp \
     job.cpp \
     jobgroup.cpp \
+    loader.cpp \
     main.cpp \
     mainwindow.cpp \
     plan.cpp \
@@ -31,6 +32,7 @@ HEADERS += \
     generator.h \
     job.h \
     jobgroup.h \
+    loader.h \
     mainwindow.h \
     plan.h \
     plot.h \

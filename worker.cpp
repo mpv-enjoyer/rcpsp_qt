@@ -22,7 +22,7 @@ void Worker::assign(Job *job)
         throw std::exception();
     }
     int job_ends_at = *clock + job->get_time_to_spend();
-    int time_ready = job_ends_at + plan.get_time_until_ready(job_ends_at);
+    int time_ready = job_ends_at;
     current_jobs.push_back({*clock, job, time_ready});
     //forgot to sort current_jobs by time_ready?
 }
@@ -70,7 +70,14 @@ bool Worker::is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time)
     if (fetch_time == -1) fetch_time = *clock;
     update();
     if (preserved_until != -1) return false;
-    if (!plan.is_ready(fetch_time)) return false;
+    //if (!plan.is_ready(fetch_time)) return false;
+    int time_left = plan.get_time_until_rest(fetch_time);
+    int time_want_to_use = 0;
+    for (auto occupancy : want_occupancy)
+    {
+        time_want_to_use += occupancy.time;
+    }
+    if (time_left < time_want_to_use) return false;
 
     std::vector<std::vector<OccupancyPair>> all_occupancies;
     for (auto job : current_jobs)
@@ -103,7 +110,10 @@ bool Worker::is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time)
         {
             occupancy += all_occupancies[i][0].occupancy;
             all_occupancies[i][0].time -= 1;
-            if (all_occupancies[i][0].time <= 0) all_occupancies.erase(all_occupancies.begin());
+            if (all_occupancies[i][0].time <= 0)
+            {
+                all_occupancies[i].erase(all_occupancies[i].begin());
+            }
         }
         if (occupancy > 1.0f) return false;
     }
@@ -122,10 +132,10 @@ int Worker::get_job_count()
     return current_jobs.size();
 }
 
-int Worker::will_be_free_after(std::vector<OccupancyPair> occupancy)
+int Worker::can_be_placed_after(std::vector<OccupancyPair> occupancy)
 {
     update();
-    int current_time = *clock;
+    /*int current_time = *clock;
     bool ready = plan.is_ready(current_time);
     if (!ready)
     {
@@ -134,7 +144,7 @@ int Worker::will_be_free_after(std::vector<OccupancyPair> occupancy)
     if (is_free(occupancy))
     {
         return 0;
-    }
+    }*/
     int time;
     if (preserved_until != -1) time = preserved_until;
     else time = *clock;
@@ -143,7 +153,7 @@ int Worker::will_be_free_after(std::vector<OccupancyPair> occupancy)
         time++;
         // this might hang the program
     }
-    return time - current_time;
+    return time - *clock;
 }
 
 void Worker::preserve(int interval)

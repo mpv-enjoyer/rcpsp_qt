@@ -14,6 +14,7 @@
 #include "chartview.h"
 #include "generator.h"
 #include "plot.h"
+#include "loader.h"
 
 #undef QT_NO_DEBUG_OUTPUT
 
@@ -45,46 +46,6 @@ private:
     std::vector<Worker*> all_workers;
     void LoadCSV(QString file_name);
     ChartView* chartview;
-};
-
-struct JobLoad
-{
-    Job* assign;
-    int id;
-    std::vector<OccupancyPair> occupancy;
-    std::vector<int> ancestors;
-};
-
-struct WorkerLoad
-{
-    Worker* assign;
-    int id;
-    int plan;
-};
-
-struct PlanLoad
-{
-    Plan* assign;
-    int id;
-    int start_at;
-    std::vector<PlanElement> plan;
-};
-
-struct JobGroupLoad
-{
-    JobGroup* assign;
-    int id;
-    int start_after;
-    int end_before;
-    int worker_group;
-    std::vector<int> jobs;
-};
-
-struct WorkerGroupLoad
-{
-    WorkerGroup* assign;
-    int id;
-    std::vector<int> workers;
 };
 
 #endif // MAINWINDOW_H
