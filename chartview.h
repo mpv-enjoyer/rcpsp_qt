@@ -2,7 +2,6 @@
 #define CHARTVIEW_H
 
 #include <QWidget>
-#include <QtCharts>
 #include "algorithm.h"
 #include "contentwidget.h"
 #include <QtDebug>

@@ -7,7 +7,6 @@
 #include "job.h"
 #include "qcustomplot.h"
 #include <qmatrix.h>
-#include <QtCharts>
 #include <algorithm>
 #include "algorithm.h"
 #include <signal.h>

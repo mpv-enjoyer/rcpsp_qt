@@ -1,6 +1,6 @@
 QT       += core gui
-QT       += widgets
 QT       += charts
+QT       += widgets
 QT       += testlib
 QT       += printsupport
 greaterThan(QT_MAJOR_VERSION, 5):
@@ -13,6 +13,7 @@ CONFIG += c++17
 
 SOURCES += \
     algorithm.cpp \
+    contentwidget.cpp \
     generator.cpp \
     job.cpp \
     jobgroup.cpp \
@@ -25,10 +26,10 @@ SOURCES += \
     worker.cpp \
     workergroup.cpp \
     chartview.cpp \
-    contentwidget.cpp
 
 HEADERS += \
     algorithm.h \
+    contentwidget.h \
     generator.h \
     job.h \
     jobgroup.h \
@@ -41,7 +42,6 @@ HEADERS += \
     worker.h \
     workergroup.h \
     chartview.h \
-    contentwidget.h
 
 FORMS += \
     mainwindow.ui

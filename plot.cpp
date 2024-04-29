@@ -27,11 +27,13 @@ Plot::Plot(QCustomPlot* plot)
     executed_set = createBars("Начало обслуживания - Конец обслуживания", QColor::fromRgb(0, 0, 0), plot);
     critical_set = createBars("Конец обслуживания - Позднее время начала", QColor::fromRgb(200, 150, 150), plot);
     ready_set = createBars("Позднее время начала - Директивный срок", QColor::fromRgb(200, 200, 200), plot);
+    overhead_set = createBars("Накладные расходы", QColor::fromRgb(255, 0, 0), plot);
     // stack bars on top of each other:
     waiting_set->moveAbove(unable_set);
     executed_set->moveAbove(waiting_set);
     critical_set->moveAbove(executed_set);
     ready_set->moveAbove(critical_set);
+    overhead_set->moveAbove(ready_set);
     // prepare y axis with country labels:
     //auto y_axis_size = current_completed.size();
     //QVector<double> ticks(y_axis_size);
@@ -130,18 +132,27 @@ void Plot::updatePlot(const std::vector<ResultPair> &completed)
     QVector<double> in_progress_data(y_axis_size);
     QVector<double> critical_data(y_axis_size);
     QVector<double> ready_data(y_axis_size);
+    QVector<double> overhead_data(y_axis_size);
     for (auto i = 0; i < y_axis_size; i++)
     {
+        auto overhead = 0;
         auto start_after = completed[i].job->get_start_after();
         auto waiting = completed[i].start - start_after;
         auto in_progress = completed[i].job->get_time_to_spend();
+        if (completed[i].job->get_end_before() - start_after - waiting - in_progress < 0)
+        {
+            overhead = - completed[i].job->get_end_before() + start_after + waiting + in_progress;
+            in_progress -= overhead;
+        }
         auto critical = completed[i].job->get_critical_time() - start_after - waiting - in_progress;
+        if (critical < completed[i].job->get_start_after()) critical = 0;
         auto ready = completed[i].job->get_end_before() - start_after - waiting - in_progress - critical;
         start_after_data[i] = start_after;
         waiting_data[i] = waiting;
         in_progress_data[i] = in_progress;
         critical_data[i] = critical;
         ready_data[i] = ready;
+        overhead_data[i] = overhead;
     }
     _textTicker->clear();
     _textTicker->addTicks(ticks, labels);
@@ -150,5 +161,6 @@ void Plot::updatePlot(const std::vector<ResultPair> &completed)
     executed_set->setData(ticks, in_progress_data);
     critical_set->setData(ticks, critical_data);
     ready_set->setData(ticks, ready_data);
+    overhead_set->setData(ticks, overhead_data);
     _plot->replot();
 }
