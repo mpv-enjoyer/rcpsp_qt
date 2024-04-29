@@ -85,7 +85,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             if (list[1] == "FLS") algorithm.set_preference(FLS);
         }
         // 1) job | worker | plan | job_group | worker_group | preference
-        // 2) id (from 0 without skips) | preference: "SPT | LPT | EST"
+        // 2) id (from 0 without skips) | preference: "SPT | LPT | FLS"
         // 3) job: time, busyness... | worker: plan_id | plan: start_at | job_group: start_after | worker_group: workers...
         // 4) job: ] | | plan: work, rest... | job_group: end_before |
         // 5) job: ancestors... | | | job_group: worker_group

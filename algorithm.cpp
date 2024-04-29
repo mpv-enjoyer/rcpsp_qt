@@ -97,11 +97,13 @@ bool Algorithm::check_nearest_front()
     {
         JobPair current_pending = current_front.job_pairs[i];
         int new_front_time = -1;
+        std::vector<Placement> placements;
         for (int j = 0; j < current_pending.worker_groups.size(); j++)
         {
             Placement earliest_placement = current_pending.worker_groups[j]->get_earliest_placement_time(current_pending.job);
             //qDebug() << "check" << current_pending.id << "job, got" << earliest_placement.time_before << "current:" << current_time << "groupsize:" << current_pending.worker_groups[0]->get_size();
             if (!earliest_placement.worker) continue;
+            placements.push_back(earliest_placement);
             if (earliest_placement.time_before == 0)
             {
                 AssignedWorker assigned_to = current_pending.worker_groups[j]->assign(current_pending.job);
@@ -116,6 +118,7 @@ bool Algorithm::check_nearest_front()
             }
             if (earliest_placement.time_before > 0 && earliest_placement.time_before <= look_ahead_time)
             {
+                if (new_front_time > earliest_placement.time_before)
                 earliest_placement.worker->preserve(earliest_placement.time_before);
             }
             if (new_front_time == -1 || new_front_time > earliest_placement.time_before)
@@ -123,7 +126,8 @@ bool Algorithm::check_nearest_front()
                 new_front_time = earliest_placement.time_before;
             }
         }
-        if (new_front_time == -1) continue;
+        //TODO: Process placements.
+        //if (new_front_time == -1) continue;
         result = true;
         new_front_time += current_time;
         FrontData new_front_data = { new_front_time, { current_pending } };
