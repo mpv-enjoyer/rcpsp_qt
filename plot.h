@@ -14,6 +14,7 @@ class Plot
     QCPBars *executed_set;
     QCPBars *critical_set;
     QCPBars *ready_set;
+    QCPBars *overhead_wait_set;
     QCPBars *overhead_set;
     QCustomPlot* _plot;
     QSharedPointer<QCPAxisTickerText> _textTicker;

@@ -27,13 +27,16 @@ Plot::Plot(QCustomPlot* plot)
     executed_set = createBars("Начало обслуживания - Конец обслуживания", QColor::fromRgb(0, 0, 0), plot);
     critical_set = createBars("Конец обслуживания - Позднее время начала", QColor::fromRgb(200, 150, 150), plot);
     ready_set = createBars("Позднее время начала - Директивный срок", QColor::fromRgb(200, 200, 200), plot);
-    overhead_set = createBars("Накладные расходы", QColor::fromRgb(255, 0, 0), plot);
+    overhead_wait_set = createBars("Директивный срок - Начало обслуживания (превышение срока)", QColor::fromRgb(140, 10, 10), plot);
+    overhead_set = createBars("Начало обслуживания - Конец обслуживания (превышение срока)", QColor::fromRgb(255, 0, 0), plot);
     // stack bars on top of each other:
     waiting_set->moveAbove(unable_set);
     executed_set->moveAbove(waiting_set);
     critical_set->moveAbove(executed_set);
     ready_set->moveAbove(critical_set);
-    overhead_set->moveAbove(ready_set);
+    overhead_wait_set->moveAbove(ready_set);
+    overhead_set->moveAbove(overhead_wait_set);
+
     // prepare y axis with country labels:
     //auto y_axis_size = current_completed.size();
     //QVector<double> ticks(y_axis_size);
@@ -109,6 +112,15 @@ Plot::Plot(QCustomPlot* plot)
     plot->replot();
 }
 
+bool is_eless_int5(const int& o1, const int& o2, const int& o3, const int& o4, const int& o5)
+{
+    if (o1 > o2) return false;
+    if (o2 > o3) return false;
+    if (o3 > o4) return false;
+    if (o4 > o5) return false;
+    return true;
+}
+
 void Plot::updatePlot(const std::vector<ResultPair> &completed)
 {
     auto y_axis_size = completed.size();
@@ -132,26 +144,103 @@ void Plot::updatePlot(const std::vector<ResultPair> &completed)
     QVector<double> in_progress_data(y_axis_size);
     QVector<double> critical_data(y_axis_size);
     QVector<double> ready_data(y_axis_size);
+    QVector<double> overhead_wait_data(y_axis_size);
     QVector<double> overhead_data(y_axis_size);
     for (auto i = 0; i < y_axis_size; i++)
     {
+        auto start_after = 0;
+        auto waiting = 0;
+        auto in_progress = 0;
+        auto ready = 0;
+        auto critical = 0;
+        auto overhead_wait = 0;
+        auto overhead = 0;
+
+        auto real_begin_after = completed[i].job->get_start_after();
+        auto real_begin = completed[i].start;
+        auto real_end = completed[i].start + completed[i].job->get_time_to_spend();
+        auto real_critical = completed[i].job->get_critical_time();
+        auto real_end_before = completed[i].job->get_end_before();
+
+
+
+
+
+// Поступление < Позднее < Директивный < Начало < Конец
+// Позднее < Поступление < Начало < Конец < Директивный
+//
+// Позднее < Поступление => просёр директивного срока неизбежен, другая индикация
+
+        // Поступление < Начало < Конец < Позднее < Директивный
+        if (is_eless_int5(real_begin_after, real_begin, real_end, real_critical, real_end_before))
+        {
+            start_after = real_begin_after;
+            waiting = real_begin - real_begin_after;
+            in_progress = real_end - real_begin;
+            ready = real_critical - real_end;
+            critical = real_end_before - real_critical;
+        }
+        // Поступление < Начало < Позднее < Конец < Директивный
+        if (is_eless_int5(real_begin_after, real_begin, real_critical, real_end, real_end_before))
+        {
+            start_after = real_begin_after;
+            waiting = real_begin - real_begin_after;
+            in_progress = real_end - real_begin;
+            critical = real_end_before - real_end;
+        }
+        // Поступление < Позднее < Начало < Конец < Директивный
+        if (is_eless_int5(real_begin_after, real_critical, real_begin, real_end, real_end_before))
+        {
+            start_after = real_begin_after;
+            waiting = real_begin - real_begin_after;
+            in_progress = real_end - real_begin;
+            critical = real_end_before - real_end;
+        }
+        // Поступление < Позднее < Начало < Директивный < Конец
+        if (is_eless_int5(real_begin_after, real_critical, real_begin, real_end_before, real_end))
+        {
+            start_after = real_begin_after;
+            waiting = real_begin - real_begin_after;
+            in_progress = real_end - real_begin;
+            critical = real_end_before - real_end;
+        }
+
+
+
+        /*auto overhead_wait = 0;
         auto overhead = 0;
         auto start_after = completed[i].job->get_start_after();
         auto waiting = completed[i].start - start_after;
-        auto in_progress = completed[i].job->get_time_to_spend();
-        if (completed[i].job->get_end_before() - start_after - waiting - in_progress < 0)
+        if (completed[i].start > completed[i].job->get_end_before())
+        {
+            waiting =
+        }
+        auto in_progress = completed[i].job->get_time_to_spend();*/
+
+        /*if (completed[i].job->get_end_before() - start_after - waiting - in_progress < 0)
         {
             overhead = - completed[i].job->get_end_before() + start_after + waiting + in_progress;
             in_progress -= overhead;
+            if (in_progress < 0)
+            {
+                overhead_wait = - in_progress;
+                waiting -= overhead_wait;
+                in_progress = 0;
+            }
         }
         auto critical = completed[i].job->get_critical_time() - start_after - waiting - in_progress;
-        //if (critical < completed[i].job->get_start_after()) critical = 0;
+        if (completed[i].job->get_critical_time() < start_after) critical = 0;
         auto ready = completed[i].job->get_end_before() - start_after - waiting - in_progress - critical;
+        if (overhead_wait != 0)
+        {
+            ready = 0;
+        }*/
         start_after_data[i] = start_after;
         waiting_data[i] = waiting;
         in_progress_data[i] = in_progress;
         critical_data[i] = critical;
         ready_data[i] = ready;
+        overhead_wait_data[i] = overhead_wait;
         overhead_data[i] = overhead;
     }
     _textTicker->clear();
@@ -161,6 +250,7 @@ void Plot::updatePlot(const std::vector<ResultPair> &completed)
     executed_set->setData(ticks, in_progress_data);
     critical_set->setData(ticks, critical_data);
     ready_set->setData(ticks, ready_data);
+    overhead_wait_set->setData(ticks, overhead_wait_data);
     overhead_set->setData(ticks, overhead_data);
     _plot->replot();
 }
