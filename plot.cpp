@@ -145,7 +145,7 @@ void Plot::updatePlot(const std::vector<ResultPair> &completed)
             in_progress -= overhead;
         }
         auto critical = completed[i].job->get_critical_time() - start_after - waiting - in_progress;
-        if (critical < completed[i].job->get_start_after()) critical = 0;
+        //if (critical < completed[i].job->get_start_after()) critical = 0;
         auto ready = completed[i].job->get_end_before() - start_after - waiting - in_progress - critical;
         start_after_data[i] = start_after;
         waiting_data[i] = waiting;

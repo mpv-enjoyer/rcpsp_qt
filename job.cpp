@@ -36,6 +36,10 @@ void Job::done()
 void Job::undone()
 {
     _done = false;
+    for (int i = 0; i < ancestors.size(); i++)
+    {
+        ancestors[i]->increment_predecessors_count();
+    }
 }
 
 bool Job::is_done() const
@@ -82,6 +86,10 @@ std::vector<Job*>* Job::get_ancestors()
     return &ancestors;
 }
 /*bool Job::is_predecessor(Job *job)
+void Job::reset()
+{
+    _done = false;
+}
 {
     for (int i = 0; i < predecessors.size(); i++)
     {
@@ -144,4 +152,14 @@ int Job::get_global_id()
 std::vector<OccupancyPair> Job::get_occupancy() const
 {
     return occupancy;
+}
+
+int Job::get_preference_coefficient() const
+{
+    return preference_coefficient;
+}
+
+void Job::set_preference_coefficient(int coefficient)
+{
+    preference_coefficient = coefficient;
 }

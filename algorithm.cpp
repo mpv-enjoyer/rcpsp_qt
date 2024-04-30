@@ -74,7 +74,7 @@ bool Algorithm::check_nearest_front()
     {
         if (pending_jobs[i].end_before <= current_time) continue;
         result = true;
-        if (pending_jobs[i].start_after > current_time) continue;
+        if (pending_jobs[i].start_after > current_time - look_ahead_time) continue;
         if (!pending_jobs[i].job->check_predecessors()) continue;
         current_front.job_pairs.push_back(pending_jobs[i]);
         pending_jobs.erase(pending_jobs.begin() + i);
@@ -93,6 +93,18 @@ bool Algorithm::check_nearest_front()
         std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_EST);
         break;
     }
+
+    for (int i = 0; i < current_front.job_pairs.size(); i++)
+    {
+        int coeff = current_front.job_pairs[i].job->get_preference_coefficient();
+        if (coeff == 0) continue;
+        int j = i - coeff;
+        if (j < 0) j = 0;
+        auto copy = current_front.job_pairs[i];
+        current_front.job_pairs.erase(current_front.job_pairs.begin() + i);
+        current_front.job_pairs.insert(current_front.job_pairs.begin() + j, copy);
+    }
+
     for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
         JobPair current_pending = current_front.job_pairs[i];
@@ -126,8 +138,8 @@ bool Algorithm::check_nearest_front()
                 new_front_time = earliest_placement.time_before;
             }
         }
-        //TODO: Process placements.
-        //if (new_front_time == -1) continue;
+        //TODO: Process placements?
+        if (new_front_time == -1) continue;
         result = true;
         new_front_time += current_time;
         FrontData new_front_data = { new_front_time, { current_pending } };
@@ -180,7 +192,8 @@ void Algorithm::begin_set_critical_time()
 }
 
 void Algorithm::run()
-{
+{   
+    current_time = 0;
     pending_fronts.clear();
     pending_fronts.push_back(FrontData{0, std::vector<JobPair>()});
     for (int i = 0; i < pending_jobs.size(); i++)
@@ -196,6 +209,8 @@ void Algorithm::run()
 
     qDebug() << "Sorting done";
 
+
+
     for (int i = 0; i < pending_jobs.size(); i++)
     {
         if (pending_jobs[i].job->check_predecessors() && pending_jobs[i].start_after <= 0)
@@ -208,6 +223,11 @@ void Algorithm::run()
     while (check_nearest_front())
     {
         /* Nothing? */
+    }
+
+    for (int i = 0; i < assigned_jobs.size(); i++)
+    {
+
     }
 
     for (int i = 0; i < assigned_jobs.size(); i++)
@@ -253,10 +273,5 @@ std::vector<ResultPair> Algorithm::get_completed()
 std::vector<JobPair> Algorithm::get_failed()
 {
     return pending_jobs;
-}
-
-void Algorithm::set_log_bar(QProgressBar *bar)
-{
-    log_bar = bar;
 }
 

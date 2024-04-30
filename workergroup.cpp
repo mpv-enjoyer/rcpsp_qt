@@ -29,19 +29,20 @@ Placement WorkerGroup::get_earliest_placement_time(Job *job)
 {
     Placement output = {nullptr, -1};
     int job_time = job->get_time_to_spend();
+    int lookup_time = *current_time >= job->get_start_after() ? *current_time : job->get_start_after();
     for (int i = 0; i < workers.size(); i++)
     {
         int current_nearest = -1;
         if (workers[i]->get_job_count() == 0)
         {
-            current_nearest = workers[i]->get_plan().get_time_nearest_possible(*current_time, job_time);
+            current_nearest = workers[i]->get_plan().get_time_nearest_possible(lookup_time, job_time);
         }
         else
         {
-            int will_be_free_at = workers[i]->can_be_placed_after(job->get_occupancy()) + *current_time;// + *current_time;
+            int will_be_free_at = workers[i]->can_be_placed_after(job->get_occupancy()) + lookup_time;
             current_nearest = workers[i]->get_plan().get_time_nearest_possible(will_be_free_at, job_time);
             if (current_nearest == -1) continue;
-            current_nearest = current_nearest + will_be_free_at - *current_time;
+            current_nearest = current_nearest + will_be_free_at - lookup_time;
             //current_nearest += (will_end_current_work - *current_time);
         }
         if (current_nearest == -1) continue;

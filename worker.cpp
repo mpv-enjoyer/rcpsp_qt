@@ -9,6 +9,10 @@ Worker::Worker(Plan want_plan) :
 void Worker::assign(Job *job)
 {
     update();
+    if (job->get_start_after() > *clock)
+    {
+        throw std::exception();
+    }
     if (!is_free(job->get_occupancy()))
     {
         throw std::exception();

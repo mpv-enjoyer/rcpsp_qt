@@ -25,6 +25,7 @@ private:
     int time_to_spend;
     int global_id = 0;
     std::vector<OccupancyPair> occupancy;
+    int preference_coefficient = 0;
 public:
     Job(int renewable, int non_renewable, std::vector<OccupancyPair> occupancy);
     int get_time_to_spend() const;
@@ -38,7 +39,6 @@ public:
     std::vector<Job*>* get_ancestors();
     void increment_predecessors_count();
     void decrement_predecessors_count();
-    //bool is_predecessor(Job* job);
     int get_critical_time() const;
     bool critical_time_exists() const;
     void set_critical_time(int time);
@@ -50,6 +50,8 @@ public:
     void set_global_id(int id);
     int get_global_id();
     std::vector<OccupancyPair> get_occupancy() const;
+    int get_preference_coefficient() const;
+    void set_preference_coefficient(int coefficient);
 };
 
 #endif // JOB_H
