@@ -172,7 +172,6 @@ void Worker::preserve(int interval)
 
 const Plan Worker::get_plan() const
 {
-    update();
     return plan;
 }
 

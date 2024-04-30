@@ -11,7 +11,7 @@ void Algorithm::add_job_group(JobGroup* jobs, WorkerGroup* workers)
     {
         int start = jobs->get_start();
         int end = jobs->get_end();
-        JobPair new_pair = {start, end, jobs->get_job(i), { workers }, pending_jobs.size()};
+        JobPair new_pair = {start, end, jobs->get_job(i), { workers }, static_cast<int>(pending_jobs.size())};
         pending_jobs.push_back(new_pair);
     }
     for (int i = 0; i < workers->get_size(); i++)

@@ -61,7 +61,7 @@ class Algorithm
     int look_ahead_time = 0;
     int last_loop_check_begin = -1;
     int longest_plan_loop = 0;
-    const int max_time = 1000000;
+    int max_time = 1000000;
 public:
     Algorithm();
     void set_preference(Preference new_preference);
