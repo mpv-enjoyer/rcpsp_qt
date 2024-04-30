@@ -28,7 +28,7 @@ public:
     int get_job_count();
     int can_be_placed_after(std::vector<OccupancyPair> occupancy);
     void preserve(int interval);
-    const Plan get_plan();
+    const Plan get_plan() const;
     bool is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time = -1);
 };
 

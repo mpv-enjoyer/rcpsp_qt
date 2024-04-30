@@ -30,6 +30,7 @@ public:
     AssignedWorker assign(Job* job);
     int get_size();
     int get_global_id();
+    const Worker* get_worker(int id) const;
 };
 
 #endif // WORKERGROUP_H

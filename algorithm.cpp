@@ -11,8 +11,13 @@ void Algorithm::add_job_group(JobGroup* jobs, WorkerGroup* workers)
     {
         int start = jobs->get_start();
         int end = jobs->get_end();
-        JobPair new_pair = {start, end, jobs->get_job(i), { workers }, static_cast<int>(pending_jobs.size())};
+        JobPair new_pair = {start, end, jobs->get_job(i), { workers }, pending_jobs.size()};
         pending_jobs.push_back(new_pair);
+    }
+    for (int i = 0; i < workers->get_size(); i++)
+    {
+        if (workers->get_worker(i)->get_plan().get_time_loop() > longest_plan_loop)
+            longest_plan_loop = workers->get_worker(i)->get_plan().get_time_loop();
     }
 }
 
@@ -154,7 +159,23 @@ bool Algorithm::check_nearest_front()
         }
     }
 
-    if (pending_fronts.size() == 1 && result)
+    if (last_loop_check_begin == -1 && !result)
+    {
+        last_loop_check_begin = current_time;
+        // If we currently see no action and
+        // every pending job is no longer in boundaries
+        // we do one last plan loop and wait for any action.
+    }
+
+    if (result) last_loop_check_begin = -1;
+
+    // UNTESTED LAND HERE PLEASE TEST ME
+
+    bool should_copy_front_plus_one = false;
+    should_copy_front_plus_one |= pending_fronts.size() == 1 && result;
+    should_copy_front_plus_one |= last_loop_check_begin != 1 &&
+                                  last_loop_check_begin + longest_plan_loop < current_time;
+    if (should_copy_front_plus_one)
     {
         //qDebug() << "Front copied ++ at" << current_time;
         pending_fronts[0] = current_front;

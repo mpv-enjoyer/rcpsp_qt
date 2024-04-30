@@ -78,3 +78,8 @@ int WorkerGroup::get_global_id()
 {
     return global_id;
 }
+
+const Worker *WorkerGroup::get_worker(int id) const
+{
+    return workers.at(id);
+}

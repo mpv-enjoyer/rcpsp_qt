@@ -102,3 +102,8 @@ const std::vector<PlanElement>& Plan::get_elements() const
 {
     return std::ref(elements);
 }
+
+int Plan::get_time_loop() const
+{
+    return time_loop;
+}

@@ -161,13 +161,6 @@ void Plot::updatePlot(const std::vector<ResultPair> &completed)
         auto real_end = completed[i].start + completed[i].job->get_time_to_spend();
         auto real_critical = completed[i].job->get_critical_time();
         auto real_end_before = completed[i].job->get_end_before();
-
-
-
-
-
-// Поступление < Позднее < Директивный < Начало < Конец
-// Позднее < Поступление < Начало < Конец < Директивный
 //
 // Позднее < Поступление => просёр директивного срока неизбежен, другая индикация
 
@@ -187,6 +180,7 @@ void Plot::updatePlot(const std::vector<ResultPair> &completed)
             waiting = real_begin - real_begin_after;
             in_progress = real_end - real_begin;
             critical = real_end_before - real_end;
+            // ignore real_critical
         }
         // Поступление < Позднее < Начало < Конец < Директивный
         if (is_eless_int5(real_begin_after, real_critical, real_begin, real_end, real_end_before))
@@ -195,18 +189,51 @@ void Plot::updatePlot(const std::vector<ResultPair> &completed)
             waiting = real_begin - real_begin_after;
             in_progress = real_end - real_begin;
             critical = real_end_before - real_end;
+            // ignore real_critical
         }
         // Поступление < Позднее < Начало < Директивный < Конец
         if (is_eless_int5(real_begin_after, real_critical, real_begin, real_end_before, real_end))
         {
             start_after = real_begin_after;
             waiting = real_begin - real_begin_after;
-            in_progress = real_end - real_begin;
-            critical = real_end_before - real_end;
+            in_progress = real_end_before - real_begin;
+            overhead = real_end - real_end_before;
         }
-
-
-
+        // Поступление < Позднее < Директивный < Начало < Конец
+        if (is_eless_int5(real_begin_after, real_critical, real_end_before, real_begin, real_end))
+        {
+            start_after = real_begin_after;
+            waiting = real_end_before - real_begin_after;
+            overhead_wait = real_begin - real_end_before;
+            overhead = real_end - real_begin;
+        }
+        // Позднее < Поступление < Начало < Конец < Директивный
+        if (is_eless_int5(real_critical, real_begin_after, real_begin, real_end, real_end_before))
+        {
+            labels[i] += "!!!";
+            start_after = real_begin_after;
+            waiting = real_begin - real_begin_after;
+            in_progress = real_end - real_begin;
+            ready = real_end_before - real_end;
+        }
+        // Позднее < Поступление < Начало < Директивный < Конец
+        if (is_eless_int5(real_critical, real_begin_after, real_begin, real_end_before, real_end))
+        {
+            labels[i] += "!!!";
+            start_after = real_begin_after;
+            waiting = real_begin - real_begin_after;
+            in_progress = real_end_before - real_begin;
+            overhead = real_end - real_end_before;
+        }
+        // Позднее < Поступление < Директивный < Начало < Конец
+        if (is_eless_int5(real_critical, real_begin_after, real_end_before, real_begin, real_end))
+        {
+            labels[i] += "!!!";
+            start_after = real_begin_after;
+            waiting = real_end_before - real_begin_after;
+            overhead_wait = real_begin - real_end_before;
+            overhead = real_end - real_begin;
+        }
         /*auto overhead_wait = 0;
         auto overhead = 0;
         auto start_after = completed[i].job->get_start_after();

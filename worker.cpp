@@ -170,7 +170,7 @@ void Worker::preserve(int interval)
     preserved_until = *clock + interval;
 }
 
-const Plan Worker::get_plan()
+const Plan Worker::get_plan() const
 {
     update();
     return plan;

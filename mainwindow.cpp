@@ -30,13 +30,13 @@ void MainWindow::on_pushButton_2_clicked()
     generator.lowestJobTime = 10;
     generator.highestJobTime = 20;
 
-    generator.allJobsSize = 1000;
+    generator.allJobsSize = 4000;
     generator.allWorkersSize = 25;
 
     generator.jobGroupLowestBegin = 0;
     generator.jobGroupHighestBegin = 1000;
     generator.jobGroupLowestEnd  = 1000;
-    generator.jobGroupHighestEnd = 1500;
+    generator.jobGroupHighestEnd = 1100;
 
     generator.jobGroupsCount = 1;
     generator.groupSizeEntropy = 1;
