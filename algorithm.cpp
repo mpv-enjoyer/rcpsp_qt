@@ -101,7 +101,7 @@ bool Algorithm::check_nearest_front()
         break;
     }
 
-    for (int i = 0; i < current_front.job_pairs.size(); i++)
+    /*for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
         int coeff = current_front.job_pairs[i].job->get_preference_coefficient();
         if (coeff == 0) continue;
@@ -110,7 +110,7 @@ bool Algorithm::check_nearest_front()
         auto copy = current_front.job_pairs[i];
         current_front.job_pairs.erase(current_front.job_pairs.begin() + i);
         current_front.job_pairs.insert(current_front.job_pairs.begin() + j, copy);
-    }
+    }*/ // For possible future rearrangements
 
     for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
@@ -171,12 +171,15 @@ bool Algorithm::check_nearest_front()
 
     if (result) last_loop_check_begin = -1;
 
-    // UNTESTED LAND HERE PLEASE TEST ME
-
     bool should_copy_front_plus_one = false;
     should_copy_front_plus_one |= pending_fronts.size() == 1 && result;
-    should_copy_front_plus_one |= last_loop_check_begin != 1 &&
-                                  last_loop_check_begin + longest_plan_loop < current_time;
+    if (last_loop_check_begin != 1 &&
+        last_loop_check_begin + longest_plan_loop < current_time &&
+        pending_fronts.size() == 1)
+    {
+        should_copy_front_plus_one = true;
+        qDebug() << "Last loop check begin is being used!!" << '\n';
+    }
     if (should_copy_front_plus_one)
     {
         //qDebug() << "Front copied ++ at" << current_time;
