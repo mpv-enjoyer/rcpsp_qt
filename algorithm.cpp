@@ -243,6 +243,7 @@ void Algorithm::run()
         {
             pending_fronts[0].job_pairs.push_back(pending_jobs[i]);
             pending_jobs.erase(pending_jobs.begin() + i);
+            i--;
         }
     }
 

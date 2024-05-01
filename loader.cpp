@@ -23,12 +23,12 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
         QStringList list = line.split(";");
         if (list[0] == "job")
         {
-            JobLoad current = { nullptr, 0, {{0, 0}}, std::vector<int>() };
+            JobLoad current = { nullptr, 0, {}, std::vector<int>() };
             current.id = list[1].toInt();
             int i = 2;
             for (; list[i] != ']'; i += 2)
             {
-                current.occupancy.push_back({list[i].toInt(), list[i+1].toFloat()});
+                current.occupancy.push_back({list[i].toInt(), list[i+1].toFloat() - 0.0001f});
             }
             i++;
             for (; i < list.size(); i++)
