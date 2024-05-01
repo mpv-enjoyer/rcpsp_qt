@@ -58,6 +58,8 @@ bool Algorithm::check_nearest_front()
     FrontData current_front = pending_fronts[0];
     static int assigned_count = 0;
 
+    qDebug() << current_time << current_front.job_pairs.size() << completed_jobs.size() << assigned_jobs.size() << '\n';
+
     for (int i = 0; i < assigned_jobs.size(); i++)
     {
         assigned_jobs[i].worker->update();
@@ -135,7 +137,7 @@ bool Algorithm::check_nearest_front()
             }
             if (earliest_placement.time_before > 0 && earliest_placement.time_before <= look_ahead_time)
             {
-                if (new_front_time > earliest_placement.time_before)
+                // if (new_front_time > earliest_placement.time_before)
                 earliest_placement.worker->preserve(earliest_placement.time_before);
             }
             if (new_front_time == -1 || new_front_time > earliest_placement.time_before)
