@@ -55,7 +55,7 @@ Placement WorkerGroup::get_earliest_placement_time(Job *job)
             output.time_before = current_nearest;
         }
     }
-    qDebug() << "get_earliest_placement_time" << output.time_before << lookup_time << job->get_global_id();
+//    qDebug() << "get_earliest_placement_time" << output.time_before << lookup_time << job->get_global_id();
 
     return output;
 }

@@ -19,6 +19,7 @@ public:
     int jobGroupHighestEnd = -1;
     int jobGroupsCount = -1;
     int groupSizeEntropy = -1;
+    int look_ahead = -1;
     Plan commonPlan;
     Generator(QString filename, Plan common_plan);
     bool is_ready();

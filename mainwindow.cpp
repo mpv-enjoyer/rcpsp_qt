@@ -38,8 +38,10 @@ void MainWindow::on_pushButton_2_clicked()
     generator.jobGroupLowestEnd  = 1000;
     generator.jobGroupHighestEnd = 1100;
 
-    generator.jobGroupsCount = 1;
+    generator.jobGroupsCount = 2;
     generator.groupSizeEntropy = 1;
+
+    generator.look_ahead = 2;
 
     generator.generate_and_write();
 

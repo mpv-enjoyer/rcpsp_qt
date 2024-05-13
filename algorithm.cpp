@@ -58,7 +58,7 @@ bool Algorithm::check_nearest_front()
     FrontData current_front = pending_fronts[0];
     static int assigned_count = 0;
 
-    qDebug() << current_time << current_front.job_pairs.size() << completed_jobs.size() << assigned_jobs.size() << '\n';
+    qDebug() << current_time << current_front.job_pairs.size() << completed_jobs.size() << assigned_jobs.size();
 
     for (int i = 0; i < assigned_jobs.size(); i++)
     {
@@ -113,6 +113,8 @@ bool Algorithm::check_nearest_front()
         //current_front.job_pairs.insert(current_front.job_pairs.begin() + j, copy);
     }
 
+    int debug_was_resulted = 0;
+
     for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
         JobPair current_pending = current_front.job_pairs[i];
@@ -127,8 +129,12 @@ bool Algorithm::check_nearest_front()
             if (earliest_placement.time_before == 0)
             {
                 AssignedWorker assigned_to = current_pending.worker_groups[j]->assign(current_pending.job);
+                static int times = 0;
+                times++;
+                qDebug() << times << "times";
+
                 assigned_jobs.push_back( {current_pending.job, assigned_to.worker, current_time, current_pending.job->get_global_id(), current_pending.worker_groups[j]->get_global_id(), assigned_to.internal_id} );
-                qDebug() << "Moved to completed job" << current_pending.job->get_global_id() << current_time;
+//                qDebug() << "Moved to completed job" << current_pending.job->get_global_id() << current_time;
                 current_pending.worker_groups[j]->set_clock(&current_time);
                 current_front.job_pairs.erase(current_front.job_pairs.begin() + i);
                 assigned_count++;
@@ -140,7 +146,8 @@ bool Algorithm::check_nearest_front()
             {
                 if (!earliest_placement.worker->is_preserved())
                     earliest_placement.worker->preserve(earliest_placement.time_before);
-                // if (new_front_time > earliest_placement.time_before)
+                new_front_time = earliest_placement.time_before;
+                break;
             }
             if (new_front_time == -1 || new_front_time > earliest_placement.time_before)
             {
@@ -153,6 +160,7 @@ bool Algorithm::check_nearest_front()
         new_front_time += current_time;
         FrontData new_front_data = { new_front_time, { current_pending } };
         SearchResult result = binarySearch(pending_fronts, new_front_data);
+        if (result.pos == 0) throw std::exception();
         if (!result.found)
         {
             pending_fronts.insert(pending_fronts.begin() + result.pos, new_front_data);
@@ -161,6 +169,7 @@ bool Algorithm::check_nearest_front()
         {
             pending_fronts[result.pos].job_pairs.push_back(current_pending);
         }
+        debug_was_resulted++;
     }
 
     if (last_loop_check_begin == -1 && !result)
@@ -180,7 +189,7 @@ bool Algorithm::check_nearest_front()
         pending_fronts.size() == 1)
     {
         should_copy_front_plus_one = true;
-        qDebug() << "Last loop check begin is being used!!" << '\n';
+        qDebug() << "Last loop check begin is being used!!";
     }
     if (should_copy_front_plus_one)
     {
@@ -190,6 +199,7 @@ bool Algorithm::check_nearest_front()
         current_time++;
         return true;
     }
+    if (current_front.job_pairs.size() != debug_was_resulted) throw std::exception();
     pending_fronts.erase(pending_fronts.begin());
     return result;
 }

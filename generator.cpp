@@ -102,12 +102,7 @@ void Generator::generate_and_write()
     }
     stream << '\n';
 
-    for (int i = 0; i < job_groups.size(); i++)
-    {
-        //algorithm.add_job_group(job_groups[i], worker_group);
-    }
-
-    //std::shuffle(all_jobs.begin(), all_jobs.end(), rng);
-    //algorithm.set_preference(NONE);
+    if (look_ahead != -1)
+        stream << "look_ahead;" << look_ahead << '\n';
     qDebug() << "example generated";
 }
