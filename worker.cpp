@@ -73,7 +73,7 @@ bool Worker::is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time)
 {
     if (fetch_time == -1) fetch_time = *clock;
     update();
-    if (preserved_until != -1) return false;
+    if (preserved_until > fetch_time) return false;
     //if (!plan.is_ready(fetch_time)) return false;
     int time_left = plan.get_time_until_rest(fetch_time);
     int time_want_to_use = 0;
@@ -179,6 +179,11 @@ void Worker::preserve(int interval)
 const Plan Worker::get_plan() const
 {
     return plan;
+}
+
+int Worker::is_preserved() const
+{
+    return preserved_until != -1;
 }
 
 void Worker::set_clock(int* new_clock)

@@ -34,9 +34,11 @@ Placement WorkerGroup::get_earliest_placement_time(Job *job)
     for (int i = 0; i < workers.size(); i++)
     {
         int current_nearest = -1;
-        if (workers[i]->get_job_count() == 0)
+        if (workers[i]->get_job_count() == 0 && !workers[i]->is_preserved())
         {
             current_nearest = workers[i]->get_plan().get_time_nearest_possible(lookup_time, job_time);
+            if (lookup_time != *current_time)
+                current_nearest += job->get_start_after() - *current_time;
         }
         else
         {
@@ -53,7 +55,7 @@ Placement WorkerGroup::get_earliest_placement_time(Job *job)
             output.time_before = current_nearest;
         }
     }
-    qDebug() << "get_earliest_placement_time" << output.time_before << lookup_time;
+    qDebug() << "get_earliest_placement_time" << output.time_before << lookup_time << job->get_global_id();
 
     return output;
 }

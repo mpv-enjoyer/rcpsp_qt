@@ -128,7 +128,7 @@ bool Algorithm::check_nearest_front()
             {
                 AssignedWorker assigned_to = current_pending.worker_groups[j]->assign(current_pending.job);
                 assigned_jobs.push_back( {current_pending.job, assigned_to.worker, current_time, current_pending.job->get_global_id(), current_pending.worker_groups[j]->get_global_id(), assigned_to.internal_id} );
-                //qDebug() << "Moved to completed job" << current_pending.job->get_want_non_renewable() << " Time:" << current_time;
+                qDebug() << "Moved to completed job" << current_pending.job->get_global_id() << current_time;
                 current_pending.worker_groups[j]->set_clock(&current_time);
                 current_front.job_pairs.erase(current_front.job_pairs.begin() + i);
                 assigned_count++;
@@ -138,8 +138,9 @@ bool Algorithm::check_nearest_front()
             }
             if (earliest_placement.time_before > 0 && earliest_placement.time_before <= look_ahead_time)
             {
+                if (!earliest_placement.worker->is_preserved())
+                    earliest_placement.worker->preserve(earliest_placement.time_before);
                 // if (new_front_time > earliest_placement.time_before)
-                earliest_placement.worker->preserve(earliest_placement.time_before);
             }
             if (new_front_time == -1 || new_front_time > earliest_placement.time_before)
             {
@@ -240,6 +241,7 @@ void Algorithm::run()
 
     while (true)
     {
+        assigned_jobs.clear();
         completed_jobs.clear();
         current_time = 0;
         pending_fronts.clear();
@@ -283,12 +285,29 @@ void Algorithm::run()
             current_failed_jobs += job.start + job.job->get_time_to_spend() > job.job->get_end_before();
         }
 
-        if (current_failed_jobs == 0) break;
-        if (current_failed_jobs > best_failed_jobs) break;
+        if (current_failed_jobs == 0)
+        {
+            best_completed_jobs = completed_jobs;
+            break;
+        }
+        if (current_failed_jobs > best_failed_jobs)
+        {
+            best_completed_jobs = completed_jobs;
+            break;
+        }
         if (current_failed_jobs == best_failed_jobs)
         {
             current_equal_failed++;
-            if (current_equal_failed > look_ahead_time) break;
+            // look_ahead_time acts as a magic
+            // number of repeats before we give
+            // up on trying to find a better
+            // solution. This may be rewritten
+            // to use something like current_equal_max.
+            if (current_equal_failed > look_ahead_time)
+            {
+                best_completed_jobs = completed_jobs;
+                break;
+            }
         }
         current_equal_failed = 0;
         best_failed_jobs = current_failed_jobs;
@@ -296,14 +315,14 @@ void Algorithm::run()
         {
             job.job->undone();
             job.worker->undone();
+            if (job.start + job.job->get_time_to_spend() <= job.job->get_end_before()) continue;
             auto old_coefficient = job.job->get_preference_coefficient();
             job.job->set_preference_coefficient(old_coefficient + 1);
         }
-        best_completed_jobs = completed_jobs;
 
         pending_jobs = input;
 
-        qDebug() << "current failed job count:" << best_failed_jobs;
+        qDebug() << "current failed job count:" << best_failed_jobs << "with" << completed_jobs.size() << "completed";
     }
     if (best_failed_jobs != __INT_MAX__)
         completed_jobs = best_completed_jobs;

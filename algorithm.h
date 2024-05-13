@@ -57,10 +57,11 @@ class Algorithm
     bool check_nearest_front();
     int set_critical_time(JobPair current_job_pair);
     void begin_set_critical_time();
+
     int look_ahead_time = 0;
+
     int last_loop_check_begin = -1;
     int longest_plan_loop = 0;
-    int max_time = 1000000;
 public:
     Algorithm();
     void set_preference(Preference new_preference);

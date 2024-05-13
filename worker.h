@@ -29,6 +29,7 @@ public:
     int can_be_placed_after(std::vector<OccupancyPair> occupancy);
     void preserve(int interval);
     const Plan get_plan() const;
+    int is_preserved() const;
     bool is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time = -1);
     void undone();
 };
