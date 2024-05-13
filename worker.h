@@ -30,6 +30,7 @@ public:
     void preserve(int interval);
     const Plan get_plan() const;
     bool is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time = -1);
+    void undone();
 };
 
 #endif // WORKER_H

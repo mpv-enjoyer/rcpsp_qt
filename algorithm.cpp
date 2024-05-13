@@ -101,16 +101,17 @@ bool Algorithm::check_nearest_front()
         break;
     }
 
-    /*for (int i = 0; i < current_front.job_pairs.size(); i++)
+    for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
         int coeff = current_front.job_pairs[i].job->get_preference_coefficient();
         if (coeff == 0) continue;
         int j = i - coeff;
         if (j < 0) j = 0;
-        auto copy = current_front.job_pairs[i];
-        current_front.job_pairs.erase(current_front.job_pairs.begin() + i);
-        current_front.job_pairs.insert(current_front.job_pairs.begin() + j, copy);
-    }*/ // For possible future rearrangements
+        std::swap(current_front.job_pairs[i], current_front.job_pairs[j]);
+        //auto copy = current_front.job_pairs[i];
+        //current_front.job_pairs.erase(current_front.job_pairs.begin() + i);
+        //current_front.job_pairs.insert(current_front.job_pairs.begin() + j, copy);
+    }
 
     for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
@@ -217,51 +218,95 @@ void Algorithm::begin_set_critical_time()
     }
 }
 
+int Algorithm::get_look_ahead_time() const
+{
+    return look_ahead_time;
+}
+
+void Algorithm::set_look_ahead_time(int newLook_ahead_time)
+{
+    look_ahead_time = newLook_ahead_time;
+}
+
 void Algorithm::run()
-{   
-    current_time = 0;
-    pending_fronts.clear();
-    pending_fronts.push_back(FrontData{0, std::vector<JobPair>()});
-    for (int i = 0; i < pending_jobs.size(); i++)
+{
+    std::vector<JobPair> input = pending_jobs;
+    int best_failed_jobs = __INT_MAX__;
+    int current_failed_jobs = 0;
+    int current_equal_failed = 0;
+    std::vector<ResultPair> best_completed_jobs;
+    last_loop_check_begin = -1;
+    longest_plan_loop = 0;
+
+    while (true)
     {
-        pending_jobs[i].job->set_start_after(pending_jobs[i].start_after);
-        pending_jobs[i].job->set_end_before(pending_jobs[i].end_before);
-        for (int j = 0; j < pending_jobs[i].worker_groups.size(); j++)
+        completed_jobs.clear();
+        current_time = 0;
+        pending_fronts.clear();
+        pending_fronts.push_back(FrontData{0, std::vector<JobPair>()});
+        for (int i = 0; i < pending_jobs.size(); i++)
         {
-            pending_jobs[i].worker_groups[j]->set_clock(&current_time);
+            pending_jobs[i].job->set_start_after(pending_jobs[i].start_after);
+            pending_jobs[i].job->set_end_before(pending_jobs[i].end_before);
+            for (int j = 0; j < pending_jobs[i].worker_groups.size(); j++)
+            {
+                pending_jobs[i].worker_groups[j]->set_clock(&current_time);
+            }
         }
-    }
-    begin_set_critical_time();
+        begin_set_critical_time();
 
-    qDebug() << "Sorting done";
+        qDebug() << "Sorting done";
 
-
-
-    for (int i = 0; i < pending_jobs.size(); i++)
-    {
-        if (pending_jobs[i].job->check_predecessors() && pending_jobs[i].start_after <= 0)
+        for (int i = 0; i < pending_jobs.size(); i++)
         {
-            pending_fronts[0].job_pairs.push_back(pending_jobs[i]);
-            pending_jobs.erase(pending_jobs.begin() + i);
-            i--;
+            if (pending_jobs[i].job->check_predecessors() && pending_jobs[i].start_after <= look_ahead_time)
+            {
+                pending_fronts[0].job_pairs.push_back(pending_jobs[i]);
+                pending_jobs.erase(pending_jobs.begin() + i);
+                i--;
+            }
         }
+
+        while (check_nearest_front())
+        {
+            /* Nothing? */
+        }
+
+        for (int i = 0; i < assigned_jobs.size(); i++)
+        {
+            completed_jobs.push_back(assigned_jobs[i]);
+        };
+
+        current_failed_jobs = 0;
+        for (auto job : completed_jobs)
+        {
+            current_failed_jobs += job.start + job.job->get_time_to_spend() > job.job->get_end_before();
+        }
+
+        if (current_failed_jobs == 0) break;
+        if (current_failed_jobs > best_failed_jobs) break;
+        if (current_failed_jobs == best_failed_jobs)
+        {
+            current_equal_failed++;
+            if (current_equal_failed > look_ahead_time) break;
+        }
+        current_equal_failed = 0;
+        best_failed_jobs = current_failed_jobs;
+        for (auto job : completed_jobs)
+        {
+            job.job->undone();
+            job.worker->undone();
+            auto old_coefficient = job.job->get_preference_coefficient();
+            job.job->set_preference_coefficient(old_coefficient + 1);
+        }
+        best_completed_jobs = completed_jobs;
+
+        pending_jobs = input;
+
+        qDebug() << "current failed job count:" << best_failed_jobs;
     }
-
-    while (check_nearest_front())
-    {
-        /* Nothing? */
-    }
-
-    for (int i = 0; i < assigned_jobs.size(); i++)
-    {
-
-    }
-
-    for (int i = 0; i < assigned_jobs.size(); i++)
-    {
-        completed_jobs.push_back(assigned_jobs[i]);
-    };
-
+    if (best_failed_jobs != __INT_MAX__)
+        completed_jobs = best_completed_jobs;
     std::sort(completed_jobs.begin(), completed_jobs.end(), compare_result);
 
     qDebug() << "Ready to display";

@@ -50,7 +50,6 @@ class Algorithm
 {
     Preference preference = NONE;
     std::vector<JobPair> pending_jobs;
-    int previous_time;
     int current_time;
     std::vector<FrontData> pending_fronts;
     std::vector<ResultPair> completed_jobs;
@@ -72,6 +71,8 @@ public:
     std::vector<JobPair> get_failed();
     void set_log_bar(QProgressBar* bar);
     void LoadCSV(QString file_name, std::vector<Worker *> &all_workers, std::vector<Job *> &all_jobs);
+    int get_look_ahead_time() const;
+    void set_look_ahead_time(int newLook_ahead_time);
 };
 
 struct JobLoad

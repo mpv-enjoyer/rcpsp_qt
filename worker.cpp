@@ -124,6 +124,12 @@ bool Worker::is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time)
     return true;
 }
 
+void Worker::undone()
+{
+    preserved_until = -1;
+    current_jobs = std::vector<CurrentJob>();
+}
+
 const Job* Worker::get_job(int index)
 {
     update();
