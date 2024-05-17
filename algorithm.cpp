@@ -80,7 +80,6 @@ bool Algorithm::check_nearest_front()
     for (int i = 0; i < pending_jobs.size(); i++)
     {
         result = true; //moved up to not give up after current_time is too large.
-        //if (pending_jobs[i].end_before <= current_time) continue;
         if (pending_jobs[i].start_after > current_time - look_ahead_time) continue;
         if (!pending_jobs[i].job->check_predecessors()) continue;
         current_front.job_pairs.push_back(pending_jobs[i]);
@@ -125,6 +124,7 @@ bool Algorithm::check_nearest_front()
     debug_present += assigned_jobs.size();
     qDebug() << pending_jobs.size() << current_front.job_pairs.size() << completed_jobs.size() << assigned_jobs.size();
     qDebug() << debug_present << "overall present right now";
+    // This is a check for lost jobs.
 
     for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
