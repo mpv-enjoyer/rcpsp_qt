@@ -79,8 +79,8 @@ bool Algorithm::check_nearest_front()
 
     for (int i = 0; i < pending_jobs.size(); i++)
     {
-        if (pending_jobs[i].end_before <= current_time) continue;
-        result = true;
+        result = true; //moved up to not give up after current_time is too large.
+        //if (pending_jobs[i].end_before <= current_time) continue;
         if (pending_jobs[i].start_after > current_time - look_ahead_time) continue;
         if (!pending_jobs[i].job->check_predecessors()) continue;
         current_front.job_pairs.push_back(pending_jobs[i]);
@@ -115,6 +115,17 @@ bool Algorithm::check_nearest_front()
 
     int debug_was_resulted = 0;
 
+    int debug_present = pending_jobs.size();
+    debug_present += current_front.job_pairs.size();
+    for (int i = 1; i < pending_fronts.size(); i++)
+    {
+        debug_present += pending_fronts[i].job_pairs.size();
+    }
+    debug_present += completed_jobs.size();
+    debug_present += assigned_jobs.size();
+    qDebug() << pending_jobs.size() << current_front.job_pairs.size() << completed_jobs.size() << assigned_jobs.size();
+    qDebug() << debug_present << "overall present right now";
+
     for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
         JobPair current_pending = current_front.job_pairs[i];
@@ -131,7 +142,7 @@ bool Algorithm::check_nearest_front()
                 AssignedWorker assigned_to = current_pending.worker_groups[j]->assign(current_pending.job);
                 static int times = 0;
                 times++;
-                qDebug() << times << "times";
+                //qDebug() << times << "times";
 
                 assigned_jobs.push_back( {current_pending.job, assigned_to.worker, current_time, current_pending.job->get_global_id(), current_pending.worker_groups[j]->get_global_id(), assigned_to.internal_id} );
 //                qDebug() << "Moved to completed job" << current_pending.job->get_global_id() << current_time;
@@ -147,6 +158,7 @@ bool Algorithm::check_nearest_front()
                 if (!earliest_placement.worker->is_preserved())
                     earliest_placement.worker->preserve(earliest_placement.time_before);
                 new_front_time = earliest_placement.time_before;
+                if (new_front_time == -1) throw std::exception();
                 break;
             }
             if (new_front_time == -1 || new_front_time > earliest_placement.time_before)
