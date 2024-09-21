@@ -41,9 +41,9 @@ void Generator::generate_and_write()
         all_jobs.push_back(generated);
         int predecessor = QRandomGenerator::global()->bounded(0, allJobsSize);
         stream << "job;" << i << ";";
-        stream << time << ";" << 0.25f << ";";
-        stream << time << ";" << 0.50f << ";";
-        stream << time << ";" << 0.1f << ";";
+        stream << time << ";" << 1.0f << ";";
+        stream << time << ";" << 1.0f << ";";
+        stream << time << ";" << 1.0f << ";";
         stream << "]";
         if (predecessor < i)
         {

@@ -51,15 +51,17 @@ bool compare_result(ResultPair& lhs, ResultPair& rhs)
     return (lhs.job_id > rhs.job_id);
 }
 
-bool Algorithm::check_nearest_front()
+template <typename T>
+void Algorithm::move_job(std::vector<T>& from, std::vector<T>& to, int& i)
 {
-    bool result = false;
-    current_time = pending_fronts[0].time;
-    FrontData current_front = pending_fronts[0];
-    static int assigned_count = 0;
+    if (i < 0 && i >= from.size()) throw std::exception();
+    to.push_back(from[i]);
+    from.erase(from.begin() + i);
+    i--;
+}
 
-    qDebug() << current_time << current_front.job_pairs.size() << completed_jobs.size() << assigned_jobs.size();
-
+void Algorithm::check_completed_jobs()
+{
     for (int i = 0; i < assigned_jobs.size(); i++)
     {
         assigned_jobs[i].worker->update();
@@ -71,22 +73,26 @@ bool Algorithm::check_nearest_front()
         //TODO: increased complexity here
         if (!found)
         {
-            completed_jobs.push_back(assigned_jobs[i]);
-            assigned_jobs.erase(assigned_jobs.begin() + i);
-            i--;
+            move_job(assigned_jobs, completed_jobs, i);
         }
     };
+}
 
+bool Algorithm::check_available_jobs(FrontData& current_front)
+{
+    bool result = false;
     for (int i = 0; i < pending_jobs.size(); i++)
     {
         result = true; //moved up to not give up after current_time is too large.
-        if (pending_jobs[i].start_after > current_time - look_ahead_time) continue;
+        if (pending_jobs[i].start_after > current_time + look_ahead_time) continue; // previously -
         if (!pending_jobs[i].job->check_predecessors()) continue;
-        current_front.job_pairs.push_back(pending_jobs[i]);
-        pending_jobs.erase(pending_jobs.begin() + i);
-        i--;
+        move_job(pending_jobs, current_front.job_pairs, i);
     }
+    return result;
+}
 
+void Algorithm::sort_current_front(FrontData& current_front)
+{
     switch (preference)
     {
     case SPT:
@@ -99,7 +105,10 @@ bool Algorithm::check_nearest_front()
         std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_EST);
         break;
     }
+}
 
+void Algorithm::apply_preference_coefficient_to_current_front(FrontData& current_front)
+{
     for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
         int coeff = current_front.job_pairs[i].job->get_preference_coefficient();
@@ -107,13 +116,11 @@ bool Algorithm::check_nearest_front()
         int j = i - coeff;
         if (j < 0) j = 0;
         std::swap(current_front.job_pairs[i], current_front.job_pairs[j]);
-        //auto copy = current_front.job_pairs[i];
-        //current_front.job_pairs.erase(current_front.job_pairs.begin() + i);
-        //current_front.job_pairs.insert(current_front.job_pairs.begin() + j, copy);
     }
+}
 
-    int debug_was_resulted = 0;
-
+void Algorithm::debug_check_lost_jobs(FrontData& current_front)
+{
     int debug_present = pending_jobs.size();
     debug_present += current_front.job_pairs.size();
     for (int i = 1; i < pending_fronts.size(); i++)
@@ -124,7 +131,26 @@ bool Algorithm::check_nearest_front()
     debug_present += assigned_jobs.size();
     qDebug() << pending_jobs.size() << current_front.job_pairs.size() << completed_jobs.size() << assigned_jobs.size();
     qDebug() << debug_present << "overall present right now";
-    // This is a check for lost jobs.
+}
+
+bool Algorithm::check_nearest_front()
+{
+    bool result = false;
+    current_time = pending_fronts[0].time;
+    FrontData current_front = pending_fronts[0];
+    static int assigned_count = 0;
+
+    check_completed_jobs();
+
+    result |= check_available_jobs(current_front);
+
+    sort_current_front(current_front);
+
+    apply_preference_coefficient_to_current_front(current_front);
+
+    int debug_was_resulted = 0;
+
+    //debug_check_lost_jobs(current_front);
 
     for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
@@ -201,7 +227,7 @@ bool Algorithm::check_nearest_front()
         pending_fronts.size() == 1)
     {
         should_copy_front_plus_one = true;
-        qDebug() << "Last loop check begin is being used!!";
+        //qDebug() << "Last loop check begin is being used!!";
     }
     if (should_copy_front_plus_one)
     {
@@ -279,15 +305,16 @@ void Algorithm::run()
         }
         begin_set_critical_time();
 
-        qDebug() << "Sorting done";
+        //qDebug() << "Sorting done";
 
         for (int i = 0; i < pending_jobs.size(); i++)
         {
             if (pending_jobs[i].job->check_predecessors() && pending_jobs[i].start_after <= look_ahead_time)
             {
-                pending_fronts[0].job_pairs.push_back(pending_jobs[i]);
-                pending_jobs.erase(pending_jobs.begin() + i);
-                i--;
+                move_job(pending_jobs, pending_fronts[0].job_pairs, i);
+                //pending_fronts[0].job_pairs.push_back(pending_jobs[i]);
+                //pending_jobs.erase(pending_jobs.begin() + i);
+                //i--;
             }
         }
 
@@ -307,7 +334,7 @@ void Algorithm::run()
             current_failed_jobs += job.start + job.job->get_time_to_spend() > job.job->get_end_before();
         }
 
-        if (current_failed_jobs == 0)
+        if (current_failed_jobs == 0) //  || true) disables additional algorithm launch
         {
             best_completed_jobs = completed_jobs;
             break;
@@ -349,6 +376,13 @@ void Algorithm::run()
     if (best_failed_jobs != __INT_MAX__)
         completed_jobs = best_completed_jobs;
     std::sort(completed_jobs.begin(), completed_jobs.end(), compare_result);
+
+    int final_failed_jobs = 0;
+    for (auto job : completed_jobs)
+    {
+        final_failed_jobs += job.start + job.job->get_time_to_spend() > job.job->get_end_before();
+    }
+    qDebug() << "final failed job count:" << final_failed_jobs << "with" << completed_jobs.size() << "completed";
 
     qDebug() << "Ready to display";
 

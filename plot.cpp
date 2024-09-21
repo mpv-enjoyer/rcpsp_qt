@@ -23,7 +23,7 @@ Plot::Plot(QCustomPlot* plot)
 
     // create empty bar chart objects:
     unable_set = createBars("", QColor::fromRgb(255, 255, 255, 0), plot);
-    waiting_set = createBars("Поступление работы - Начало обслуживания", QColor::fromRgb(200, 200, 200), plot);
+    waiting_set = createBars("Поступление - Начало обслуживания", QColor::fromRgb(200, 200, 200), plot);
     executed_set = createBars("Начало обслуживания - Конец обслуживания", QColor::fromRgb(0, 0, 0), plot);
     ready_set = createBars("Конец обслуживания - Позднее время начала", QColor::fromRgb(200, 200, 200), plot);
     critical_set = createBars("Позднее время начала - Директивный срок", QColor::fromRgb(200, 150, 150), plot);
@@ -129,11 +129,11 @@ void Plot::updatePlot(const std::vector<ResultPair> &completed)
     for (auto i = 0; i < y_axis_size; i++)
     {
         ticks[i] = i + 1;
-        QString current_left = "Работа №: ";
+        QString current_left = "Требование №: ";
         current_left.append(QString().number(completed[i].job_id));
-        current_left.append(", Рабочая группа: ");
+        current_left.append(", Группа станков: ");
         current_left.append(QString().number(completed[i].worker_group_id));
-        current_left.append(", ID работника: ");
+        current_left.append(", ID станка: ");
         current_left.append(QString().number(completed[i].worker_internal_id));
         current_left.append(", Начало: ");
         current_left.append(QString().number(completed[i].start));

@@ -74,6 +74,14 @@ public:
     void LoadCSV(QString file_name, std::vector<Worker *> &all_workers, std::vector<Job *> &all_jobs);
     int get_look_ahead_time() const;
     void set_look_ahead_time(int newLook_ahead_time);
+private:
+    template<typename T>
+    void move_job(std::vector<T> &from, std::vector<T> &to, int &i);
+    void check_completed_jobs();
+    bool check_available_jobs(FrontData &current_front);
+    void sort_current_front(FrontData &current_front);
+    void apply_preference_coefficient_to_current_front(FrontData &current_front);
+    void debug_check_lost_jobs(FrontData &current_front);
 };
 
 struct JobLoad
