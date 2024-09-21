@@ -7,14 +7,10 @@
 #include <QProgressBar>
 #include <QFile>
 
-struct JobPair
-{
-    int start_after;
-    int end_before;
-    Job* job;
-    std::vector<WorkerGroup*> worker_groups;
-    int id;
-};
+#include "pendingjobs.h"
+#include "pendingfronts.h"
+#include "assignedjobs.h"
+#include "completedjobs.h"
 
 struct ResultPair
 {
