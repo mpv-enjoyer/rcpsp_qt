@@ -1,6 +1,7 @@
 #include "pendingfronts.h"
+#include "assignedjobs.h"
 
-SearchResult PendingFronts::binarySearch(const Data& x)
+PendingFronts::SearchResult PendingFronts::binarySearch(const Data& x)
 {
     auto& arr = _data;
     int r = arr.size() - 1;
@@ -68,15 +69,15 @@ void PendingFronts::apply_preference_coefficient_to_current_front(Data& current_
     }
 }
 
-PendingFronts::PendingFronts(int *current_time, AssignedJobs *next, Preference preference, int longest_plan_loop)
-    : _current_time(current_time), next(next), _longest_plan_loop(longest_plan_loop), _preference(preference)
+PendingFronts::PendingFronts(int *current_time, AssignedJobs *next, Preference preference, int look_ahead_time)
+    : _current_time(current_time), next(next), _look_ahead_time(look_ahead_time), _preference(preference)
 {
 
 }
 
-void PendingFronts::add(int front_time, PendingJobs::Data job_pairs)
+void PendingFronts::add(int front_time, JobPair job_pair)
 {
-    Data new_data = { front_time, { job_pairs } };
+    Data new_data = { front_time, { job_pair } };
     SearchResult result = binarySearch(new_data);
     if (!result.found)
     {
@@ -84,7 +85,7 @@ void PendingFronts::add(int front_time, PendingJobs::Data job_pairs)
     }
     else
     {
-        _data[result.pos].job_pairs.push_back(job_pairs);
+        _data[result.pos].job_pairs.push_back(job_pair);
     }
 }
 
@@ -132,7 +133,7 @@ bool PendingFronts::tick()
                 transmitted_to_another_front++;
                 break;
             }
-            if (earliest_placement.time_before > 0 && earliest_placement.time_before <= look_ahead_time)
+            if (earliest_placement.time_before > 0 && earliest_placement.time_before <= _look_ahead_time)
             { // Assign using preserve
                 if (!earliest_placement.worker->is_preserved())
                     earliest_placement.worker->preserve(earliest_placement.time_before);

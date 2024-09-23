@@ -15,18 +15,13 @@ INCLUDEPATH += algorithm
 INCLUDEPATH += model
 
 SOURCES += \
-    algorithm.cpp \
     algorithm/algorithm.cpp \
     algorithm/assignedjobs.cpp \
     algorithm/completedjobs.cpp \
     algorithm/pendingfronts.cpp \
     algorithm/pendingjobs.cpp \
-    assignedjobs.cpp \
-    completedjobs.cpp \
     contentwidget.cpp \
     generator.cpp \
-    job.cpp \
-    jobgroup.cpp \
     loader.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -35,13 +30,8 @@ SOURCES += \
     model/plan.cpp \
     model/worker.cpp \
     model/workergroup.cpp \
-    pendingfronts.cpp \
-    pendingjobs.cpp \
-    plan.cpp \
     plot.cpp \
     qcustomplot.cpp \
-    worker.cpp \
-    workergroup.cpp \
     chartview.cpp \
 
 HEADERS += \
@@ -51,12 +41,8 @@ HEADERS += \
     algorithm/completedjobs.h \
     algorithm/pendingfronts.h \
     algorithm/pendingjobs.h \
-    assignedjobs.h \
-    completedjobs.h \
     contentwidget.h \
     generator.h \
-    job.h \
-    jobgroup.h \
     loader.h \
     mainwindow.h \
     model/job.h \
@@ -64,14 +50,8 @@ HEADERS += \
     model/plan.h \
     model/worker.h \
     model/workergroup.h \
-    pendingfronts.h \
-    pendingjobs.h \
-    plan.h \
     plot.h \
     qcustomplot.h \
-    qcustomplot.h \
-    worker.h \
-    workergroup.h \
     chartview.h \
 
 FORMS += \

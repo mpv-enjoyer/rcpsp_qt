@@ -1,4 +1,5 @@
 #include "pendingjobs.h"
+#include "pendingfronts.h"
 
 PendingJobs::PendingJobs(int *current_time, PendingFronts *next, int look_ahead_time, std::vector<Data> data)
     : next(next), _current_time(current_time), _look_ahead_time(look_ahead_time), _data(data)
@@ -9,13 +10,13 @@ PendingJobs::PendingJobs(int *current_time, PendingFronts *next, int look_ahead_
         _data[i].job->set_end_before(_data[i].end_before); // IDK why didn't we do it earlier
         for (int j = 0; j < _data[i].worker_groups.size(); j++)
         {
-            _data[i].worker_groups[j]->set_clock(&current_time);
+            _data[i].worker_groups[j]->set_clock(current_time);
         }
     }
     begin_set_critical_time();
 }
 
-int PendingJobs::set_critical_time(JobPair current_job_pair)
+int PendingJobs::set_critical_time(Data current_job_pair)
 {
     if (current_job_pair.job->critical_time_exists())
     {
@@ -34,18 +35,18 @@ int PendingJobs::set_critical_time(JobPair current_job_pair)
 
 void PendingJobs::begin_set_critical_time()
 {
-    for (int i = 0; i < pending_jobs.size(); i++)
+    for (int i = 0; i < _data.size(); i++)
     {
-        set_critical_time(pending_jobs[i]);
+        set_critical_time(_data[i]);
     }
 }
 
-void PendingJobs::add(int start, int end, Job* job, std::vector<WorkerGroup*> workers)
-{
-    Data to_add = {start, end, job, workers, static_cast<int>(_data.size())};
-    _data.push_back(to_add);
-    next->add(start);
-}
+//void PendingJobs::add(int start, int end, Job* job, std::vector<WorkerGroup*> workers)
+//{
+//    Data to_add = {start, end, job, workers, static_cast<int>(_data.size())};
+//    _data.push_back(to_add);
+//    next->add(start);
+//}
 
 bool PendingJobs::tick()
 {

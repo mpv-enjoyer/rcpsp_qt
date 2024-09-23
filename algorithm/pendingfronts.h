@@ -9,19 +9,24 @@ class PendingFronts
     AssignedJobs* next;
     const Preference _preference;
     int last_loop_check_begin = -1;
-    const int _longest_plan_loop;
+    const int _look_ahead_time;
 public:
     struct Data
     {
         int time;
-        std::vector<PendingJobs::Data> job_pairs;
+        std::vector<JobPair> job_pairs;
     };
-    PendingFronts(int* current_time, AssignedJobs* next, Preference preference, int longest_plan_loop);
-    void add(int front_time, PendingJobs::Data job_pairs);
+    PendingFronts(int* current_time, AssignedJobs* next, Preference preference, int look_ahead_time);
+    void add(int front_time, JobPair job_pair);
     void add(int front_time); // Query updates for everyone except PendingFronts
     bool tick();
 private:
     std::vector<Data> _data;
+    struct SearchResult
+    {
+        bool found;
+        int pos;
+    };
     SearchResult binarySearch(const Data &x);
     void sort_current_front(Data &current_front);
     void apply_preference_coefficient_to_current_front(Data &current_front);

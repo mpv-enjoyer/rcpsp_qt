@@ -1,6 +1,5 @@
 #include "assignedjobs.h"
-
-
+#include "completedjobs.h"
 
 AssignedJobs::AssignedJobs(const int *current_time, CompletedJobs *next)
     : _current_time(current_time), next(next)

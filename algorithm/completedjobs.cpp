@@ -31,6 +31,7 @@ void CompletedJobs::prepare_for_next_iteration()
 {
     for (auto job : _data)
     {
+        // We use the same Job entity to preserve preference so we need to 'undone'
         job.job->undone();
         job.worker->undone();
         if (job.start + job.job->get_time_to_spend() <= job.job->get_end_before()) continue;
