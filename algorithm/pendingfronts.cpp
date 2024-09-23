@@ -78,7 +78,6 @@ void PendingFronts::add(int front_time, PendingJobs::Data job_pairs)
 {
     Data new_data = { front_time, { job_pairs } };
     SearchResult result = binarySearch(new_data);
-    if (result.pos == 0) throw std::exception();
     if (!result.found)
     {
         _data.insert(_data.begin() + result.pos, new_data);
@@ -86,6 +85,16 @@ void PendingFronts::add(int front_time, PendingJobs::Data job_pairs)
     else
     {
         _data[result.pos].job_pairs.push_back(job_pairs);
+    }
+}
+
+void PendingFronts::add(int front_time)
+{
+    Data new_data = { front_time, { } };
+    SearchResult result = binarySearch(new_data);
+    if (!result.found)
+    {
+        _data.insert(_data.begin() + result.pos, new_data);
     }
 }
 
@@ -99,6 +108,8 @@ bool PendingFronts::tick()
     sort_current_front(current_front);
     apply_preference_coefficient_to_current_front(current_front);
 
+    int transmitted_to_another_front = 0;
+
     for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
         PendingJobs::Data current_pending = current_front.job_pairs[i];
@@ -111,12 +122,14 @@ bool PendingFronts::tick()
             if (earliest_placement.time_before == 0) // Assign right now
             {
                 AssignedWorker assigned_to = current_pending.worker_groups[j]->assign(current_pending.job);
-                next->add(current_time, j, assigned_to.internal_id, current_pending);
+                next->add(current_time, j, assigned_to.internal_id, current_pending, assigned_to.worker);
 
-                current_pending.worker_groups[j]->set_clock(&current_time);
+                add(current_time + current_pending.job->get_time_to_spend()); // In case this job is the last predecessor
+                current_pending.worker_groups[j]->set_clock(_current_time); // Just in case I guess?
                 current_front.job_pairs.erase(current_front.job_pairs.begin() + i);
                 new_front_time = -1;
                 i--;
+                transmitted_to_another_front++;
                 break;
             }
             if (earliest_placement.time_before > 0 && earliest_placement.time_before <= look_ahead_time)
@@ -148,7 +161,7 @@ bool PendingFronts::tick()
         }
     }
 
-    bool should_copy_front_plus_one = _data.size() == 1 && result;
+    /*bool should_copy_front_plus_one = _data.size() == 1 && result;
     if (last_loop_check_begin != 1 &&
         last_loop_check_begin + _longest_plan_loop < current_time &&
         _data.size() == 1)
@@ -160,7 +173,12 @@ bool PendingFronts::tick()
         _data[0] = current_front;
         _data[0].time++;
         return true;
-    }
+    }*/
+
+    // ^ Shouldn't be needed. Every job must have a front with time equal to it's arrival plus ^
+    // ^  if this job cannot be started because of predecessors, they will trigger the update  ^
+
+    if (_data[0].job_pairs.size() != transmitted_to_another_front) throw std::exception(); // Some job was lost
     _data.erase(_data.begin());
 
     return result;

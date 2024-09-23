@@ -17,15 +17,8 @@ class PendingJobs;
 #include "assignedjobs.h"
 #include "completedjobs.h"
 
-struct ResultPair
-{
-    Job* job;
-    Worker* worker;
-    int start;
-    int job_id;
-    int worker_group_id;
-    int worker_internal_id;
-};
+typedef PendingJobs::Data JobPair;
+typedef CompletedJobs::Data ResultPair;
 
 struct FrontData
 {
@@ -50,10 +43,10 @@ struct SearchResult
 class Algorithm
 {
     Preference preference = NONE;
-    std::vector<JobPair> pending_jobs;
+    std::vector<JobPair> _pending_jobs;
     int current_time;
     std::vector<FrontData> pending_fronts;
-    std::vector<ResultPair> completed_jobs;
+    std::vector<ResultPair> _completed_jobs;
     std::vector<ResultPair> assigned_jobs; //To later become completed.
     bool check_nearest_front();
     int set_critical_time(JobPair current_job_pair);

@@ -18,6 +18,7 @@ public:
     };
     PendingFronts(int* current_time, AssignedJobs* next, Preference preference, int longest_plan_loop);
     void add(int front_time, PendingJobs::Data job_pairs);
+    void add(int front_time); // Query updates for everyone except PendingFronts
     bool tick();
 private:
     std::vector<Data> _data;

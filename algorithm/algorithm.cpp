@@ -279,110 +279,65 @@ void Algorithm::set_look_ahead_time(int newLook_ahead_time)
 
 void Algorithm::run()
 {
-    std::vector<JobPair> input = pending_jobs;
     int best_failed_jobs = __INT_MAX__;
     int current_failed_jobs = 0;
     int current_equal_failed = 0;
     std::vector<ResultPair> best_completed_jobs;
+    std::vector<ResultPair> current_completed_jobs;
     last_loop_check_begin = -1;
     longest_plan_loop = 0;
+    const int current_equal_max = look_ahead_time; // TODO: set as a separate variable
 
     while (true)
     {
-        assigned_jobs.clear();
-        completed_jobs.clear();
         current_time = 0;
-        pending_fronts.clear();
-        pending_fronts.push_back(FrontData{0, std::vector<JobPair>()});
-        for (int i = 0; i < pending_jobs.size(); i++)
-        {
-            pending_jobs[i].job->set_start_after(pending_jobs[i].start_after);
-            pending_jobs[i].job->set_end_before(pending_jobs[i].end_before);
-            for (int j = 0; j < pending_jobs[i].worker_groups.size(); j++)
-            {
-                pending_jobs[i].worker_groups[j]->set_clock(&current_time);
-            }
-        }
-        begin_set_critical_time();
+        CompletedJobs completed_jobs;
+        AssignedJobs assigned_jobs = AssignedJobs(&current_time, &completed_jobs);
+        PendingFronts pending_fronts = PendingFronts(&current_time, &assigned_jobs, preference, longest_plan_loop);
+        PendingJobs pending_jobs = PendingJobs(&current_time, &pending_fronts, look_ahead_time, _pending_jobs);
 
-        //qDebug() << "Sorting done";
-
-        for (int i = 0; i < pending_jobs.size(); i++)
+        bool must_continue = true;
+        while (must_continue)
         {
-            if (pending_jobs[i].job->check_predecessors() && pending_jobs[i].start_after <= look_ahead_time)
-            {
-                move_job(pending_jobs, pending_fronts[0].job_pairs, i);
-                //pending_fronts[0].job_pairs.push_back(pending_jobs[i]);
-                //pending_jobs.erase(pending_jobs.begin() + i);
-                //i--;
-            }
+            must_continue = false;
+            must_continue |= pending_jobs.tick();
+            must_continue |= pending_fronts.tick();
+            must_continue |= assigned_jobs.tick();
         }
 
-        while (check_nearest_front())
-        {
-            /* Nothing? */
-        }
+        current_completed_jobs = completed_jobs.result();
+        if (current_completed_jobs.size() != _pending_jobs.size()) throw std::exception(); // Lost some jobs
 
-        for (int i = 0; i < assigned_jobs.size(); i++)
+        current_failed_jobs = completed_jobs.failed_count();
+        if (current_failed_jobs == 0)
         {
-            completed_jobs.push_back(assigned_jobs[i]);
-        };
-
-        current_failed_jobs = 0;
-        for (auto job : completed_jobs)
-        {
-            current_failed_jobs += job.start + job.job->get_time_to_spend() > job.job->get_end_before();
-        }
-
-        if (current_failed_jobs == 0) //  || true) disables additional algorithm launch
-        {
-            best_completed_jobs = completed_jobs;
+            best_completed_jobs = current_completed_jobs;
             break;
         }
         if (current_failed_jobs > best_failed_jobs)
         {
-            best_completed_jobs = completed_jobs;
+            // Don't set to a worse value
             break;
         }
         if (current_failed_jobs == best_failed_jobs)
         {
             current_equal_failed++;
-            // look_ahead_time acts as a magic
-            // number of repeats before we give
-            // up on trying to find a better
-            // solution. This may be rewritten
-            // to use something like current_equal_max.
-            if (current_equal_failed > look_ahead_time)
+            if (current_equal_failed > current_equal_max)
             {
-                best_completed_jobs = completed_jobs;
+                best_completed_jobs = current_completed_jobs;
                 break;
             }
         }
         current_equal_failed = 0;
         best_failed_jobs = current_failed_jobs;
-        for (auto job : completed_jobs)
-        {
-            job.job->undone();
-            job.worker->undone();
-            if (job.start + job.job->get_time_to_spend() <= job.job->get_end_before()) continue;
-            auto old_coefficient = job.job->get_preference_coefficient();
-            job.job->set_preference_coefficient(old_coefficient + 1);
-        }
-
-        pending_jobs = input;
-
-        qDebug() << "current failed job count:" << best_failed_jobs << "with" << completed_jobs.size() << "completed";
+        qDebug() << "current failed job count:" << best_failed_jobs << "with" << _completed_jobs.size() << "completed";
     }
-    if (best_failed_jobs != __INT_MAX__)
-        completed_jobs = best_completed_jobs;
-    std::sort(completed_jobs.begin(), completed_jobs.end(), compare_result);
+    if (best_failed_jobs != __INT_MAX__) // Does it ever occur?
+        _completed_jobs = best_completed_jobs;
+    std::sort(_completed_jobs.begin(), _completed_jobs.end(), compare_result);
 
-    int final_failed_jobs = 0;
-    for (auto job : completed_jobs)
-    {
-        final_failed_jobs += job.start + job.job->get_time_to_spend() > job.job->get_end_before();
-    }
-    qDebug() << "final failed job count:" << final_failed_jobs << "with" << completed_jobs.size() << "completed";
+    int final_failed_jobs = best_failed_jobs;
+    qDebug() << "final failed job count:" << final_failed_jobs << "with" << _completed_jobs.size() << "completed";
 
     qDebug() << "Ready to display";
 

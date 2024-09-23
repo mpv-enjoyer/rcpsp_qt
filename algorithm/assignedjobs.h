@@ -6,7 +6,7 @@
 class AssignedJobs
 {
     const int* _current_time;
-    CompletedJobs next;
+    CompletedJobs* next;
 public:
     struct Data
     {
@@ -17,8 +17,9 @@ public:
         int worker_group_id;
         int worker_internal_id;
     };
-    AssignedJobs(const int* current_time) : _current_time(current_time) { }
-    void add(int start, int worker_group_id, int worker_internal_id, PendingJobs::Data job_pair);
+    AssignedJobs(const int* current_time, CompletedJobs* next);
+    void add(int start, int worker_group_id, int worker_internal_id, PendingJobs::Data job_pair, Worker* worker);
+    bool tick();
 private:
     std::vector<Data> _data;
 };
