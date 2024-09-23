@@ -7,6 +7,11 @@
 #include <QProgressBar>
 #include <QFile>
 
+class CompletedJobs;
+class AssignedJobs;
+class PendingFronts;
+class PendingJobs;
+
 #include "pendingjobs.h"
 #include "pendingfronts.h"
 #include "assignedjobs.h"

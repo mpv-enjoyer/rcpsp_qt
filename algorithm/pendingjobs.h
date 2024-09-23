@@ -5,7 +5,9 @@
 
 class PendingJobs
 {
-    const int* _current_time;
+    const int _look_ahead_time;
+    int* _current_time;
+    PendingFronts* next;
 public:
     struct Data
     {
@@ -15,8 +17,9 @@ public:
         std::vector<WorkerGroup*> worker_groups;
         int id;
     };
-    PendingJobs(const int* current_time) : _current_time(current_time) { }
-    add(int start, int end, Job *job, std::vector<WorkerGroup *> workers);
+    PendingJobs(int* current_time, PendingFronts* next, int look_ahead_time) : next(next), _current_time(current_time), _look_ahead_time(look_ahead_time) { }
+    void add(int start, int end, Job *job, std::vector<WorkerGroup *> workers);
+    bool tick();
 private:
     std::vector<Data> _data;
 };
