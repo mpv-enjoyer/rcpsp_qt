@@ -103,13 +103,13 @@ bool PendingFronts::tick()
 {
     if (_data.size() == 0) return false;
     bool result = false;
-    *(_current_time) = _data[0].time;
-    int current_time = *(_current_time);
+    int current_time = _data[0].time;
     Data current_front = _data[0];
     sort_current_front(current_front);
     apply_preference_coefficient_to_current_front(current_front);
 
     int transmitted_to_another_front = 0;
+    int sent_to_next = 0;
 
     for (int i = 0; i < current_front.job_pairs.size(); i++)
     {
@@ -130,7 +130,7 @@ bool PendingFronts::tick()
                 current_front.job_pairs.erase(current_front.job_pairs.begin() + i);
                 new_front_time = -1;
                 i--;
-                transmitted_to_another_front++;
+                sent_to_next++;
                 break;
             }
             if (earliest_placement.time_before > 0 && earliest_placement.time_before <= _look_ahead_time)
@@ -149,17 +149,9 @@ bool PendingFronts::tick()
         if (new_front_time == -1) continue; // Assigned right now
         result = true;
         new_front_time += current_time;
-        Data new_front_data = { new_front_time, { current_pending } };
-        SearchResult result = binarySearch(new_front_data);
-        if (result.pos == 0) throw std::exception(); // new_front_time == current_time
-        if (!result.found)
-        {
-            _data.insert(_data.begin() + result.pos, new_front_data);
-        }
-        else
-        {
-            _data[result.pos].job_pairs.push_back(current_pending);
-        }
+        add(new_front_time, current_pending);
+        // Check if new_front_time == current_time -> exception()?
+        transmitted_to_another_front++;
     }
 
     /*bool should_copy_front_plus_one = _data.size() == 1 && result;
@@ -179,8 +171,10 @@ bool PendingFronts::tick()
     // ^ Shouldn't be needed. Every job must have a front with time equal to it's arrival plus ^
     // ^  if this job cannot be started because of predecessors, they will trigger the update  ^
 
-    if (_data[0].job_pairs.size() != transmitted_to_another_front) throw std::exception(); // Some job was lost
+    if (_data[0].job_pairs.size() != transmitted_to_another_front + sent_to_next) throw std::exception(); // Some job was lost
     _data.erase(_data.begin());
+
+    if (_data.size() != 0) (*_current_time) = _data[0].time;
 
     return result;
 }

@@ -28,7 +28,7 @@ void Algorithm::set_preference(Preference new_preference)
 
 bool compare_result(ResultPair& lhs, ResultPair& rhs)
 {
-    return (lhs.job_id > rhs.job_id);
+    return (lhs.job->get_global_id() > rhs.job->get_global_id());
 }
 
 int Algorithm::get_look_ahead_time() const
@@ -73,6 +73,7 @@ void Algorithm::run()
         current_failed_jobs = completed_jobs.failed_count();
         if (current_failed_jobs == 0)
         {
+            best_failed_jobs = 0;
             best_completed_jobs = current_completed_jobs;
             break;
         }

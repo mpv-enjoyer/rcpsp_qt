@@ -6,6 +6,7 @@ PendingJobs::PendingJobs(int *current_time, PendingFronts *next, int look_ahead_
 {
     for (int i = 0; i < _data.size(); i++)
     {
+        next->add(_data[i].start_after);
         _data[i].job->set_start_after(_data[i].start_after);
         _data[i].job->set_end_before(_data[i].end_before); // IDK why didn't we do it earlier
         for (int j = 0; j < _data[i].worker_groups.size(); j++)

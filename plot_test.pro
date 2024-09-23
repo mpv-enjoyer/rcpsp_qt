@@ -35,7 +35,6 @@ SOURCES += \
     chartview.cpp \
 
 HEADERS += \
-    algorithm.h \
     algorithm/algorithm.h \
     algorithm/assignedjobs.h \
     algorithm/completedjobs.h \
