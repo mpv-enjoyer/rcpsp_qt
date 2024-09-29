@@ -99,7 +99,10 @@ void Algorithm::run()
     if (best_failed_jobs != __INT_MAX__) // Does it ever occur?
         _completed_jobs = best_completed_jobs;
     std::sort(_completed_jobs.begin(), _completed_jobs.end(), compare_result);
-
+    for (int i = 0; i < _completed_jobs.size(); i++)
+    {
+        _completed_jobs[i].job_id = _completed_jobs[i].job->get_global_id();
+    }
     qDebug() << "final failed job count:" << best_failed_jobs << "with" << _completed_jobs.size() << "completed";
 }
 
