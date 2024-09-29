@@ -1,4 +1,5 @@
 #include "worker.h"
+#include <stdexcept>
 
 Worker::Worker(Plan want_plan) :
     plan(want_plan)
@@ -11,19 +12,19 @@ void Worker::assign(Job *job)
     update();
     if (job->get_start_after() > *clock)
     {
-        throw std::exception();
+        throw std::invalid_argument("Assign a job before the start_after");
     }
     if (!is_free(job->get_occupancy()))
     {
-        throw std::exception();
+        throw std::invalid_argument("Worker is already busy enough");
     }
     if (plan.get_time_until_rest(*clock) < job->get_time_to_spend())
     {
-        throw std::exception();
+        throw std::invalid_argument("Not enough time until rest");
     }
     if (preserved_until > *clock)
     {
-        throw std::exception();
+        throw std::invalid_argument("Attempted to assign preserved worker");
     }
     int job_ends_at = *clock + job->get_time_to_spend();
     int time_ready = job_ends_at;
@@ -63,9 +64,9 @@ float Worker::current_occupancy()
                 break;
             }
         }
-        if (time_spent > 0) throw std::exception();
+        if (time_spent > 0) throw std::invalid_argument("Worker is assigned to a job that he already completed, update() needed");
     }
-    if (output > 1.0f) throw std::exception();
+    if (output > 1.0f) throw std::invalid_argument("Worker is busy for >100%");
     return output;
 }
 
@@ -171,7 +172,7 @@ void Worker::preserve(int interval)
     update();
     //if (!is_free(1.0f)) throw std::exception();
     //idk what this line did
-    if (preserved_until != -1) throw std::exception();
+    if (preserved_until != -1) throw std::invalid_argument("Tried to preserve an already preserved worker");
     if (interval <= 0) return;
     preserved_until = *clock + interval;
 }

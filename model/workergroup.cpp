@@ -71,7 +71,7 @@ AssignedWorker WorkerGroup::assign(Job *job)
             return {workers[i], i};
         }
     }
-    throw std::exception();
+    throw std::invalid_argument("Assign to a busy enough group");
 }
 
 int WorkerGroup::get_size()

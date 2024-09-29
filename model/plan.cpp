@@ -1,5 +1,6 @@
 #include "plan.h"
 #include <functional>
+#include <stdexcept>
 
 Plan::Plan(std::vector<PlanElement> want_elements, int want_start) :
     elements(want_elements), start(want_start)
@@ -12,7 +13,7 @@ Plan::Plan(std::vector<PlanElement> want_elements, int want_start) :
     }
     if (time_loop == 0)
     {
-        throw std::exception();
+        throw std::invalid_argument("Plan initialization with time loop 0");
     }
 }
 

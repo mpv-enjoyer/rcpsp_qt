@@ -27,7 +27,7 @@ bool AssignedJobs::tick()
     {
         _data[i].worker->update();
         int job_end = _data[i].start + _data[i].job->get_time_to_spend();
-        bool job_ended = job_end >= current_time;
+        bool job_ended = job_end <= current_time;
         if (job_ended)
         {
             next->add(_data[i]);
@@ -36,5 +36,6 @@ bool AssignedJobs::tick()
             result = true;
         }
     }
+    qDebug() << "Assigned jobs ticked with" << _data.size() << "jobs";
     return result;
 }

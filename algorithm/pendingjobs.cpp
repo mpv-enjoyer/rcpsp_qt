@@ -63,5 +63,6 @@ bool PendingJobs::tick()
         _data.erase(_data.begin() + i);
         i--;
     }
+    qDebug() << "Pending jobs left:" << _data.size();
     return result;
 }

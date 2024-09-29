@@ -75,6 +75,16 @@ PendingFronts::PendingFronts(int *current_time, AssignedJobs *next, Preference p
 
 }
 
+bool PendingFronts::update_time_to_front()
+{
+    if (_data.size() != 0)
+    {
+        *_current_time = _data[0].time;
+        return true;
+    }
+    return false;
+}
+
 void PendingFronts::add(int front_time, JobPair job_pair)
 {
     Data new_data = { front_time, { job_pair } };
@@ -138,7 +148,6 @@ bool PendingFronts::tick()
                 if (!earliest_placement.worker->is_preserved())
                     earliest_placement.worker->preserve(earliest_placement.time_before);
                 new_front_time = earliest_placement.time_before;
-                if (new_front_time == -1) throw std::exception();
                 break;
             }
             if (new_front_time == -1 || new_front_time > earliest_placement.time_before)
@@ -171,10 +180,10 @@ bool PendingFronts::tick()
     // ^ Shouldn't be needed. Every job must have a front with time equal to it's arrival plus ^
     // ^  if this job cannot be started because of predecessors, they will trigger the update  ^
 
-    if (_data[0].job_pairs.size() != transmitted_to_another_front + sent_to_next) throw std::exception(); // Some job was lost
+    if (_data[0].job_pairs.size() != transmitted_to_another_front + sent_to_next) throw std::invalid_argument("Some job was lost");
     _data.erase(_data.begin());
 
-    if (_data.size() != 0) (*_current_time) = _data[0].time;
+    qDebug() << "Time before is" << (*_current_time);
 
-    return result;
+    return update_time_to_front();
 }

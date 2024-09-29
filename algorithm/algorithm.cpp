@@ -55,9 +55,9 @@ void Algorithm::run()
         int current_time = 0;
         CompletedJobs completed_jobs;
         AssignedJobs assigned_jobs = AssignedJobs(&current_time, &completed_jobs);
-        PendingFronts pending_fronts = PendingFronts(&current_time, &assigned_jobs, preference, longest_plan_loop);
+        PendingFronts pending_fronts = PendingFronts(&current_time, &assigned_jobs, preference, look_ahead_time);
         PendingJobs pending_jobs = PendingJobs(&current_time, &pending_fronts, look_ahead_time, _pending_jobs);
-
+        pending_fronts.update_time_to_front();
         bool must_continue = true;
         while (must_continue)
         {
@@ -68,7 +68,7 @@ void Algorithm::run()
         }
 
         current_completed_jobs = completed_jobs.result();
-        if (current_completed_jobs.size() != _pending_jobs.size()) throw std::exception(); // Lost some jobs
+        if (current_completed_jobs.size() != _pending_jobs.size()) throw std::invalid_argument("Lost some jobs"); // Lost some jobs
 
         current_failed_jobs = completed_jobs.failed_count();
         if (current_failed_jobs == 0)
@@ -94,7 +94,7 @@ void Algorithm::run()
         current_equal_failed = 0;
         best_failed_jobs = current_failed_jobs;
         completed_jobs.prepare_for_next_iteration();
-        qDebug() << "current failed job count:" << best_failed_jobs << "with" << _completed_jobs.size() << "completed";
+        qDebug() << "current failed job count:" << best_failed_jobs << "with" << completed_jobs.result().size() << "completed";
     }
     if (best_failed_jobs != __INT_MAX__) // Does it ever occur?
         _completed_jobs = best_completed_jobs;

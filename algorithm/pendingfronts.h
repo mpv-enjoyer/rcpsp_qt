@@ -20,6 +20,7 @@ public:
     void add(int front_time, JobPair job_pair);
     void add(int front_time); // Query updates for everyone except PendingFronts
     bool tick();
+    bool update_time_to_front();
 private:
     std::vector<Data> _data;
     struct SearchResult

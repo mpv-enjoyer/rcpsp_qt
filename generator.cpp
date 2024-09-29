@@ -22,7 +22,7 @@ bool Generator::is_ready()
 
 void Generator::generate_and_write()
 {
-    if (!is_ready()) throw std::exception();
+    if (!is_ready()) throw std::invalid_argument("Generator is not ready");
 
     QString filename = "generated.csv";
     QFile file(filename);

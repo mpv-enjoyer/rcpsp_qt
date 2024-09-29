@@ -1,4 +1,5 @@
 #include "job.h"
+#include <stdexcept>
 
 Job::Job(int renewable, int non_renewable, std::vector<OccupancyPair> occupancy) :
     want_renewable(renewable), want_non_renewable(non_renewable)
@@ -68,7 +69,7 @@ void Job::increment_predecessors_count()
 
 void Job::decrement_predecessors_count()
 {
-    if (!predecessors_count) throw std::exception();
+    if (predecessors_count <= 0) throw std::invalid_argument("Tried to decrement predecessor count that is zero");
     predecessors_count--;
 }
 
@@ -100,7 +101,7 @@ void Job::reset()
 
 int Job::get_critical_time() const
 {
-    if (!critical_time_exists()) throw std::exception();
+    if (!critical_time_exists()) throw std::invalid_argument("Critical time doesn't exist");
     return _critical_time;
 }
 
