@@ -47,7 +47,7 @@ bool compare_weights(JobPair lhs, JobPair rhs)
 }
 
 // Sorry:
-#define APPEND_WEIGHT(N) job_pair.current_preference += N < 1 ? N * _weights.N : 1
+#define APPEND_WEIGHT(N) job_pair.current_preference += N < 1 ? N * _weights.N : _weights.N
 
 void PendingFronts::sort_current_front(Data& current_front, AlgorithmDataForWeights data_for_weights)
 {
@@ -75,6 +75,10 @@ void PendingFronts::sort_current_front(Data& current_front, AlgorithmDataForWeig
         // Current preference will probably be <= 1 in theory?
     }
     std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_weights);
+    for (auto& job : current_front.job_pairs)
+    {
+        qDebug() << "Time" << (*_current_time) << "Job" << job.job->get_global_id() << "Preference" << job.current_preference;
+    }
 }
 
 void PendingFronts::apply_preference_coefficient_to_current_front(Data& current_front)
