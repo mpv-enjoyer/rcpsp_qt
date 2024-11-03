@@ -47,7 +47,7 @@ bool compare_weights(JobPair lhs, JobPair rhs)
 }
 
 // Sorry:
-#define APPEND_WEIGHT(N) job_pair.current_preference += N * _weights.N
+#define APPEND_WEIGHT(N) job_pair.current_preference += N < 1 ? N * _weights.N : 1
 
 void PendingFronts::sort_current_front(Data& current_front, AlgorithmDataForWeights data_for_weights)
 {
@@ -203,7 +203,7 @@ bool PendingFronts::tick(AlgorithmDataForWeights data_for_weights)
     if (_data[0].job_pairs.size() != transmitted_to_another_front + sent_to_next) throw std::invalid_argument("Some job was lost");
     _data.erase(_data.begin());
 
-    qDebug() << "Time before is" << (*_current_time);
+    //qDebug() << "Time before is" << (*_current_time);
 
     return update_time_to_front();
 }

@@ -36,7 +36,7 @@ bool AssignedJobs::tick()
             result = true;
         }
     }
-    qDebug() << "Assigned jobs ticked with" << _data.size() << "jobs";
+    //qDebug() << "Assigned jobs ticked with" << _data.size() << "jobs";
     return result;
 }
 

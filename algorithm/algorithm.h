@@ -82,7 +82,7 @@ class Algorithm
     int look_ahead_time = 0;
     int longest_plan_loop = 0;
     AlgorithmWeights _weights;
-    static const bool DO_NOT_REPEAT = false;
+    static const bool DO_NOT_REPEAT = true;
     static const int CURRENT_EQUAL_MAX = 1;
 public:
     Algorithm();
