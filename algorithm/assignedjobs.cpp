@@ -39,3 +39,8 @@ bool AssignedJobs::tick()
     qDebug() << "Assigned jobs ticked with" << _data.size() << "jobs";
     return result;
 }
+
+std::size_t AssignedJobs::data_size()
+{
+    return _data.size();
+}

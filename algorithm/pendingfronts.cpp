@@ -41,20 +41,40 @@ bool compare_EST(JobPair lhs, JobPair rhs)
     return (lhs.job->get_critical_time() < rhs.job->get_critical_time());
 }
 
-void PendingFronts::sort_current_front(Data& current_front)
+bool compare_weights(JobPair lhs, JobPair rhs)
 {
-    switch (_preference)
+    return (lhs.current_preference < rhs.current_preference);
+}
+
+// Sorry:
+#define APPEND_WEIGHT(N) job_pair.current_preference += N * _weights.N
+
+void PendingFronts::sort_current_front(Data& current_front, AlgorithmDataForWeights data_for_weights)
+{
+    double job_count_not_assigned = data_for_weights.job_count_not_assigned;
+    for (const auto& front : _data)
     {
-    case SPT:
-        std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_SPT);
-        break;
-    case LPT:
-        std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_LPT);
-        break;
-    case FLS:
-        std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_EST);
-        break;
+        job_count_not_assigned += front.job_pairs.size();
     }
+
+    for (std::size_t i = 0; i < current_front.job_pairs.size(); i++)
+    {
+        auto& job_pair = current_front.job_pairs[i];
+        auto* job = job_pair.job;
+        double ancestors_per_left = job->get_ancestors()->size() / job_count_not_assigned;
+        double ancestors_per_job = job->get_ancestors()->size() / data_for_weights.job_count_overall;
+        double critical_time_per_max_critical_time = job->get_critical_time() / data_for_weights.max_critical_time;
+        double avg_occupancy = job->get_average_occupancy();
+        double time_after_begin_per_overall_time = (*_current_time - job->get_start_after()) / static_cast<double>(job->get_end_before() - job->get_start_after());
+        job_pair.current_preference = 0;
+        APPEND_WEIGHT(ancestors_per_left);
+        APPEND_WEIGHT(ancestors_per_job);
+        APPEND_WEIGHT(critical_time_per_max_critical_time);
+        APPEND_WEIGHT(avg_occupancy);
+        APPEND_WEIGHT(time_after_begin_per_overall_time);
+        // Current preference will probably be <= 1 in theory?
+    }
+    std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_weights);
 }
 
 void PendingFronts::apply_preference_coefficient_to_current_front(Data& current_front)
@@ -69,8 +89,8 @@ void PendingFronts::apply_preference_coefficient_to_current_front(Data& current_
     }
 }
 
-PendingFronts::PendingFronts(int *current_time, AssignedJobs *next, Preference preference, int look_ahead_time)
-    : _current_time(current_time), next(next), _look_ahead_time(look_ahead_time), _preference(preference)
+PendingFronts::PendingFronts(int *current_time, AssignedJobs *next, Preference preference, int look_ahead_time, AlgorithmWeights weights)
+    : _current_time(current_time), next(next), _look_ahead_time(look_ahead_time), _preference(preference), _weights(weights)
 {
 
 }
@@ -109,13 +129,13 @@ void PendingFronts::add(int front_time)
     }
 }
 
-bool PendingFronts::tick()
+bool PendingFronts::tick(AlgorithmDataForWeights data_for_weights)
 {
     if (_data.size() == 0) return false;
     bool result = false;
     int current_time = _data[0].time;
     Data current_front = _data[0];
-    sort_current_front(current_front);
+    sort_current_front(current_front, data_for_weights);
     apply_preference_coefficient_to_current_front(current_front);
 
     int transmitted_to_another_front = 0;

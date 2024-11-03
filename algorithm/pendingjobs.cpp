@@ -55,8 +55,8 @@ bool PendingJobs::tick()
     bool result = false;
     for (int i = 0; i < _data.size(); i++)
     {
-        result = true; //moved up to not give up after current_time is too large.
-        if (_data[i].start_after > current_time + _look_ahead_time) continue; // previously -
+        result = true;
+        if (_data[i].start_after > current_time + _look_ahead_time) continue;
         if (!(_data[i].job->check_predecessors())) continue;
 
         next->add(current_time, _data[i]);
@@ -65,4 +65,9 @@ bool PendingJobs::tick()
     }
     qDebug() << "Pending jobs left:" << _data.size();
     return result;
+}
+
+std::size_t PendingJobs::data_size()
+{
+    return _data.size();
 }

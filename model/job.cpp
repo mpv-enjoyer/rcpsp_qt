@@ -7,7 +7,11 @@ Job::Job(int renewable, int non_renewable, std::vector<OccupancyPair> occupancy)
     this->occupancy = occupancy;
     time_to_spend = 0;
     for (int i = 0; i < occupancy.size(); i++)
+    {
+        avg_occupancy_buffered += occupancy[i].time * occupancy[i].occupancy;
         time_to_spend += occupancy[i].time;
+    }
+    avg_occupancy_buffered /= time_to_spend;
 }
 
 int Job::get_time_to_spend() const
@@ -153,6 +157,11 @@ int Job::get_global_id()
 std::vector<OccupancyPair> Job::get_occupancy() const
 {
     return occupancy;
+}
+
+double Job::get_average_occupancy() const
+{
+    return avg_occupancy_buffered;
 }
 
 int Job::get_preference_coefficient() const

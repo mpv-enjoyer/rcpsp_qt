@@ -27,6 +27,7 @@ struct JobPair
     Job* job;
     std::vector<WorkerGroup*> worker_groups;
     int id;
+    double current_preference = 0;
 };
 
 struct ResultPair
@@ -37,6 +38,23 @@ struct ResultPair
     int job_id;
     int worker_group_id;
     int worker_internal_id;
+};
+
+struct AlgorithmWeights
+{
+    double ancestors_per_left; // кол-во последователей / кол-во оставшихся требований
+    double ancestors_per_job; // кол-во последователей / кол-во требований всего
+    double critical_time_per_max_critical_time; // критическое время требования / максимальное критическое время всех требований
+    double avg_occupancy; // средняя занятость станка во время выполнения
+    double time_after_begin_per_overall_time; // время от начала выполнения до текущего момента / время всего на выполнение этого требования
+    // предпочтения последователей?
+};
+
+struct AlgorithmDataForWeights
+{
+    double job_count_not_assigned;
+    double job_count_overall;
+    double max_critical_time;
 };
 
 #include "pendingjobs.h"
@@ -63,13 +81,15 @@ class Algorithm
     std::vector<ResultPair> _completed_jobs;
     int look_ahead_time = 0;
     int longest_plan_loop = 0;
+    AlgorithmWeights _weights;
+    static const bool DO_NOT_REPEAT = false;
+    static const int CURRENT_EQUAL_MAX = 1;
 public:
     Algorithm();
     void set_preference(Preference new_preference);
     void add_job_group(JobGroup* jobs, WorkerGroup* workers);
     void run();
     std::vector<ResultPair> get_completed();
-    void LoadCSV(QString file_name, std::vector<Worker *> &all_workers, std::vector<Job *> &all_jobs);
     int get_look_ahead_time() const;
     void set_look_ahead_time(int newLook_ahead_time);
 };

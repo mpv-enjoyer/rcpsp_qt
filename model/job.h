@@ -26,6 +26,7 @@ private:
     int global_id = 0;
     std::vector<OccupancyPair> occupancy;
     int preference_coefficient = 0;
+    double avg_occupancy_buffered = 0;
 public:
     Job(int renewable, int non_renewable, std::vector<OccupancyPair> occupancy);
     int get_time_to_spend() const;
@@ -50,6 +51,7 @@ public:
     void set_global_id(int id);
     int get_global_id();
     std::vector<OccupancyPair> get_occupancy() const;
+    double get_average_occupancy() const;
     int get_preference_coefficient() const;
     void set_preference_coefficient(int coefficient);
 };

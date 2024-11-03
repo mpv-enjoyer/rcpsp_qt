@@ -48,22 +48,30 @@ void Algorithm::run()
     int current_failed_jobs = 0;
     int current_equal_failed = 0;
     std::vector<ResultPair> current_completed_jobs;
-    const int current_equal_max = look_ahead_time; // TODO: set as a separate variable
+
+    AlgorithmDataForWeights for_weights = { 0 };
+    for (auto job : _pending_jobs)
+    {
+        if (for_weights.max_critical_time < job.job->get_critical_time()) for_weights.max_critical_time = job.job->get_critical_time();
+    }
 
     while (true)
     {
         int current_time = 0;
         CompletedJobs completed_jobs;
         AssignedJobs assigned_jobs = AssignedJobs(&current_time, &completed_jobs);
-        PendingFronts pending_fronts = PendingFronts(&current_time, &assigned_jobs, preference, look_ahead_time);
+        PendingFronts pending_fronts = PendingFronts(&current_time, &assigned_jobs, preference, longest_plan_loop, _weights);
         PendingJobs pending_jobs = PendingJobs(&current_time, &pending_fronts, look_ahead_time, _pending_jobs);
         pending_fronts.update_time_to_front();
         bool must_continue = true;
         while (must_continue)
         {
+            for_weights.job_count_not_assigned = pending_jobs.data_size();
+            for_weights.job_count_overall = _pending_jobs.size();
+
             must_continue = false;
             must_continue |= pending_jobs.tick();
-            must_continue |= pending_fronts.tick();
+            must_continue |= pending_fronts.tick(for_weights);
             must_continue |= assigned_jobs.tick();
         }
 
@@ -71,9 +79,9 @@ void Algorithm::run()
         if (current_completed_jobs.size() != _pending_jobs.size()) throw std::invalid_argument("Lost some jobs"); // Lost some jobs
 
         current_failed_jobs = completed_jobs.failed_count();
-        if (current_failed_jobs == 0)
+        if (current_failed_jobs == 0 || DO_NOT_REPEAT)
         {
-            best_failed_jobs = 0;
+            best_failed_jobs = current_failed_jobs;
             best_completed_jobs = current_completed_jobs;
             break;
         }
@@ -85,7 +93,7 @@ void Algorithm::run()
         if (current_failed_jobs == best_failed_jobs)
         {
             current_equal_failed++;
-            if (current_equal_failed > current_equal_max)
+            if (current_equal_failed > CURRENT_EQUAL_MAX)
             {
                 best_completed_jobs = current_completed_jobs;
                 break;

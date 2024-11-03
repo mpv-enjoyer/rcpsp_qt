@@ -78,16 +78,6 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             }
             worker_groups_load.push_back(current);
         }
-        if (list[0] == "preference")
-        {
-            if (list[1] == "SPT") algorithm.set_preference(SPT);
-            if (list[1] == "LPT") algorithm.set_preference(LPT);
-            if (list[1] == "FLS") algorithm.set_preference(FLS);
-        }
-        if (list[0] == "look_ahead")
-        {
-            algorithm.set_look_ahead_time(list[1].toInt());
-        }
         // 1) job | worker | plan | job_group | worker_group | preference | look_ahead
         // 2) id (from 0 without skips) | preference: "SPT | LPT | FLS" | look_ahead: number
         // 3) job: time, busyness... | worker: plan_id | plan: start_at | job_group: start_after | worker_group: workers...
@@ -170,4 +160,29 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
         algorithm.add_job_group(job_groups_load[i].assign, worker_groups_load[current_worker_group_id].assign);
     }
     return true;
+}
+
+bool Loader::LoadPreferences(QString file_name, Algorithm &algorithm)
+{
+    QFile file(file_name);
+    if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
+        qDebug() << "File not exists";
+        return false;
+    }
+    QTextStream in(&file);
+    while (!in.atEnd())
+    {
+        QString line = in.readLine();
+        QStringList list = line.split(";");
+        if (list[0] == "preference")
+        {
+            if (list[1] == "SPT") algorithm.set_preference(SPT);
+            if (list[1] == "LPT") algorithm.set_preference(LPT);
+            if (list[1] == "FLS") algorithm.set_preference(FLS);
+        }
+        if (list[0] == "look_ahead")
+        {
+            algorithm.set_look_ahead_time(list[1].toInt());
+        }
+    }
 }

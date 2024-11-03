@@ -10,16 +10,17 @@ class PendingFronts
     const Preference _preference;
     int last_loop_check_begin = -1;
     const int _look_ahead_time;
+    const AlgorithmWeights _weights;
 public:
     struct Data
     {
         int time;
         std::vector<JobPair> job_pairs;
     };
-    PendingFronts(int* current_time, AssignedJobs* next, Preference preference, int look_ahead_time);
+    PendingFronts(int* current_time, AssignedJobs* next, Preference preference, int look_ahead_time, AlgorithmWeights weights);
     void add(int front_time, JobPair job_pair);
     void add(int front_time); // Query updates for everyone except PendingFronts
-    bool tick();
+    bool tick(AlgorithmDataForWeights data_for_weights);
     bool update_time_to_front();
 private:
     std::vector<Data> _data;
@@ -29,7 +30,7 @@ private:
         int pos;
     };
     SearchResult binarySearch(const Data &x);
-    void sort_current_front(Data &current_front);
+    void sort_current_front(Data &current_front, AlgorithmDataForWeights data_for_weights);
     void apply_preference_coefficient_to_current_front(Data &current_front);
 };
 
