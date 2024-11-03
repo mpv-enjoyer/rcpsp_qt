@@ -15,6 +15,11 @@ PendingJobs::PendingJobs(int *current_time, PendingFronts *next, int look_ahead_
         }
     }
     begin_set_critical_time();
+
+    for (const auto& job : _data)
+    {
+        if (_max_critical_time < job.job->get_critical_time()) _max_critical_time = job.job->get_critical_time();
+    }
 }
 
 int PendingJobs::set_critical_time(Data current_job_pair)
@@ -70,4 +75,9 @@ bool PendingJobs::tick()
 std::size_t PendingJobs::data_size()
 {
     return _data.size();
+}
+
+int PendingJobs::get_max_critical_time()
+{
+    return _max_critical_time;
 }

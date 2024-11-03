@@ -92,6 +92,7 @@ public:
     std::vector<ResultPair> get_completed();
     int get_look_ahead_time() const;
     void set_look_ahead_time(int newLook_ahead_time);
+    void set_weights(AlgorithmWeights weights);
 };
 
 struct JobLoad

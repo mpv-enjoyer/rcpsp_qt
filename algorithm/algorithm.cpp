@@ -41,6 +41,11 @@ void Algorithm::set_look_ahead_time(int newLook_ahead_time)
     look_ahead_time = newLook_ahead_time;
 }
 
+void Algorithm::set_weights(AlgorithmWeights weights)
+{
+    _weights = weights;
+}
+
 void Algorithm::run()
 {
     int best_failed_jobs = __INT_MAX__;
@@ -48,26 +53,24 @@ void Algorithm::run()
     int current_failed_jobs = 0;
     int current_equal_failed = 0;
     std::vector<ResultPair> current_completed_jobs;
-
-    AlgorithmDataForWeights for_weights = { 0 };
-    for (auto job : _pending_jobs)
-    {
-        if (for_weights.max_critical_time < job.job->get_critical_time()) for_weights.max_critical_time = job.job->get_critical_time();
-    }
-
     while (true)
     {
         int current_time = 0;
         CompletedJobs completed_jobs;
         AssignedJobs assigned_jobs = AssignedJobs(&current_time, &completed_jobs);
-        PendingFronts pending_fronts = PendingFronts(&current_time, &assigned_jobs, preference, longest_plan_loop, _weights);
+        PendingFronts pending_fronts = PendingFronts(&current_time, &assigned_jobs, preference, look_ahead_time, _weights);
         PendingJobs pending_jobs = PendingJobs(&current_time, &pending_fronts, look_ahead_time, _pending_jobs);
         pending_fronts.update_time_to_front();
+
         bool must_continue = true;
         while (must_continue)
         {
-            for_weights.job_count_not_assigned = pending_jobs.data_size();
-            for_weights.job_count_overall = _pending_jobs.size();
+            AlgorithmDataForWeights for_weights =
+            {
+            .job_count_not_assigned = pending_jobs.data_size(),
+            .job_count_overall = _pending_jobs.size(),
+            .max_critical_time = pending_jobs.get_max_critical_time()
+            };
 
             must_continue = false;
             must_continue |= pending_jobs.tick();

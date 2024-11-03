@@ -185,4 +185,43 @@ bool Loader::LoadPreferences(QString file_name, Algorithm &algorithm)
             algorithm.set_look_ahead_time(list[1].toInt());
         }
     }
+    return true;
+}
+
+// Sorry:
+#define WEIGHT_SET(N) \
+    if (name == #N) weights.N = value
+
+bool Loader::LoadWeights(QString file_name, Algorithm &algorithm)
+{
+    QFile file(file_name);
+    if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
+        qDebug() << "File not exists";
+        throw std::invalid_argument("Cannot start executing without weights");
+        return false;
+    }
+    QTextStream in(&file);
+    AlgorithmWeights weights = { };
+    while (!in.atEnd())
+    {
+        QString line = in.readLine();
+        QStringList list = line.split(";");
+        QString name = list[0];
+        double value = list[1].toDouble();
+        WEIGHT_SET(ancestors_per_left);
+        WEIGHT_SET(ancestors_per_job);
+        WEIGHT_SET(critical_time_per_max_critical_time);
+        WEIGHT_SET(avg_occupancy);
+        WEIGHT_SET(time_after_begin_per_overall_time);
+    }
+    if (weights.ancestors_per_job +
+        weights.ancestors_per_left +
+        weights.avg_occupancy +
+        weights.critical_time_per_max_critical_time +
+        weights.time_after_begin_per_overall_time != 1)
+    {
+        throw std::invalid_argument("Invalid weights");
+    }
+    algorithm.set_weights(weights);
+    return true;
 }
