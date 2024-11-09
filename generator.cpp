@@ -29,16 +29,10 @@ void Generator::generate_and_write()
     if (!file.open(QIODevice::ReadWrite)) qDebug() << "cannot create generated.csv";
     QTextStream stream(&file);
 
-
-    std::vector<Job*> all_jobs;
-    std::vector<Worker*> all_workers;
     qDebug() << "Begin example generation";
-    all_jobs.clear();
     for (int i = 0; i < allJobsSize; i++)
     {
         int time = QRandomGenerator::global()->bounded(lowestJobTime, highestJobTime);
-        Job* generated = new Job(0, 0, {{time, 0.25f}, {time, 0.50f}, {time, 0.1f}});
-        all_jobs.push_back(generated);
         int predecessor = QRandomGenerator::global()->bounded(0, allJobsSize);
         stream << "job;" << i << ";";
         stream << time << ";" << 1.0f << ";";
@@ -47,7 +41,6 @@ void Generator::generate_and_write()
         stream << "]";
         if (predecessor < i)
         {
-            generated->set_ancestors({all_jobs[predecessor]});
             stream << ";" << predecessor;
         }
         stream << '\n';
@@ -61,7 +54,6 @@ void Generator::generate_and_write()
     stream << '\n';
     //std::shuffle(all_jobs.begin(), all_jobs.end(), rng);
     int current_job = 0;
-    std::vector<JobGroup*> job_groups = std::vector<JobGroup*>();
     for (int i = 0; i < jobGroupsCount; i++)
     {
         stream << "job_group;" << i << ";";
@@ -77,10 +69,8 @@ void Generator::generate_and_write()
         for (int j = current_job; j < new_group_size + current_job; j++)
         {
             stream << ";" << j;
-            new_group_jobs[j - current_job] = all_jobs[j];
         }
         stream << '\n';
-        job_groups.push_back(new JobGroup(new_group_jobs, begin, end));
         current_job += new_group_size;
         if (current_job >= allJobsSize) break;
     }
@@ -90,14 +80,9 @@ void Generator::generate_and_write()
         stream << "worker;" << i << ";0\n";
     }
 
-    all_workers.clear();
-    WorkerGroup* worker_group = new WorkerGroup();
     stream << "worker_group;0";
     for (int i = 0; i < allWorkersSize; i++)
     {
-        Worker* generated = new Worker(commonPlan);
-        all_workers.push_back(generated);
-        worker_group->add_worker(generated);
         stream << ";" << i;
     }
     stream << '\n';

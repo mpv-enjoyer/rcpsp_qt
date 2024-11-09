@@ -6,6 +6,9 @@
 #include <QtDebug>
 //#include <QProgressBar>
 #include <QFile>
+#include <map>
+#include <set>
+#include <numeric>
 
 class PendingJobs;
 class PendingFronts;
@@ -40,15 +43,36 @@ struct ResultPair
     int worker_internal_id;
 };
 
-struct AlgorithmWeights
+using AlgorithmWeights = std::unordered_map<std::string, double>;
+#define REGISTER_WEIGHT(N) const std::string N = #N
+namespace Weights
 {
-    double ancestors_per_left; // кол-во последователей / кол-во оставшихся требований
-    double ancestors_per_job; // кол-во последователей / кол-во требований всего
-    double critical_time_per_max_critical_time; // критическое время требования / максимальное критическое время всех требований
-    double avg_occupancy; // средняя занятость станка во время выполнения
-    double time_after_begin_per_overall_time; // время от начала выполнения до текущего момента / время всего на выполнение этого требования
-    // предпочтения последователей?
-};
+    REGISTER_WEIGHT(ancestors_per_left); // кол-во последователей / кол-во оставшихся требований
+    REGISTER_WEIGHT(ancestors_per_job); // кол-во последователей / кол-во требований всего
+    REGISTER_WEIGHT(critical_time_per_max_critical_time); // критическое время требования / максимальное критическое время всех требований
+    REGISTER_WEIGHT(avg_occupancy); // средняя занятость станка во время выполнения
+    REGISTER_WEIGHT(time_after_begin_per_overall_time); // время от начала выполнения до текущего момента / время всего на выполнение этого требования
+    const std::set<std::string> WeightsNames
+    {
+        "ancestors_per_left", // кол-во последователей / кол-во оставшихся требований
+        "ancestors_per_job", // кол-во последователей / кол-во требований всего
+        "critical_time_per_max_critical_time", // критическое время требования / максимальное критическое время всех требований
+        "avg_occupancy", // средняя занятость станка во время выполнения
+        "time_after_begin_per_overall_time" // время от начала выполнения до текущего момента / время всего на выполнение этого требования
+    };
+    double get(AlgorithmWeights weights, std::string name);
+    bool set(AlgorithmWeights& weights, std::string name, double value);
+    bool are_valid(AlgorithmWeights weights);
+}
+//struct AlgorithmWeights
+//{
+//    double ancestors_per_left; // кол-во последователей / кол-во оставшихся требований
+//    double ancestors_per_job; // кол-во последователей / кол-во требований всего
+//    double critical_time_per_max_critical_time; // критическое время требования / максимальное критическое время всех требований
+//    double avg_occupancy; // средняя занятость станка во время выполнения
+//    double time_after_begin_per_overall_time; // время от начала выполнения до текущего момента / время всего на выполнение этого требования
+//    // предпочтения последователей?
+//};
 
 struct AlgorithmDataForWeights
 {

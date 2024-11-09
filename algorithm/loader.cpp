@@ -188,10 +188,6 @@ bool Loader::LoadPreferences(QString file_name, Algorithm &algorithm)
     return true;
 }
 
-// Sorry:
-#define WEIGHT_SET(N) \
-    if (name == #N) weights.N = value
-
 bool Loader::LoadWeights(QString file_name, Algorithm &algorithm)
 {
     QFile file(file_name);
@@ -209,17 +205,9 @@ bool Loader::LoadWeights(QString file_name, Algorithm &algorithm)
         if (list.size() < 2) continue;
         QString name = list[0];
         double value = list[1].toDouble();
-        WEIGHT_SET(ancestors_per_left);
-        WEIGHT_SET(ancestors_per_job);
-        WEIGHT_SET(critical_time_per_max_critical_time);
-        WEIGHT_SET(avg_occupancy);
-        WEIGHT_SET(time_after_begin_per_overall_time);
+        Weights::set(weights, name.toStdString(), value);
     }
-    if (weights.ancestors_per_job +
-        weights.ancestors_per_left +
-        weights.avg_occupancy +
-        weights.critical_time_per_max_critical_time +
-        weights.time_after_begin_per_overall_time != 1)
+    if (!Weights::are_valid(weights))
     {
         throw std::invalid_argument("Invalid weights");
     }

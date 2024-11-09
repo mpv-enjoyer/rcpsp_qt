@@ -61,17 +61,18 @@ void PendingFronts::sort_current_front(Data& current_front, AlgorithmDataForWeig
     {
         auto& job_pair = current_front.job_pairs[i];
         auto* job = job_pair.job;
-        double ancestors_per_left = job->get_ancestors()->size() / job_count_not_assigned;
-        double ancestors_per_job = job->get_ancestors()->size() / data_for_weights.job_count_overall;
-        double critical_time_per_max_critical_time = job->get_critical_time() / data_for_weights.max_critical_time;
-        double avg_occupancy = job->get_average_occupancy();
-        double time_after_begin_per_overall_time = (*_current_time - job->get_start_after()) / static_cast<double>(job->get_end_before() - job->get_start_after());
+        AlgorithmWeights jw;
+        Weights::set(jw, Weights::ancestors_per_left, job->get_ancestors()->size() / job_count_not_assigned);
+        Weights::set(jw, Weights::ancestors_per_job, job->get_ancestors()->size() / data_for_weights.job_count_overall);
+        Weights::set(jw, Weights::critical_time_per_max_critical_time, job->get_critical_time() / data_for_weights.max_critical_time);
+        Weights::set(jw, Weights::avg_occupancy, job->get_average_occupancy());
+        Weights::set(jw, Weights::time_after_begin_per_overall_time,
+            (*_current_time - job->get_start_after()) / static_cast<double>(job->get_end_before() - job->get_start_after()));
         job_pair.current_preference = 0;
-        APPEND_WEIGHT(ancestors_per_left);
-        APPEND_WEIGHT(ancestors_per_job);
-        APPEND_WEIGHT(critical_time_per_max_critical_time);
-        APPEND_WEIGHT(avg_occupancy);
-        APPEND_WEIGHT(time_after_begin_per_overall_time);
+        for (auto& name : Weights::WeightsNames)
+        {
+            job_pair.current_preference += jw.at(name) * _weights.at(name);
+        }
         // Current preference will probably be <= 1 in theory?
     }
     std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_weights);

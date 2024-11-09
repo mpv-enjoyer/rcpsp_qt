@@ -1,5 +1,24 @@
 #include "algorithm.h"
 
+double Weights::get(AlgorithmWeights weights, std::string name)
+{
+    if (WeightsNames.count(name) == 0) throw std::invalid_argument("Invalid weight name.");
+    return weights.at(name);
+}
+bool Weights::set(AlgorithmWeights& weights, std::string name, double value)
+{
+    if (WeightsNames.count(name) == 0) return false;
+    weights[name] = value;
+    return true;
+}
+bool Weights::are_valid(AlgorithmWeights weights)
+{
+    double sum = 0;
+    for (auto key : WeightsNames) sum += weights.at(key);
+    if (sum != 1) return false;
+    return true;
+}
+
 Algorithm::Algorithm()
 {
 
