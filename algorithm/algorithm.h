@@ -4,7 +4,7 @@
 #include "jobgroup.h"
 #include "workergroup.h"
 #include <QtDebug>
-#include <QProgressBar>
+//#include <QProgressBar>
 #include <QFile>
 
 class PendingJobs;

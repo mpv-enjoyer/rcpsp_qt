@@ -1,0 +1,17 @@
+job;0;4;0.5;5;1.0;]
+job;1;4;0.4;5;0.6;]
+job;2;4;0.6;5;0.4;]
+job;3;4;0.4;5;0.4;]
+worker;0;0
+worker;1;0
+plan;0;0;1000;1
+job_group;0;0;100;0;0;1;2;3
+worker_group;0;0;1
+
+preference;FLS
+
+ancestors_per_left;0.2
+ancestors_per_job;0.2
+critical_time_per_max_critical_time;0.2
+avg_occupancy;0.2
+time_after_begin_per_overall_time;0.2

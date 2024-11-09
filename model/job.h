@@ -2,7 +2,6 @@
 #define JOB_H
 
 #include <vector>
-#include <QRandomGenerator>
 
 struct OccupancyPair
 {

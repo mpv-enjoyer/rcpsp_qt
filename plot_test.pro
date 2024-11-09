@@ -20,11 +20,13 @@ SOURCES += \
     algorithm/completedjobs.cpp \
     algorithm/pendingfronts.cpp \
     algorithm/pendingjobs.cpp \
+    algorithm/loader.cpp \
     contentwidget.cpp \
+    debugoutput.cpp \
     generator.cpp \
-    loader.cpp \
     main.cpp \
     mainwindow.cpp \
+    misc/debugoutput.cpp \
     model/job.cpp \
     model/jobgroup.cpp \
     model/plan.cpp \
@@ -40,10 +42,12 @@ HEADERS += \
     algorithm/completedjobs.h \
     algorithm/pendingfronts.h \
     algorithm/pendingjobs.h \
+    algorithm/loader.h \
     contentwidget.h \
+    debugoutput.h \
     generator.h \
-    loader.h \
     mainwindow.h \
+    misc/debugoutput.h \
     model/job.h \
     model/jobgroup.h \
     model/plan.h \

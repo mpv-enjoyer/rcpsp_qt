@@ -206,6 +206,7 @@ bool Loader::LoadWeights(QString file_name, Algorithm &algorithm)
     {
         QString line = in.readLine();
         QStringList list = line.split(";");
+        if (list.size() < 2) continue;
         QString name = list[0];
         double value = list[1].toDouble();
         WEIGHT_SET(ancestors_per_left);
