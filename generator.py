@@ -6,6 +6,7 @@
 #6) | | | job_group: jobs...
 
 import numpy as np
+from scipy.stats import truncnorm
 
 ## whatever dist - dist that is defined only for that line and is randomized
 ## dependant dist - whatever dist that can be changed according to the previous value
@@ -14,7 +15,8 @@ import numpy as np
 # worker_count = uniform dist ( job_count / 100 ) ~ job_count / 5
 # plan_count = uniform dist ( worker_count / 50 ) ~ ( worker_count / 2 )
 # max_plan_loop = uniform dist 10000 ~ 50000
-# current_plan_unit_count: N = poisson dist (LIMIT N <= 100)
+# current_plan_unit_count: N = poisson dist lambda 1 (LIMIT N <= 100)
+# current_plan_start_at: uniform dist 0 ~ max_plan_loop
 # current_plan_current_unit_time = dependant dist 1 ~ ( max_plan_loop / current_plan_section_count )
 # max_plan_unit = MAX(current_plan_current_unit_time...)
 # min_job_time_to_spend, max_job_time_to_spend = MIN, MAX from: uniform dist 1 ~ max_plan_unit, uniform dist 1 ~ max_plan_unit
@@ -31,7 +33,30 @@ import numpy as np
 # current_job_group_to_id_N_worker_group: N = uniform dist 1 ~ worker_group_count
 # current_job_ancestors_count = dependant dist 0 ~ possible_ancestors_left
 
+def get_truncated_normal(mean=0, sd=1, low=0, upp=10, size=1):
+    return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd).rvs(size)
 
+def get_random_whatever_dist() -> str:
+    return np.random.choice(['trnorm', 'uniform'])
+
+def whatever_dist(low: int, high: int, size = 1, dist = 'none'):
+    if dist == 'none':
+        dist = get_random_whatever_dist()
+    if dist == 'trnorm':
+        mean = np.random.randint(low, high)
+        return get_truncated_normal(mean, 1, low, high, size)
+    if dist == 'uniform':
+        return np.random.randint(low, high, size)
+
+def get_random_dependant_dist() -> str:
+    return np.random.choice(['uniform_asc', 'uniform_desc', '']) unfinished
+
+def whatever_dependant_dist(low: int, high: int, size = 1):
+    output = []
+    for i in range(size - 1):
+        unfinished
+
+generated = ""
 
 print(job_count := np.random.randint(10, 10000))
 print(worker_count := np.random.randint(max(job_count / 100, 1), job_count / 5))
@@ -39,3 +64,10 @@ print(plan_count := np.random.randint(max(worker_count / 50, 1), max(worker_coun
 print(max_plan_loop := np.random.randint(10000, 50000))
 for i in range(plan_count):
     print(current_plan_unit_count := min(np.random.poisson(1) + 1, 100))
+    print(current_plan_start_at := np.random.randint(0, max_plan_loop))
+    generated += "plan;" + str(i) + ";" + str(current_plan_unit_count) + "\n"
+
+print(generated)
+f = open("generated_sample.txt", "w+")
+f.write(generated)
+f.close()
