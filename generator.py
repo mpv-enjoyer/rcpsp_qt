@@ -7,6 +7,7 @@
 
 import numpy as np
 from scipy.stats import truncnorm
+import pdb
 
 ## whatever dist - dist that is defined only for that line and is randomized
 ## dependant dist - whatever dist that can be changed according to the previous value
@@ -20,52 +21,184 @@ from scipy.stats import truncnorm
 # current_plan_current_unit_time = dependant dist 1 ~ ( max_plan_loop / current_plan_section_count )
 # max_plan_unit = MAX(current_plan_current_unit_time...)
 # min_job_time_to_spend, max_job_time_to_spend = MIN, MAX from: uniform dist 1 ~ max_plan_unit, uniform dist 1 ~ max_plan_unit
-# current_job_time_to_spend = whatever dist min_job_time_to_spend ~ max_job_time_to_spend
-# current_job_busyness_section_count = whatever dist 1 ~ current_job_time_to_spend / 2
+# current_job_max_time_to_spend = whatever dist min_job_time_to_spend ~ max_job_time_to_spend
+# current_job_busyness_section_count = whatever dist 1 ~ current_job_max_time_to_spend / 2
 # current_job_current_busyness_value = dependant dist 0 ~ 1
+# current_job_current_busyness_time = uniform dist 1 ~ current_job_max_time_to_spend / current_job_busyness_section_count
+# current_job_ancestors_count = whatever dist 0 ~ possible_ancestors_left
 # max_job_group_count = uniform dist 1 ~ job_count
 # current_job_group = whatever dist 1 ~ max_job_group_count
-# job_group_count = clamp unused job_groups
+# job_group_count = clamp unused job_groups [Leave all unused job_groups in generated file]
 # max_worker_group_count = uniform dist 1 ~ job_group_count
 # current_worker's_group_id = whatever dist 1 ~ max_worker_group_count
 # worker_group_count = clamp unused worker_groups
 # current_job_group_corresponds_to_N_worker_groups: N = poisson dist (LIMIT 0 < N <= worker_group_count)
 # current_job_group_to_id_N_worker_group: N = uniform dist 1 ~ worker_group_count
-# current_job_ancestors_count = dependant dist 0 ~ possible_ancestors_left
 
-def get_truncated_normal(mean=0, sd=1, low=0, upp=10, size=1):
-    return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd).rvs(size)
+rng = np.random.default_rng()
+ROUND = 3
+
+def get_truncated_normal(mean=0.0, sd=1.0, low=0.0, upp=10.0, size=1):
+    if size == 1:
+        return round(truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd).rvs(), ROUND)
+    return round(truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd).rvs(size), ROUND)
 
 def get_random_whatever_dist() -> str:
-    return np.random.choice(['trnorm', 'uniform'])
+    return rng.choice(['trnorm', 'uniform'])
 
-def whatever_dist(low: int, high: int, size = 1, dist = 'none'):
+def get_random_dependant_dist() -> str:
+    return rng.choice(['uniform_asc', 'uniform_desc', 'uniform_back_and_forth', 'trnorm' ,'uniform'])
+
+def get_random_int(low: int, high: int, size = 1) -> int:
+    if low == high:
+        high += 1
+    if size == 1:
+        return rng.integers(low, high)
+    return rng.integers(low, high, size)
+
+def whatever_dist_int(low: int, high: int, size = 1, dist = 'none'):
+    if low == high:
+        high += 1
     if dist == 'none':
         dist = get_random_whatever_dist()
     if dist == 'trnorm':
-        mean = np.random.randint(low, high)
-        return get_truncated_normal(mean, 1, low, high, size)
+        mean = get_random_int(low, high)
+        if size == 1:
+            return int(get_truncated_normal(mean, 1, low, high))
+        return map(int, get_truncated_normal(mean, 1, low, high, size))
     if dist == 'uniform':
-        return np.random.randint(low, high, size)
+        if size == 1:
+            return get_random_int(low, high)
+        return get_random_int(low, high, size)
+    raise "unvalid dist"
 
-def get_random_dependant_dist() -> str:
-    return np.random.choice(['uniform_asc', 'uniform_desc', '']) unfinished
-
-def whatever_dependant_dist(low: int, high: int, size = 1):
+def dependant_dist_int(low: int, high: int, size: int, dist = 'none'):
     output = []
-    for i in range(size - 1):
-        unfinished
+    if low == high:
+        high += 1
+    if dist == 'none':
+        dist = get_random_dependant_dist()
+    for i in range(size):
+        if dist == 'uniform_asc':
+            section_size = float((high - low) / size)
+            output.append(get_random_int(low + section_size * i, low + section_size * (i + 1)))
+        if dist == 'uniform_desc':
+            rev_i = size - i - 1
+            section_size = float((high - low) / size)
+            output.append(get_random_int(low + section_size * rev_i, low + section_size * (rev_i + 1)))
+        if dist == 'uniform_back_and_forth':
+            if i == 0:
+                output.append(get_random_int(low, high))
+            elif i % 2 == 0:
+                output.append(get_random_int(output[-1], high))
+            else:
+                output.append(get_random_int(low, output[-1]))
+        if dist == 'trnorm' or dist == 'uniform':
+            output.append(whatever_dist_int(low, high, 1, dist))
+    return output
 
+def get_random_float(low: float, high: float, size = 1) -> float:
+    if size == 1:
+        return round(rng.random() * (high - low) + low, ROUND)
+    return [round(i * (high - low) + low, ROUND) for i in rng.random(size)]
+
+def whatever_dist_float(low: float, high: float, size = 1, dist = 'none'):
+    if dist == 'none':
+        dist = get_random_whatever_dist()
+    if dist == 'trnorm':
+        mean = get_random_float(low, high)
+        if size == 1:
+            return get_truncated_normal(mean, 1, low, high)
+        return map(float, get_truncated_normal(mean, 1, low, high, size))
+    if dist == 'uniform':
+        if size == 1:
+            return get_random_float(low, high)
+        return get_random_float(low, high, size)
+    raise "unvalid dist"
+
+def dependant_dist_float(low: float, high: float, size: int, dist = 'none'):
+    output = []
+    if dist == 'none':
+        dist = get_random_dependant_dist()
+    for i in range(size):
+        if dist == 'uniform_asc':
+            section_size = float((high - low) / size)
+            output.append(get_random_float(low + section_size * i, low + section_size * (i + 1)))
+        if dist == 'uniform_desc':
+            rev_i = size - i - 1
+            section_size = float((high - low) / size)
+            output.append(get_random_float(low + section_size * rev_i, low + section_size * (rev_i + 1)))
+        if dist == 'uniform_back_and_forth':
+            if i == 0:
+                output.append(get_random_float(low, high))
+            elif i % 2 == 0:
+                output.append(get_random_float(output[-1], high))
+            else:
+                output.append(get_random_float(low, output[-1]))
+        if dist == 'trnorm' or dist == 'uniform':
+            output.append(whatever_dist_float(low, high, 1, dist))
+    return output
+
+# Begin generation:
 generated = ""
+print(job_count := get_random_int(10, 10000))
+print(worker_count := get_random_int(max(job_count / 100, 1), job_count / 5))
+print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
+print(max_plan_loop := get_random_int(10000, 50000))
+for plan in range(plan_count):
+    print(current_plan_unit_count := min(rng.poisson(1) + 1, 100))
+    if plan == 0:
+        current_plan_start_at = 0
+    else:
+        current_plan_start_at = get_random_int(0, max_plan_loop / 100)
+    generated += "plan;" + str(plan) + ";" + str(current_plan_start_at) + ";"
+    work = dependant_dist_int(1, max_plan_loop / current_plan_unit_count, current_plan_unit_count)
+    rest = dependant_dist_int(1, max_plan_loop / current_plan_unit_count, current_plan_unit_count)
+    for unit in range(current_plan_unit_count):
+        generated += str(work[unit]) + ";" + str(rest[unit]) + ";"
+    generated += "\n"
+max_plan_unit = max(work)
+min_job_time_to_spend = get_random_int(1, max_plan_unit)
+max_job_time_to_spend = get_random_int(1, max_plan_unit)
+if max_job_time_to_spend <= min_job_time_to_spend:
+    max_job_time_to_spend, min_job_time_to_spend = min_job_time_to_spend + 1, max_job_time_to_spend
+# Swapped them if necessary
+max_job_group_count = get_random_int(1, job_count)
+wdist1 = get_random_whatever_dist() # We need to preserve the same "whatever" dists for all jobs
+wdist2 = get_random_whatever_dist()
+wdist3 = get_random_whatever_dist()
+wdist4 = get_random_whatever_dist()
+job_groups = set()
 
-print(job_count := np.random.randint(10, 10000))
-print(worker_count := np.random.randint(max(job_count / 100, 1), job_count / 5))
-print(plan_count := np.random.randint(max(worker_count / 50, 1), max(worker_count / 2, 1)))
-print(max_plan_loop := np.random.randint(10000, 50000))
-for i in range(plan_count):
-    print(current_plan_unit_count := min(np.random.poisson(1) + 1, 100))
-    print(current_plan_start_at := np.random.randint(0, max_plan_loop))
-    generated += "plan;" + str(i) + ";" + str(current_plan_unit_count) + "\n"
+import timeit
+
+for job in range(job_count):
+    jobs_left_to_iterate = job_count - 1 - job
+    current_job_max_time_to_spend = whatever_dist_int(min_job_time_to_spend, max_job_time_to_spend, 1, wdist1)
+    print(timeit.timeit(lambda: whatever_dist_int(min_job_time_to_spend, max_job_time_to_spend, 1, wdist1), number = 1000))
+    current_job_busyness_section_count = whatever_dist_int(1, current_job_max_time_to_spend / 2, 1, wdist2)
+    print(timeit.timeit(lambda: whatever_dist_int(1, current_job_max_time_to_spend / 2, 1, wdist2), number = 1000))
+    current_job_busyness_values = dependant_dist_float(0, 1, current_job_busyness_section_count)
+    print(timeit.timeit(lambda: dependant_dist_float(0, 1, current_job_busyness_section_count), number = 100))
+    current_job_busyness_times = get_random_int(1, current_job_max_time_to_spend / current_job_busyness_section_count, current_job_busyness_section_count)
+    print(timeit.timeit(lambda: get_random_int(1, current_job_max_time_to_spend / current_job_busyness_section_count, current_job_busyness_section_count), number = 1000))
+    current_job_ancestors_count = whatever_dist_int(0, jobs_left_to_iterate, 1, wdist4)
+    current_job_ancestors = [(i + job + 1) for i in rng.choice(jobs_left_to_iterate, size=current_job_ancestors_count, replace=False)]
+    current_job_group = whatever_dist_int(0, max_job_group_count - 1, 1, wdist3)
+    job_groups.add(current_job_group)
+    generated += "job;" + str(job) + ";"
+    if current_job_busyness_section_count == 1:
+        generated += str(current_job_busyness_times) + ";" + str(current_job_busyness_values) + ";"
+    else:
+        for i in range(current_job_busyness_section_count):
+            generated += str(current_job_busyness_times[i]) + ";" + str(current_job_busyness_values[i]) + ";"
+    generated += "];"
+    for ancestor in current_job_ancestors:
+        generated += str(ancestor) + ";"
+    generated += "\n"
+    print(job / job_count * 100, "%")
+job_group_count = len(job_groups)
+print(job_groups)
 
 print(generated)
 f = open("generated_sample.txt", "w+")
