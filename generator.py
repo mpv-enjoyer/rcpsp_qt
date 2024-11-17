@@ -75,6 +75,8 @@ def whatever_dist_int(low: int, high: int, size = 1, dist = 'none'):
     raise "invalid dist"
 
 def dependant_dist_int(low: int, high: int, size: int, dist = 'none'):
+    if size == 1:
+        return whatever_dist_int(low, high, 1, dist)
     if dist == 'none':
         dist = get_random_dependant_dist()
     section_size = float((high - low) / size)
@@ -117,6 +119,8 @@ def whatever_dist_float(low: float, high: float, size = 1, dist = 'none'):
     raise "invalid dist"
 
 def dependant_dist_float(low: float, high: float, size: int, dist = 'none'):
+    if size == 1:
+        return whatever_dist_float(low, high, 1, dist)
     if dist == 'none':
         dist = get_random_dependant_dist()
     section_size = float((high - low) / size)
@@ -175,7 +179,7 @@ job_groups_dict = dict() # id with skips -> job ids
 
 import timeit
 
-f = open("generated_sample.txt", "w+")
+f = open("build/generated_sample.csv", "w+")
 f.write(generated)
 generated = ""
 
@@ -225,6 +229,11 @@ for worker in range(len(worker_group_ids)):
     if group_id not in worker_groups_dict:
         worker_groups_dict[group_id] = list()
     worker_groups_dict[group_id].append(worker)
+new_worker_groups_dict = dict()
+id = 0
+for i in worker_groups_dict:
+    new_worker_groups_dict[id] = worker_groups_dict[i]
+worker_groups_dict = new_worker_groups_dict
 worker_group_count = len(worker_groups_dict)
 
 # Now we have full worker_group and job_group dicts, merging:
