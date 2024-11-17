@@ -10,6 +10,8 @@ import numpy as np
 from scipy.stats import truncnorm
 import pdb
 
+# note: Jobs are often executed in succession: 
+
 ## whatever dist - dist that is defined only for that line and is randomized
 ## dependant dist - whatever dist that can be changed according to the previous value
 
@@ -149,6 +151,8 @@ print(job_count := get_random_int(10, 10000))
 print(worker_count := get_random_int(max(job_count / 100, 1), job_count / 5))
 print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
 print(max_plan_loop := get_random_int(10000, 50000))
+MAX_PLAN_UNIT = 2147483647 - 1 # __INT_MAX__ - 1
+max_plan_unit = MAX_PLAN_UNIT
 for plan in range(plan_count):
     print(current_plan_unit_count := min(rng.poisson(1) + 1, 100))
     if plan == 0:
@@ -159,12 +163,16 @@ for plan in range(plan_count):
     work = dependant_dist_int(1, max(max_plan_loop / current_plan_unit_count, 1), current_plan_unit_count)
     rest = dependant_dist_int(1, max(max_plan_loop / current_plan_unit_count, 1), current_plan_unit_count)
     if current_plan_unit_count == 1:
+        max_plan_unit = min(work, max_plan_unit)
         generated += str(work) + ";" + str(rest) + ";"
     else:
+        local_max_plan_unit = 0
         for unit in range(current_plan_unit_count):
             generated += str(work[unit]) + ";" + str(rest[unit]) + ";"
+            local_max_plan_unit = max(local_max_plan_unit, work[unit])
+        max_plan_unit = min(max_plan_unit, local_max_plan_unit)
     generated += "\n"
-max_plan_unit = max(work)
+
 min_job_time_to_spend = get_random_int(1, max_plan_unit)
 max_job_time_to_spend = get_random_int(1, max_plan_unit)
 if max_job_time_to_spend <= min_job_time_to_spend:
@@ -181,12 +189,15 @@ import timeit
 
 f = open("build/generated_sample.csv", "w+")
 f.write(generated)
-generated = ""
+# FIXME weights are stored in the same input file
+generated = "ancestors_per_left;0.2\nancestors_per_job;0.2\ncritical_time_per_max_critical_time;0.2\navg_occupancy;0.2\ntime_after_begin_per_overall_time;0.2\n"
 
 for job in range(job_count):
     jobs_left_to_iterate = job_count - 1 - job
     current_job_max_time_to_spend = whatever_dist_int(min_job_time_to_spend, max_job_time_to_spend, 1, wdist1)
-    current_job_busyness_section_count = whatever_dist_int(1, current_job_max_time_to_spend / 2, 1, wdist2)
+    current_job_busyness_section_count = int(whatever_dist_int(1, current_job_max_time_to_spend / 2, 1, wdist2) / 50)
+    if current_job_busyness_section_count < 1:
+        current_job_busyness_section_count = 1
     current_job_busyness_values = dependant_dist_float(0, 1, current_job_busyness_section_count)
     current_job_busyness_times = get_random_int(1, current_job_max_time_to_spend / current_job_busyness_section_count, current_job_busyness_section_count)
     current_job_ancestors_count = whatever_dist_int(0, jobs_left_to_iterate, 1, wdist3)
@@ -233,6 +244,7 @@ new_worker_groups_dict = dict()
 id = 0
 for i in worker_groups_dict:
     new_worker_groups_dict[id] = worker_groups_dict[i]
+    id += 1
 worker_groups_dict = new_worker_groups_dict
 worker_group_count = len(worker_groups_dict)
 

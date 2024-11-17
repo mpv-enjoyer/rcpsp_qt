@@ -46,9 +46,6 @@ bool compare_weights(JobPair lhs, JobPair rhs)
     return (lhs.current_preference < rhs.current_preference);
 }
 
-// Sorry:
-#define APPEND_WEIGHT(N) job_pair.current_preference += N < 1 ? N * _weights.N : _weights.N
-
 void PendingFronts::sort_current_front(Data& current_front, AlgorithmDataForWeights data_for_weights)
 {
     double job_count_not_assigned = data_for_weights.job_count_not_assigned;
@@ -137,7 +134,6 @@ void PendingFronts::add(int front_time)
 bool PendingFronts::tick(AlgorithmDataForWeights data_for_weights)
 {
     if (_data.size() == 0) return false;
-    bool result = false;
     int current_time = _data[0].time;
     Data current_front = _data[0];
     sort_current_front(current_front, data_for_weights);
@@ -181,31 +177,16 @@ bool PendingFronts::tick(AlgorithmDataForWeights data_for_weights)
             }
         }
         if (new_front_time == -1) continue; // Assigned right now
-        result = true;
         new_front_time += current_time;
         add(new_front_time, current_pending);
         // Check if new_front_time == current_time -> exception()?
         transmitted_to_another_front++;
     }
 
-    /*bool should_copy_front_plus_one = _data.size() == 1 && result;
-    if (last_loop_check_begin != 1 &&
-        last_loop_check_begin + _longest_plan_loop < current_time &&
-        _data.size() == 1)
+    if (_data[0].job_pairs.size() != transmitted_to_another_front + sent_to_next)
     {
-        should_copy_front_plus_one = true;
-    } // Just add everything in fronts instead of whatever this is?
-    if (should_copy_front_plus_one)
-    {
-        _data[0] = current_front;
-        _data[0].time++;
-        return true;
-    }*/
-
-    // ^ Shouldn't be needed. Every job must have a front with time equal to it's arrival plus ^
-    // ^  if this job cannot be started because of predecessors, they will trigger the update  ^
-
-    if (_data[0].job_pairs.size() != transmitted_to_another_front + sent_to_next) throw std::invalid_argument("Some job was lost");
+        throw std::invalid_argument("Some job was lost");
+    }
     _data.erase(_data.begin());
 
     //qDebug() << "Time before is" << (*_current_time);
