@@ -8,3 +8,4 @@ release
 .qmake.stash
 plot_test.pro.user.*
 rcpsp_qt-main.kd*
+generated_sample.txt
