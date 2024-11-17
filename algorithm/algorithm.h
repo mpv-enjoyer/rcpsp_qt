@@ -64,15 +64,6 @@ namespace Weights
     bool set(AlgorithmWeights& weights, std::string name, double value);
     bool are_valid(AlgorithmWeights weights);
 }
-//struct AlgorithmWeights
-//{
-//    double ancestors_per_left; // кол-во последователей / кол-во оставшихся требований
-//    double ancestors_per_job; // кол-во последователей / кол-во требований всего
-//    double critical_time_per_max_critical_time; // критическое время требования / максимальное критическое время всех требований
-//    double avg_occupancy; // средняя занятость станка во время выполнения
-//    double time_after_begin_per_overall_time; // время от начала выполнения до текущего момента / время всего на выполнение этого требования
-//    // предпочтения последователей?
-//};
 
 struct AlgorithmDataForWeights
 {
@@ -110,53 +101,13 @@ class Algorithm
     static const int CURRENT_EQUAL_MAX = 1;
 public:
     Algorithm();
+    void add_job_group(JobGroup *jobs, std::vector<WorkerGroup *> worker_groups);
     void set_preference(Preference new_preference);
-    void add_job_group(JobGroup* jobs, WorkerGroup* workers);
     void run();
     std::vector<ResultPair> get_completed();
     int get_look_ahead_time() const;
     void set_look_ahead_time(int newLook_ahead_time);
     void set_weights(AlgorithmWeights weights);
-};
-
-struct JobLoad
-{
-    Job* assign;
-    int id;
-    std::vector<OccupancyPair> occupancy;
-    std::vector<int> ancestors;
-};
-
-struct WorkerLoad
-{
-    Worker* assign;
-    int id;
-    int plan;
-};
-
-struct PlanLoad
-{
-    Plan* assign;
-    int id;
-    int start_at;
-    std::vector<PlanElement> plan;
-};
-
-struct JobGroupLoad
-{
-    JobGroup* assign;
-    int id;
-    int start_after;
-    int end_before;
-    int worker_group;
-    std::vector<int> jobs;
-};
-
-struct WorkerGroupLoad
-{
-    WorkerGroup* assign;
-    int id;
-    std::vector<int> workers;
 };
 
 #endif // ALGORITHM_H

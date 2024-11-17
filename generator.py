@@ -1,9 +1,10 @@
-#1) job | worker | plan | job_group | worker_group | preference | look_ahead
-#2) id (from 0 without skips) | preference: "SPT | LPT | FLS" | look_ahead: number
-#3) job: time, busyness... | worker: plan_id | plan: start_at | job_group: start_after | worker_group: workers...
-#4) job: ] | | plan: work, rest... | job_group: end_before |
-#5) job: ancestors... | | | job_group: worker_group
-#6) | | | job_group: jobs...
+# 0            | 1                         | 2                 | 3             | 4            | 5       | 6            | 7...
+# --------------------------------------------------------------------------------------------------------------------------------------------------
+# job          | id (from 0 without skips) | time, busyness... | ]             | ancestors... |         |              |
+# worker       | id (from 0 without skips) | plan_id           |               |              |         |              |
+# plan         | id (from 0 without skips) | start_at          | work, rest... |              |         |              |
+# job_group    | id (from 0 without skips) | start_after       | end_before    | worker_group | jobs... | ] (optional) | worker_groups... (optional)
+# worker_group | id (from 0 without skips) | workers...        |               |              |         |              |
 
 import numpy as np
 from scipy.stats import truncnorm
@@ -21,19 +22,20 @@ import pdb
 # current_plan_current_unit_time = dependant dist 1 ~ ( max_plan_loop / current_plan_section_count )
 # max_plan_unit = MAX(current_plan_current_unit_time...)
 # min_job_time_to_spend, max_job_time_to_spend = MIN, MAX from: uniform dist 1 ~ max_plan_unit, uniform dist 1 ~ max_plan_unit
+# max_job_group_count = uniform dist 1 ~ job_count
 # current_job_max_time_to_spend = whatever dist min_job_time_to_spend ~ max_job_time_to_spend
 # current_job_busyness_section_count = whatever dist 1 ~ current_job_max_time_to_spend / 2
 # current_job_current_busyness_value = dependant dist 0 ~ 1
 # current_job_current_busyness_time = uniform dist 1 ~ current_job_max_time_to_spend / current_job_busyness_section_count
 # current_job_ancestors_count = whatever dist 0 ~ possible_ancestors_left
-# max_job_group_count = uniform dist 1 ~ job_count
 # current_job_group = whatever dist 1 ~ max_job_group_count
-# job_group_count = clamp unused job_groups [Leave all unused job_groups in generated file]
+# job_group_count = clamp unused job_groups
 # max_worker_group_count = uniform dist 1 ~ job_group_count
 # current_worker's_group_id = whatever dist 1 ~ max_worker_group_count
 # worker_group_count = clamp unused worker_groups
 # current_job_group_corresponds_to_N_worker_groups: N = poisson dist (LIMIT 0 < N <= worker_group_count)
 # current_job_group_to_id_N_worker_group: N = uniform dist 1 ~ worker_group_count
+# current_job_group_start_at = whatever dist 0 ~ max_plan_loop
 
 rng = np.random.default_rng()
 ROUND = 3
@@ -169,7 +171,7 @@ wdist1 = get_random_whatever_dist() # We need to preserve the same "whatever" di
 wdist2 = get_random_whatever_dist()
 wdist3 = get_random_whatever_dist()
 wdist4 = get_random_whatever_dist()
-job_groups = set()
+job_groups_dict = dict() # id with skips -> job ids
 
 import timeit
 
@@ -180,20 +182,17 @@ generated = ""
 for job in range(job_count):
     jobs_left_to_iterate = job_count - 1 - job
     current_job_max_time_to_spend = whatever_dist_int(min_job_time_to_spend, max_job_time_to_spend, 1, wdist1)
-    #print(timeit.timeit(lambda: whatever_dist_int(min_job_time_to_spend, max_job_time_to_spend, 1, wdist1), number = 1000))
     current_job_busyness_section_count = whatever_dist_int(1, current_job_max_time_to_spend / 2, 1, wdist2)
-    #print(timeit.timeit(lambda: whatever_dist_int(1, current_job_max_time_to_spend / 2, 1, wdist2), number = 1000))
     current_job_busyness_values = dependant_dist_float(0, 1, current_job_busyness_section_count)
-    #print(timeit.timeit(lambda: dependant_dist_float(0, 1, current_job_busyness_section_count), number = 1000))
     current_job_busyness_times = get_random_int(1, current_job_max_time_to_spend / current_job_busyness_section_count, current_job_busyness_section_count)
-    #print(timeit.timeit(lambda: get_random_int(1, current_job_max_time_to_spend / current_job_busyness_section_count, current_job_busyness_section_count), number = 1000))
-    current_job_ancestors_count = whatever_dist_int(0, jobs_left_to_iterate, 1, wdist4)
-    #print(timeit.timeit(lambda: whatever_dist_int(0, jobs_left_to_iterate, 1, wdist4), number = 1000))
+    current_job_ancestors_count = whatever_dist_int(0, jobs_left_to_iterate, 1, wdist3)
     current_job_ancestors = [(i + job + 1) for i in rng.choice(jobs_left_to_iterate, size=current_job_ancestors_count, replace=False)]
-    #print(timeit.timeit(lambda: [(i + job + 1) for i in rng.choice(jobs_left_to_iterate, size=current_job_ancestors_count, replace=False)], number = 1000))
-    current_job_group = whatever_dist_int(0, max_job_group_count - 1, 1, wdist3)
-    #print(timeit.timeit(lambda: whatever_dist_int(0, max_job_group_count - 1, 1, wdist3), number = 1000))
-    job_groups.add(current_job_group)
+    current_job_group = whatever_dist_int(0, max_job_group_count - 1, 1, wdist4)
+    if current_job_group in job_groups_dict:
+        job_groups_dict[current_job_group].append(job)
+    else:
+        job_groups_dict[current_job_group] = list()
+        job_groups_dict[current_job_group].append(job)
     generated += "job;" + str(job) + ";"
     if current_job_busyness_section_count == 1:
         generated += str(current_job_busyness_times) + ";" + str(current_job_busyness_values) + ";"
@@ -204,14 +203,63 @@ for job in range(job_count):
     for ancestor in current_job_ancestors:
         generated += str(ancestor) + ";"
     generated += "\n"
-    if job % 50 == 0:
-        f.write(generated)
-        generated = ""
-    print(job / job_count * 100, "%")
-job_group_count = len(job_groups)
-print(job_groups)
+    f.write(generated)
+    generated = ""
 
-print(generated)
-#f = open("generated_sample.txt", "w+")
+# Clamp job_group ids:
+current_job_group = 0
+new_job_groups_dict = dict()
+for key in job_groups_dict:
+    new_job_groups_dict[current_job_group] = job_groups_dict[key]
+    current_job_group += 1
+job_groups_dict = new_job_groups_dict
+job_group_count = len(job_groups_dict)
+
+max_worker_group_count = get_random_int(1, job_group_count)
+worker_group_ids = whatever_dist_int(1, max_worker_group_count, worker_count)
+
+# Clamp worker_group ids:
+worker_groups_dict = dict() # id with skips -> worker ids
+for worker in range(len(worker_group_ids)):
+    group_id = worker_group_ids[worker]
+    if group_id not in worker_groups_dict:
+        worker_groups_dict[group_id] = list()
+    worker_groups_dict[group_id].append(worker)
+worker_group_count = len(worker_groups_dict)
+
+# Now we have full worker_group and job_group dicts, merging:
+job_group_to_worker_groups_dict = dict()
+for job_group in job_groups_dict:
+    current_job_group_worker_group_count = min(rng.poisson(1) + 1, worker_group_count)
+    current_job_group_worker_groups = rng.choice(worker_group_count, size=current_job_group_worker_group_count, replace=False)
+    if current_job_group_worker_group_count == 1:
+        current_job_group_worker_groups = list(current_job_group_worker_groups)
+    job_group_to_worker_groups_dict[job_group] = current_job_group_worker_groups
+
+# Generate remaining data and write workers, job_groups, worker_groups:
+wdist = get_random_whatever_dist()
+for worker in range(worker_count):
+    current_plan = whatever_dist_int(0, plan_count, 1, wdist)
+    generated += "worker;" + str(worker) + ";" + str(current_plan) + "\n"
+
+JOB_GROUP_END_BEFORE = 2147483647 - 1 # __INT_MAX__ - 1
+wdist = get_random_whatever_dist()
+for job_group in job_groups_dict:
+    current_job_group_start_at = whatever_dist_int(0, max_plan_loop, 1, wdist)
+    generated += "job_group;" + str(job_group) + ";" + str(current_job_group_start_at) + ";" + str(JOB_GROUP_END_BEFORE) + ";" + str(job_group_to_worker_groups_dict[job_group][0]) + ";"
+    for job in job_groups_dict[job_group]:
+        generated += str(job) + ";"
+    if len(job_group_to_worker_groups_dict[job_group]) > 1:
+        generated += "];"
+        for i in range(1, len(job_group_to_worker_groups_dict[job_group])):
+            generated += str(job_group_to_worker_groups_dict[job_group][i]) + ";"
+    generated += "\n"
+
+for worker_group in worker_groups_dict:
+    generated += "worker_group;" + str(worker_group) + ";"
+    for worker in worker_groups_dict[worker_group]:
+        generated += str(worker) + ";"
+    generated += "\n"
+
 f.write(generated)
 f.close()

@@ -24,19 +24,24 @@ Algorithm::Algorithm()
 
 }
 
-void Algorithm::add_job_group(JobGroup* jobs, WorkerGroup* workers)
+void Algorithm::add_job_group(JobGroup* jobs, std::vector<WorkerGroup*> worker_groups)
 {
     for (int i = 0; i < jobs->get_size(); i++)
     {
         int start = jobs->get_start();
         int end = jobs->get_end();
-        JobPair new_pair = {start, end, jobs->get_job(i), { workers }, static_cast<int>(_pending_jobs.size())};
+        JobPair new_pair = {start, end, jobs->get_job(i), worker_groups, static_cast<int>(_pending_jobs.size())};
         _pending_jobs.push_back(new_pair);
     }
-    for (int i = 0; i < workers->get_size(); i++)
+    for (auto workers : worker_groups)
     {
-        if (workers->get_worker(i)->get_plan().get_time_loop() > longest_plan_loop)
-            longest_plan_loop = workers->get_worker(i)->get_plan().get_time_loop();
+        for (int i = 0; i < workers->get_size(); i++)
+        {
+            if (workers->get_worker(i)->get_plan().get_time_loop() > longest_plan_loop)
+            {
+                longest_plan_loop = workers->get_worker(i)->get_plan().get_time_loop();
+            }
+        }
     }
 }
 
