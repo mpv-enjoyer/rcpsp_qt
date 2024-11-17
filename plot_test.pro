@@ -13,6 +13,7 @@ CONFIG += c++17
 
 INCLUDEPATH += algorithm
 INCLUDEPATH += model
+INCLUDEPATH += debugoutput
 
 SOURCES += \
     algorithm/algorithm.cpp \
@@ -22,7 +23,6 @@ SOURCES += \
     algorithm/pendingjobs.cpp \
     algorithm/loader.cpp \
     contentwidget.cpp \
-    debugoutput.cpp \
     generator.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -44,7 +44,6 @@ HEADERS += \
     algorithm/pendingjobs.h \
     algorithm/loader.h \
     contentwidget.h \
-    debugoutput.h \
     generator.h \
     mainwindow.h \
     misc/debugoutput.h \
