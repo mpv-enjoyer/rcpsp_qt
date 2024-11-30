@@ -16,12 +16,13 @@ INCLUDEPATH += ../model
 INCLUDEPATH += ../misc
 
 SOURCES += \
-    main.cpp \
+    *.cpp \
     ../algorithm/*.cpp \
     ../model/*.cpp \
     ../misc/*.h
 
 HEADERS += \
+    *.h \
     ../algorithm/*.h \
     ../model/*.h \
     ../misc/*.h

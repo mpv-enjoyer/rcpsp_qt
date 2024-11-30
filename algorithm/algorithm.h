@@ -103,11 +103,12 @@ public:
     Algorithm();
     void add_job_group(JobGroup *jobs, std::vector<WorkerGroup *> worker_groups);
     void set_preference(Preference new_preference);
-    void run();
+    int run();
     std::vector<ResultPair> get_completed();
     int get_look_ahead_time() const;
     void set_look_ahead_time(int newLook_ahead_time);
     void set_weights(AlgorithmWeights weights);
+    void reset();
 };
 
 #endif // ALGORITHM_H

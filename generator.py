@@ -189,8 +189,6 @@ import timeit
 
 f = open("build/generated_sample.csv", "w+")
 f.write(generated)
-# FIXME weights are stored in the same input file
-generated = "ancestors_per_left;0.2\nancestors_per_job;0.2\ncritical_time_per_max_critical_time;0.2\navg_occupancy;0.2\ntime_after_begin_per_overall_time;0.2\n"
 
 for job in range(job_count):
     jobs_left_to_iterate = job_count - 1 - job
@@ -200,7 +198,8 @@ for job in range(job_count):
         current_job_busyness_section_count = 1
     current_job_busyness_values = dependant_dist_float(0, 1, current_job_busyness_section_count)
     current_job_busyness_times = get_random_int(1, current_job_max_time_to_spend / current_job_busyness_section_count, current_job_busyness_section_count)
-    current_job_ancestors_count = whatever_dist_int(0, jobs_left_to_iterate, 1, wdist3)
+    # TODO: VVV np.int64(0) crashes algorithm for some reason VVV
+    current_job_ancestors_count = np.int64(0) # whatever_dist_int(0, jobs_left_to_iterate, 1, wdist3)
     current_job_ancestors = [(i + job + 1) for i in rng.choice(jobs_left_to_iterate, size=current_job_ancestors_count, replace=False)]
     current_job_group = whatever_dist_int(0, max_job_group_count - 1, 1, wdist4)
     if current_job_group in job_groups_dict:

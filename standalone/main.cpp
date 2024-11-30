@@ -1,23 +1,40 @@
 #include "algorithm.h"
 #include "loader.h"
 #include "debugoutput.h"
+#include <iostream>
+#include "solver.h"
 
 int main(int argc, char** argv)
 {
     std::vector<std::string> args(argv, argv + argc);
     QString input_file = "";
+    bool solver = false;
     for (auto arg : args)
     {
-        if (arg == "-DDO") qInstallMessageHandler(DisabledDebugOutput); // Disable Debug Output
-        else input_file = arg.c_str();
+        if      (arg == "-DDO")    qInstallMessageHandler(DisabledDebugOutput); // Disable Debug Output
+        else if (arg == "-SOLVER") solver = true;
+        else                       input_file = arg.c_str();
     }
     Algorithm algorithm;
     std::vector<Job*> all_jobs;
     std::vector<Worker*> all_workers;
     Loader::Load(input_file, algorithm, all_workers, all_jobs);
     Loader::LoadPreferences(input_file, algorithm);
-    Loader::LoadWeights(input_file, algorithm);
-    algorithm.run();
+    if (!solver)
+    {
+        Loader::LoadWeights(input_file, algorithm);
+        std::cout << algorithm.run() << "\n";
+        return 0;
+    }
+
+    while (true)
+    {
+        AlgorithmWeights weights = generate_random_weights();
+        assert(Weights::are_valid(weights));
+        algorithm.set_weights(weights);
+        std::cout << algorithm.run() << "\n";
+        algorithm.reset();
+    }
 }
 
 /*

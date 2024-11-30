@@ -70,7 +70,17 @@ void Algorithm::set_weights(AlgorithmWeights weights)
     _weights = weights;
 }
 
-void Algorithm::run()
+void Algorithm::reset()
+{
+    for (auto job : _completed_jobs)
+    {
+        job.job->undone();
+        job.worker->undone();
+        job.job->set_preference_coefficient(0);
+    }
+}
+
+int Algorithm::run()
 {
     int best_failed_jobs = __INT_MAX__;
     std::vector<ResultPair> best_completed_jobs;
@@ -134,11 +144,14 @@ void Algorithm::run()
     if (best_failed_jobs != __INT_MAX__) // Does it ever occur?
         _completed_jobs = best_completed_jobs;
     std::sort(_completed_jobs.begin(), _completed_jobs.end(), compare_result);
+    int time_used = 0;
     for (int i = 0; i < _completed_jobs.size(); i++)
     {
         _completed_jobs[i].job_id = _completed_jobs[i].job->get_global_id();
+        time_used = std::max(time_used, _completed_jobs[i].start + _completed_jobs[i].job->get_time_to_spend());
     }
     qDebug() << "final failed job count:" << best_failed_jobs << "with" << _completed_jobs.size() << "completed";
+    return time_used;
 }
 
 std::vector<ResultPair> Algorithm::get_completed()
