@@ -9,6 +9,7 @@
 import numpy as np
 from scipy.stats import truncnorm
 import pdb
+import math
 
 # note: Jobs are often executed in succession: 
 
@@ -145,19 +146,37 @@ def dependant_dist_float(low: float, high: float, size: int, dist = 'none'):
         return output
     raise "invalid dist"
 
-# Plans, time is minutes
-PLANS = [
-    [ 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 3780 ], # 5/2 (9 часов рабочий день с перерывом в 1 час)
-    [ 660, 780, 660, 780, 660, 3660 ], # 3/2 (11 часов смена)
-    [ 720, 1440, 720, 2880 ] # 2/2 (12 часов смена, сначала дневная, потом ночная)
-    [ 480, 960, 480, 3840 ] # 2/2 (8 часов смена)
-    ]
+
 
 # Begin generation:
+base_value = get_random_int(500, 100000)
+
+job_count = base_value
+max_job_chain = math.log10(base_value)
+worker_count = math.sqrt(base_value)
+worker_group_count = worker_count / get_random_int(2, 10)
+job_group_count = worker_count / get_random_int(200, 2000)
+max_job_group_start_at = get_ unfinished.
+MIN_JOB_OCCUPANCY_UNIT_COUNT = 3
+MAX_JOB_OCCUPANCY_UNIT_COUNT = 7
+PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ]
+    [[ 0 ], [ 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 3780 ]], # 5/2 (9 часов рабочий день с перерывом в 1 час)
+    [[ 0, 1440, 2880, 4320, 5760, 720, 2160, 3600, 5040, 6480 ], [ 660, 780, 660, 780, 660, 3660 ]], # 3/2 (11 часов смена)
+    [[ 0, 720, 2880, 3600 ], [ 720, 1440, 720, 2880 ]], # 2/2 (12 часов смена, сначала дневная, потом ночная)
+    [[ 0, 480, 960, 2880, 3360, 3840 ], [ 480, 960, 480, 3840 ]] # 2/2 (8 часов смена)
+    ]
+
+# Begin insert:
 generated = ""
-for i in range(len(PLANS)):
+job_group_start_at_values = get_random_int()
+
+
+
+plan = get_random_int(0, len(PLANS))
+for plan_unit in plan:
     generated += "plan;"
-    for unit in PLANS[i]:
+    for unit in PLANS[plan_unit]:
+        
 
 print(job_count := get_random_int(10, 10000))
 print(worker_count := get_random_int(max(job_count / 100, 1), job_count / 5))
