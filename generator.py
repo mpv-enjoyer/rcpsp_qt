@@ -145,33 +145,56 @@ def dependant_dist_float(low: float, high: float, size: int, dist = 'none'):
         return output
     raise "invalid dist"
 
+def move_generated_to_file(generated):
+    file = open("build/generated_sample.csv", "w+")
+    file.write(generated)
+    generated = ""
+    file.close()
+
 # Begin generation:
 generated = ""
 print(job_count := get_random_int(10, 10000))
 print(worker_count := get_random_int(max(job_count / 100, 1), job_count / 5))
-print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
+#print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
+PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ]
+    [[ 0 ], [ 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 3780 ], 0, 1], # 5/2 (9 часов рабочий день с перерывом в 1 час)
+    [[ 0, 1440, 2880, 4320, 5760, 720, 2160, 3600, 5040, 6480 ], [ 660, 780, 660, 780, 660, 3660 ], 1, 10], # 3/2 (11 часов смена)
+    [[ 0, 720, 2880, 3600 ], [ 720, 1440, 720, 2880 ], 11, 4], # 2/2 (12 часов смена, сначала дневная, потом ночная)
+    [[ 0, 480, 960, 2880, 3360, 3840 ], [ 480, 960, 480, 3840 ], 15, 6] # 2/2 (8 часов смена)
+    ]
 print(max_plan_loop := get_random_int(10000, 50000))
-MAX_PLAN_UNIT = 2147483647 - 1 # __INT_MAX__ - 1
+MAX_PLAN_UNIT = 480 # 8 hours
 max_plan_unit = MAX_PLAN_UNIT
-for plan in range(plan_count):
-    print(current_plan_unit_count := min(rng.poisson(1) + 1, 100))
-    if plan == 0:
-        current_plan_start_at = 0
-    else:
-        current_plan_start_at = get_random_int(0, max_plan_loop / 100)
-    generated += "plan;" + str(plan) + ";" + str(current_plan_start_at) + ";"
-    work = dependant_dist_int(1, max(max_plan_loop / current_plan_unit_count, 1), current_plan_unit_count)
-    rest = dependant_dist_int(1, max(max_plan_loop / current_plan_unit_count, 1), current_plan_unit_count)
-    if current_plan_unit_count == 1:
-        max_plan_unit = min(work, max_plan_unit)
-        generated += str(work) + ";" + str(rest) + ";"
-    else:
-        local_max_plan_unit = 0
-        for unit in range(current_plan_unit_count):
-            generated += str(work[unit]) + ";" + str(rest[unit]) + ";"
-            local_max_plan_unit = max(local_max_plan_unit, work[unit])
-        max_plan_unit = min(max_plan_unit, local_max_plan_unit)
-    generated += "\n"
+
+plan_count = 0
+for plan_id in range(len(PLANS)):
+    plan = PLANS[plan_id]
+    current_plan_str = "plan;" 
+    for start_at in plan[0]:
+        generated += current_plan_str + str(plan_count) + ";" + str(start_at)
+        for minutes in plan[1]:
+            generated += ";" + str(minutes)
+        generated += "\n"
+        plan_count += 1
+
+#    print(current_plan_unit_count := min(rng.poisson(1) + 1, 100))
+#    if plan == 0:
+#        current_plan_start_at = 0
+#    else:
+#        current_plan_start_at = get_random_int(0, max_plan_loop / 100)
+#    generated += "plan;" + str(plan) + ";" + str(current_plan_start_at) + ";"
+#    work = dependant_dist_int(1, max(max_plan_loop / current_plan_unit_count, 1), current_plan_unit_count)
+#    rest = dependant_dist_int(1, max(max_plan_loop / current_plan_unit_count, 1), current_plan_unit_count)
+#    if current_plan_unit_count == 1:
+#        max_plan_unit = min(work, max_plan_unit)
+#        generated += str(work) + ";" + str(rest) + ";"
+#    else:
+#        local_max_plan_unit = 0
+#        for unit in range(current_plan_unit_count):
+#            generated += str(work[unit]) + ";" + str(rest[unit]) + ";"
+#            local_max_plan_unit = max(local_max_plan_unit, work[unit])
+#        max_plan_unit = min(max_plan_unit, local_max_plan_unit)
+#    generated += "\n"
 
 min_job_time_to_spend = get_random_int(1, max_plan_unit)
 max_job_time_to_spend = get_random_int(1, max_plan_unit)
@@ -189,6 +212,7 @@ import timeit
 
 f = open("build/generated_sample.csv", "w+")
 f.write(generated)
+generated = ""
 
 for job in range(job_count):
     jobs_left_to_iterate = job_count - 1 - job
@@ -276,10 +300,19 @@ for job_group in job_groups_dict:
     generated += "\n"
 
 for worker_group in worker_groups_dict:
-    generated += "worker_group;" + str(worker_group) + ";"
+    worker_group_str = "worker_group;" + str(worker_group) + ";"
+    base_plan = PLANS[get_random_int(0, len(PLANS))]
+    subplan_first_id = base_plan[2]
+    subplan_count = base_plan[3]
+    current_plan = subplan_first_id
     for worker in worker_groups_dict[worker_group]:
-        generated += str(worker) + ";"
-    generated += "\n"
+        generated += "worker;" + str(worker) + ";" + str(current_plan) + "\n"
+        worker_group_str += str(worker) + ";"
+        current_plan += 1
+        if current_plan >= subplan_first_id + subplan_count:
+            current_plan = subplan_first_id
+    worker_group_str += "\n"
+    generated += worker_group_str
 
 f.write(generated)
 f.close()

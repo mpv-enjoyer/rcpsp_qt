@@ -72,6 +72,7 @@ AssignedWorker WorkerGroup::assign(Job *job)
         }
     }
     throw std::invalid_argument("Assign to a busy enough group");
+    return {nullptr, -1};
 }
 
 int WorkerGroup::get_size()

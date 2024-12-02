@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/standalone/rcpsp",
-            "args": ["samples/sample.csv", "-DDO", "-SOLVER"],
+            "args": ["../build/generated_sample.csv", "-DDO", "-SOLVER"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/standalone",
             "environment": [],
