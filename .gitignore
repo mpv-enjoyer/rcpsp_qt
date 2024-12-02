@@ -9,3 +9,4 @@ release
 plot_test.pro.user.*
 rcpsp_qt-main.kd*
 generated_sample.txt
+standalone/samples/bugged_algorithm.csv
