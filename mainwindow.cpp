@@ -19,7 +19,7 @@ void MainWindow::on_pushButton_clicked()
     workers_indexes.clear();
     start_first_job_group_at = 0;
     algorithm = Algorithm();
-    Loader::Load("../input.csv", algorithm, all_workers, all_jobs);
+    Loader::Load("../generated_sample.csv", algorithm, all_workers, all_jobs);
     Loader::LoadPreferences("../preferences.csv", algorithm);
     Loader::LoadWeights("../weights.csv", algorithm);
     algorithm.run();

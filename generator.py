@@ -153,7 +153,7 @@ def move_generated_to_file(generated):
 
 # Begin generation:
 generated = ""
-print(job_count := get_random_int(10, 10000))
+print(job_count := get_random_int(10000, 200000))
 print(worker_count := get_random_int(max(job_count / 100, 1), job_count / 5))
 #print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
 PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ]
@@ -162,9 +162,11 @@ PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ]
     [[ 0, 720, 2880, 3600 ], [ 720, 1440, 720, 2880 ], 11, 4], # 2/2 (12 часов смена, сначала дневная, потом ночная)
     [[ 0, 480, 960, 2880, 3360, 3840 ], [ 480, 960, 480, 3840 ], 15, 6] # 2/2 (8 часов смена)
     ]
-print(max_plan_loop := get_random_int(10000, 50000))
-MAX_PLAN_UNIT = 480 # 8 hours
+MAX_PLAN_UNIT = 240 # 4 hours
 max_plan_unit = MAX_PLAN_UNIT
+MAX_PLAN_LOOP = 10080 # 7 days
+max_plan_loop = MAX_PLAN_LOOP
+MAX_ANCESTORS_COUNT = 5
 
 plan_count = 0
 for plan_id in range(len(PLANS)):
@@ -217,13 +219,12 @@ generated = ""
 for job in range(job_count):
     jobs_left_to_iterate = job_count - 1 - job
     current_job_max_time_to_spend = whatever_dist_int(min_job_time_to_spend, max_job_time_to_spend, 1, wdist1)
-    current_job_busyness_section_count = int(whatever_dist_int(1, current_job_max_time_to_spend / 2, 1, wdist2) / 50)
+    current_job_busyness_section_count = int(whatever_dist_int(1, current_job_max_time_to_spend / 2, 1, wdist2) / 50) # TODO FIXME: this always outputs 1
     if current_job_busyness_section_count < 1:
         current_job_busyness_section_count = 1
     current_job_busyness_values = dependant_dist_float(0, 1, current_job_busyness_section_count)
     current_job_busyness_times = get_random_int(1, current_job_max_time_to_spend / current_job_busyness_section_count, current_job_busyness_section_count)
-    # TODO: VVV np.int64(0) crashes algorithm for some reason VVV
-    current_job_ancestors_count = np.int64(0) # whatever_dist_int(0, jobs_left_to_iterate, 1, wdist3)
+    current_job_ancestors_count = whatever_dist_int(0, min(jobs_left_to_iterate, MAX_ANCESTORS_COUNT), 1, wdist3)
     current_job_ancestors = [(i + job + 1) for i in rng.choice(jobs_left_to_iterate, size=current_job_ancestors_count, replace=False)]
     current_job_group = whatever_dist_int(0, max_job_group_count - 1, 1, wdist4)
     if current_job_group in job_groups_dict:
@@ -289,7 +290,7 @@ for worker in range(worker_count):
 JOB_GROUP_END_BEFORE = 2147483647 - 1 # __INT_MAX__ - 1
 wdist = get_random_whatever_dist()
 for job_group in job_groups_dict:
-    current_job_group_start_at = whatever_dist_int(0, max_plan_loop, 1, wdist)
+    current_job_group_start_at = whatever_dist_int(0, max_plan_loop * get_random_int(1, 10), 1, wdist)
     generated += "job_group;" + str(job_group) + ";" + str(current_job_group_start_at) + ";" + str(JOB_GROUP_END_BEFORE) + ";" + str(job_group_to_worker_groups_dict[job_group][0]) + ";"
     for job in job_groups_dict[job_group]:
         generated += str(job) + ";"
