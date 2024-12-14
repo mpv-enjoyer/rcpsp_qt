@@ -145,8 +145,11 @@ def dependant_dist_float(low: float, high: float, size: int, dist = 'none'):
         return output
     raise "invalid dist"
 
+import datetime
+
 def move_generated_to_file(generated):
-    file = open("build/generated_sample.csv", "w+")
+    now = datetime.datetime.now()
+    file = open("samples/" + str(now) + ".csv", "w+")
     file.write(generated)
     generated = ""
     file.close()
@@ -212,7 +215,8 @@ job_groups_dict = dict() # id with skips -> job ids
 
 import timeit
 
-f = open("build/generated_sample.csv", "w+")
+now = datetime.datetime.now()
+f = open("samples/" + str(now) + ".csv", "w+")
 f.write(generated)
 generated = ""
 

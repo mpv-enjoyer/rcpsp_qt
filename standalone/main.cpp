@@ -22,8 +22,9 @@ int main(int argc, char** argv)
     Loader::LoadPreferences(input_file, algorithm);
     if (!solver)
     {
-        Loader::LoadWeights(input_file, algorithm);
-        std::cout << algorithm.run() << "\n";
+        if (algorithm.get_preference() == Preference::NONE) Loader::LoadWeights(input_file, algorithm);
+        std::cout << " max time: " << algorithm.run() << " ";
+        std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
         return 0;
     }
 
@@ -32,7 +33,13 @@ int main(int argc, char** argv)
         AlgorithmWeights weights = generate_random_weights();
         assert(Weights::are_valid(weights));
         algorithm.set_weights(weights);
-        std::cout << algorithm.run() << "\n";
+        std::cout << Weights::to_string(weights) << "\n";
+        std::cout << " max time: " << algorithm.run() << "\n";
+        std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
+
+        //std::cout << Weights::to_string(weights) << "\n";
+        //std::cout << " max time: " << algorithm.run() << " ";
+        //std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
         algorithm.reset();
     }
 }

@@ -18,6 +18,17 @@ bool Weights::are_valid(AlgorithmWeights weights)
     if (sum != 1) return false;
     return true;
 }
+std::string Weights::to_string(AlgorithmWeights weights)
+{
+    std::string output = "Weights: ";
+    for (auto key : WeightsNames)
+    {
+        output.append("[" + key + "]=");
+        output.append(std::to_string(weights.at(key)));
+        output.append(" ");
+    }
+    return output;
+}
 
 Algorithm::Algorithm()
 {
@@ -60,6 +71,11 @@ int Algorithm::get_look_ahead_time() const
     return look_ahead_time;
 }
 
+Preference Algorithm::get_preference() const
+{
+    return preference;
+}
+
 void Algorithm::set_look_ahead_time(int newLook_ahead_time)
 {
     look_ahead_time = newLook_ahead_time;
@@ -78,6 +94,11 @@ void Algorithm::reset()
         job.worker->undone();
         job.job->set_preference_coefficient(0);
     }
+}
+
+int Algorithm::get_failed_jobs_count()
+{
+    return _failed_jobs_count;
 }
 
 int Algorithm::run()
@@ -151,6 +172,7 @@ int Algorithm::run()
         time_used = std::max(time_used, _completed_jobs[i].start + _completed_jobs[i].job->get_time_to_spend());
     }
     qDebug() << "final failed job count:" << best_failed_jobs << "with" << _completed_jobs.size() << "completed";
+    _failed_jobs_count = best_failed_jobs;
     return time_used;
 }
 

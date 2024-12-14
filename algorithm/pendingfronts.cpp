@@ -131,12 +131,30 @@ void PendingFronts::add(int front_time)
     }
 }
 
+void PendingFronts::sort_current_front_by_preference(Data& current_front)
+{
+    switch (_preference)
+    {
+    case SPT:
+        std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_SPT);
+        break;
+    case LPT:
+        std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_LPT);
+        break;
+    case FLS:
+        std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_EST);
+        break;
+    }
+}
+
 bool PendingFronts::tick(AlgorithmDataForWeights data_for_weights)
 {
     if (_data.size() == 0) return false;
     int current_time = _data[0].time;
     Data current_front = _data[0];
-    sort_current_front(current_front, data_for_weights);
+    if (_preference == Preference::NONE) sort_current_front(current_front, data_for_weights);
+    else sort_current_front_by_preference(current_front);
+
     apply_preference_coefficient_to_current_front(current_front);
 
     int transmitted_to_another_front = 0;

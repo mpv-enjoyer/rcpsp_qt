@@ -63,6 +63,7 @@ namespace Weights
     double get(AlgorithmWeights weights, std::string name);
     bool set(AlgorithmWeights& weights, std::string name, double value);
     bool are_valid(AlgorithmWeights weights);
+    std::string to_string(AlgorithmWeights weights);
 }
 
 struct AlgorithmDataForWeights
@@ -96,6 +97,7 @@ class Algorithm
     std::vector<ResultPair> _completed_jobs;
     int look_ahead_time = 0;
     int longest_plan_loop = 0;
+    int _failed_jobs_count = 0;
     AlgorithmWeights _weights;
     static const bool DO_NOT_REPEAT = true;
     static const int CURRENT_EQUAL_MAX = 1;
@@ -106,9 +108,11 @@ public:
     int run();
     std::vector<ResultPair> get_completed();
     int get_look_ahead_time() const;
+    Preference get_preference() const;
     void set_look_ahead_time(int newLook_ahead_time);
     void set_weights(AlgorithmWeights weights);
     void reset();
+    int get_failed_jobs_count();
 };
 
 #endif // ALGORITHM_H
