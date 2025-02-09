@@ -99,8 +99,8 @@ class Algorithm
     int longest_plan_loop = 0;
     int _failed_jobs_count = 0;
     AlgorithmWeights _weights;
-    static const bool DO_NOT_REPEAT = true;
     static const int CURRENT_EQUAL_MAX = 1;
+    static const int PASS_MAX_COUNT = 2;
 public:
     Algorithm();
     void add_job_group(JobGroup *jobs, std::vector<WorkerGroup *> worker_groups);

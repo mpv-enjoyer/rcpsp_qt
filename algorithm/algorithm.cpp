@@ -1,4 +1,5 @@
 #include "algorithm.h"
+#include <iostream>
 
 double Weights::get(AlgorithmWeights weights, std::string name)
 {
@@ -108,7 +109,7 @@ int Algorithm::run()
     int current_failed_jobs = 0;
     int current_equal_failed = 0;
     std::vector<ResultPair> current_completed_jobs;
-    while (true)
+    for (int i = 0; ; i++)
     {
         int current_time = 0;
         CompletedJobs completed_jobs;
@@ -137,7 +138,7 @@ int Algorithm::run()
         if (current_completed_jobs.size() != _pending_jobs.size()) throw std::invalid_argument("Lost some jobs"); // Lost some jobs
 
         current_failed_jobs = completed_jobs.failed_count();
-        if (current_failed_jobs == 0 || DO_NOT_REPEAT)
+        if (current_failed_jobs == 0 || i + 1 >= PASS_MAX_COUNT)
         {
             best_failed_jobs = current_failed_jobs;
             best_completed_jobs = current_completed_jobs;
@@ -160,7 +161,7 @@ int Algorithm::run()
         current_equal_failed = 0;
         best_failed_jobs = current_failed_jobs;
         completed_jobs.prepare_for_next_iteration();
-        qDebug() << "current failed job count:" << best_failed_jobs << "with" << completed_jobs.result().size() << "completed";
+        std::cout << " [REITERATE] current failed job count:" << best_failed_jobs << "with" << completed_jobs.result().size() << "completed\n";
     }
     if (best_failed_jobs != __INT_MAX__) // Does it ever occur?
         _completed_jobs = best_completed_jobs;
