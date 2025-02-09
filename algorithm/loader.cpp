@@ -144,13 +144,22 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
         std::swap(plans_load[i], plans_load[plans_load[i].id]);
     }
     all_workers = std::vector<Worker*>(workers_load.size());
-    for (int i = 0; i < workers_load.size(); i++)
+    
+    bool workers_load_skipped_someone = true; // TODO: I can do this in one cycle
+    while (workers_load_skipped_someone)
     {
-        workers_load[i].assign = new Worker(*plans_load[workers_load[i].plan].assign);
-        int id_true = workers_load[i].id;
-        std::swap(workers_load[i], workers_load[id_true]);
-        all_workers[id_true] = workers_load[id_true].assign;
+        workers_load_skipped_someone = false;
+        for (int i = 0; i < workers_load.size(); i++)
+        {
+            if (workers_load[i].assign != nullptr) continue;
+            workers_load[i].assign = new Worker(*plans_load[workers_load[i].plan].assign);
+            int id_true = workers_load[i].id;
+            std::swap(workers_load[i], workers_load[id_true]);
+            all_workers[id_true] = workers_load[id_true].assign;
+            workers_load_skipped_someone = true;
+        }
     }
+
     for (int i = 0; i < worker_groups_load.size(); i++)
     {
         WorkerGroup* worker_group = new WorkerGroup();

@@ -286,10 +286,11 @@ for job_group in job_groups_dict:
     job_group_to_worker_groups_dict[job_group] = current_job_group_worker_groups
 
 # Generate remaining data and write workers, job_groups, worker_groups:
-wdist = get_random_whatever_dist()
-for worker in range(worker_count):
-    current_plan = whatever_dist_int(0, plan_count, 1, wdist)
-    generated += "worker;" + str(worker) + ";" + str(current_plan) + "\n"
+# wdist = get_random_whatever_dist()
+# for worker in range(worker_count):
+#     current_plan = whatever_dist_int(0, plan_count, 1, wdist)
+#     generated += "worker;" + str(worker) + ";" + str(current_plan) + "\n"
+# workers are already generated later, must have forgotten about this one
 
 JOB_GROUP_END_BEFORE = 2147483647 - 1 # __INT_MAX__ - 1
 wdist = get_random_whatever_dist()
