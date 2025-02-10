@@ -46,10 +46,6 @@ Placement WorkerGroup::get_earliest_placement_time(Job *job)
             current_nearest = workers[i]->get_plan().get_time_nearest_possible(will_be_free_at, job_time);
             if (current_nearest == -1) continue;
             current_nearest = current_nearest + will_be_free_at - lookup_time;
-
-            #warning FIXME: look_ahead_time leads to start before get_start_after()
-
-            //current_nearest += (will_end_current_work - *current_time);
         }
         if (current_nearest == -1) continue;
         if (!output.worker || output.time_before > current_nearest)
@@ -58,8 +54,10 @@ Placement WorkerGroup::get_earliest_placement_time(Job *job)
             output.time_before = current_nearest;
         }
     }
-//    qDebug() << "get_earliest_placement_time" << output.time_before << lookup_time << job->get_global_id();
-
+    if (lookup_time + output.time_before < job->get_start_after())
+    {
+        throw std::invalid_argument("get_earliest_placement_time wanted to return invalid time_before value");
+    }
     return output;
 }
 

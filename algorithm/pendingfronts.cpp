@@ -167,8 +167,12 @@ bool PendingFronts::tick(AlgorithmDataForWeights data_for_weights)
         for (int j = 0; j < current_pending.worker_groups.size(); j++)
         {
             Placement earliest_placement = current_pending.worker_groups[j]->get_earliest_placement_time(current_pending.job);
-
+            
             if (!earliest_placement.worker) continue; // No available worker in that worker group
+            if (earliest_placement.time_before == 0 && current_time < current_pending.job->get_start_after())
+            {
+                earliest_placement.time_before = current_pending.job->get_start_after() - current_time; // Data fixer for look_ahead_time
+            }
             if (earliest_placement.time_before == 0) // Assign right now
             {
                 AssignedWorker assigned_to = current_pending.worker_groups[j]->assign(current_pending.job);
