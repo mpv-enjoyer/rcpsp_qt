@@ -64,6 +64,7 @@ namespace Weights
     double get(AlgorithmWeights weights, std::string name);
     bool set(AlgorithmWeights& weights, std::string name, double value);
     bool are_valid(AlgorithmWeights weights);
+    AlgorithmWeights fix(AlgorithmWeights weights);
     std::string to_string(AlgorithmWeights weights);
 }
 

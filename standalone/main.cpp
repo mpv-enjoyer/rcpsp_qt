@@ -21,6 +21,15 @@ double random_double(double min, double max)
     return QRandomGenerator::global()->generateDouble() * (max - min) + min;
 }
 
+void print_point(Point point)
+{
+    std::cout << "Point (";
+    for (auto position_dimension : point)
+    {
+        std::cout << position_dimension << ", ";
+    }
+    std::cout << ")\n";
+}
 
 struct BestParticle
 {
@@ -48,25 +57,26 @@ struct BestParticle
         std::cout << ") = " << m_value << "\n";
     }
 };
-BestParticle particle_swarm(double min, double max, std::function<double(Point, Algorithm&)> calculate_value, std::vector<Algorithm> algorithm_vector) // https://en.wikipedia.org/wiki/Particle_swarm_optimization
+std::pair<Point, double> particle_swarm(double min, double max, std::function<double(Point, Algorithm&)> calculate_value, std::vector<Algorithm>& algorithm_vector) // https://en.wikipedia.org/wiki/Particle_swarm_optimization
 {
     BestParticle best;
     struct Particle
     {
+        BestParticle& best;
+        std::function<double(Point, Algorithm&)> calculate_value;
+        Algorithm& algorithm;
         Point position;
         Point best_known_position;
         Point velocity;
-        BestParticle& best;
         double value;
         double best_value;
-        std::function<double(Point)> calculate_value;
 // for each particle i = 1, ..., S do
 //     Initialize the particle's position with a uniformly distributed random vector: xi ~ U(blo, bup)
 //     Initialize the particle's best known position to its initial position: pi ← xi
 //     if f(pi) < f(g) then
 //         update the swarm's best known position: g ← pi
 //     Initialize the particle's velocity: vi ~ U(-|bup-blo|, |bup-blo|)
-        Particle(double min, double max, BestParticle& best_swarm_position) : best(best_swarm_position), calculate_value(calculate_value)
+        Particle(double min, double max, BestParticle& best_swarm_position, Algorithm& algorithm, std::function<double(Point, Algorithm&)> calculate_value) : best(best_swarm_position), calculate_value(calculate_value), algorithm(algorithm)
         {
             double len = max - min;
             for (std::size_t i = 0; i < DIMENSIONS; i++)
@@ -81,7 +91,7 @@ BestParticle particle_swarm(double min, double max, std::function<double(Point, 
         }
         void update_best()
         {
-            value = calculate_value(position);
+            value = calculate_value(position, algorithm);
             if (value < best_value)
             {
                 best_known_position = position;
@@ -118,10 +128,15 @@ BestParticle particle_swarm(double min, double max, std::function<double(Point, 
         }
     };
     const double PARTICLE_COUNT = algorithm_vector.size();
-    static constexpr double PARTICLE_MIN = 0;
-    static constexpr double PARTICLE_MAX = 1;
+    const double PARTICLE_MIN = min;
+    const double PARTICLE_MAX = max;
 
-    std::vector<Particle> particles(PARTICLE_COUNT, Particle(PARTICLE_MIN, PARTICLE_MAX, best));
+    //std::vector<Particle> particles(PARTICLE_COUNT, Particle(PARTICLE_MIN, PARTICLE_MAX, best));
+    std::vector<Particle> particles;
+    for (auto& algorithm : algorithm_vector)
+    {
+        particles.emplace_back(PARTICLE_MIN, PARTICLE_MAX, best, algorithm, calculate_value);
+    }
     for (auto p : particles)
     {
         best.check_update(p.position, p.value);
@@ -129,19 +144,21 @@ BestParticle particle_swarm(double min, double max, std::function<double(Point, 
 
     for (int i = 0; i < 3; i++)
     {
-        std::vector<std::thread> threads;
+        std::vector<std::unique_ptr<std::thread>> threads;
         for (auto& particle : particles)
         {
-            std::thread t([&](){ particle.update(); });
-            threads.emplace_back(t);
-            t.detach();
+            //std::unique_ptr<std::thread> t = std::make_unique<std::thread>([&](){ particle.update(); });
+            threads.push_back(std::make_unique<std::thread>([&](){ particle.update(); }));
+            //std::cout << "p";
+            //threads.back()->detach();
         }
         for (auto& t : threads)
         {
-            t.join();
+            if (t->joinable()) t->join();
         }
         best.print(i);
     }
+    return {best.m_position, best.m_value};
 }
 
 int main(int argc, char** argv)
@@ -149,14 +166,29 @@ int main(int argc, char** argv)
     std::vector<std::string> args(argv, argv + argc);
     QString input_file = "";
     bool solver = false;
+    bool file_received = false;
+    args.erase(args.begin());
     for (auto arg : args)
     {
         if      (arg == "-DDO")    { qInstallMessageHandler(DisabledDebugOutput); } // Disable Debug Output
         else if (arg == "-SOLVER") { solver = true; }
-        else                       { assert(input_file.size() == 0); input_file = arg.c_str(); }
+        else                       { assert(!file_received); input_file = arg.c_str(); file_received = true; }
     }
-    std::vector<Algorithm> algorithm_vector;
-    //Algorithm algorithm;
+    if (!solver)
+    {
+        std::cout << "No solver.";
+        Algorithm algorithm;
+        std::vector<Job*> all_jobs;
+        std::vector<Worker*> all_workers;
+        Loader::Load(input_file, algorithm, all_workers, all_jobs);
+        Loader::LoadPreferences(input_file, algorithm);
+        if (algorithm.get_preference() == Preference::NONE) Loader::LoadWeights(input_file, algorithm);
+        std::cout << " max time: " << algorithm.run() << " ";
+        std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
+        return 0;
+    }
+
+    std::vector<Algorithm> algorithm_vector(10);
     std::vector<Job*> all_jobs;
     std::vector<Worker*> all_workers;
     for (auto& algorithm : algorithm_vector)
@@ -164,40 +196,34 @@ int main(int argc, char** argv)
         Loader::Load(input_file, algorithm, all_workers, all_jobs);
         Loader::LoadPreferences(input_file, algorithm);
     }
-    if (!solver)
-    {
-        assert("Not solver -> not ")
-    //    if (algorithm.get_preference() == Preference::NONE) Loader::LoadWeights(input_file, algorithm);
-    //    std::cout << " max time: " << algorithm.run() << " ";
-    //    std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
-    //    return 0;
-    }
 
-    while (true)
+    auto calculate_value = [&all_jobs](Point point, Algorithm& algorithm) -> double
     {
-        auto calculate_value = [](Point point, Algorithm& algorithm) -> double
+        // Check if point is outside of [0, 1].
+        print_point(point);
+        double sum = 0;
+        for (auto dim_value : point)
         {
-            // Check if point is outside of [0, 1].
-            for (auto dim : point)
-            {
-                if (dim < 1 && dim > 0) { /* good */ }
-                else { return all_jobs.size() * 5; /* punishment for being too far */ }
-            }
-
-        };
-        algorithm.reset();
-        AlgorithmWeights weights = generate_random_weights();
-        assert(Weights::are_valid(weights));
+            if (dim_value < 1 && dim_value > 0) { /* good */ }
+            else { return all_jobs.size() * 5; /* punishment for being too far */ }
+            sum += dim_value;
+        }
+        std::size_t dim = 0;
+        AlgorithmWeights weights;
+        for (auto name : Weights::WeightsNames)
+        {
+            Weights::set(weights, name, point[dim] / sum);
+            dim++;
+        }
+        if (!Weights::are_valid(weights)) weights = Weights::fix(weights);
         algorithm.set_weights(weights);
-        std::cout << Weights::to_string(weights) << "\n";
         std::cout << " max time: " << algorithm.run() << "\n";
         std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
-
-        //std::cout << Weights::to_string(weights) << "\n";
-        //std::cout << " max time: " << algorithm.run() << " ";
-        //std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
-        //algorithm.reset();
-    }
+        int value = algorithm.get_failed_jobs_count();
+        algorithm.reset();
+        return value;
+    };
+    particle_swarm(0.1, 0.9, calculate_value, algorithm_vector);
 }
 
 /*

@@ -19,6 +19,27 @@ bool Weights::are_valid(AlgorithmWeights weights)
     if (sum != 1) return false;
     return true;
 }
+AlgorithmWeights Weights::fix(AlgorithmWeights weights)
+{
+    double sum = 0;
+    for (auto key : WeightsNames) sum += weights.at(key);
+    double diff = sum - 1;
+    if (diff == 0) return weights;
+    if (diff < 0)
+    {
+        weights.at(*WeightsNames.begin()) -= diff;
+        return weights;
+    }
+    for (auto key : WeightsNames)
+    {
+        if (weights.at(key) >= diff)
+        {
+            weights.at(key) -= diff;
+            return weights;
+        }
+    }
+    assert(false);
+}
 std::string Weights::to_string(AlgorithmWeights weights)
 {
     std::string output = "Weights: ";
