@@ -52,7 +52,8 @@ namespace Weights
     REGISTER_WEIGHT(critical_time_per_max_critical_time); // критическое время требования / максимальное критическое время всех требований
     REGISTER_WEIGHT(avg_occupancy); // средняя занятость станка во время выполнения
     REGISTER_WEIGHT(time_after_begin_per_overall_time); // время от начала выполнения до текущего момента / время всего на выполнение этого требования
-    const std::set<std::string> WeightsNames
+    constexpr static size_t SIZE = 5;
+    const std::set<std::string> WeightsNames =
     {
         "ancestors_per_left", // кол-во последователей / кол-во оставшихся требований
         "ancestors_per_job", // кол-во последователей / кол-во требований всего

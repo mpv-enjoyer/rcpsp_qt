@@ -4,8 +4,10 @@
 #include <iostream>
 #include "solver.h"
 #include <QRandomGenerator>
+#include <mutex>
+#include <future>
 
-static constexpr std::size_t DIMENSIONS = 2;
+static constexpr auto DIMENSIONS = Weights::SIZE;
 using Point = std::array<double, DIMENSIONS>;
 double cross_in_tray(Point point) // https://al-roomi.org/benchmarks/unconstrained/2-dimensions/44-cross-in-tray-function
 {
@@ -19,23 +21,52 @@ double random_double(double min, double max)
     return QRandomGenerator::global()->generateDouble() * (max - min) + min;
 }
 
-int main() // https://en.wikipedia.org/wiki/Particle_swarm_optimization
-{
-    Point swarm_best_known_position;
 
+struct BestParticle
+{
+    Point m_position;
+    std::mutex m_mutex;
+    double m_value = __DBL_MAX__;
+    bool check_update(Point position, double value)
+    {
+        std::lock_guard g(m_mutex);
+        if (m_value > value)
+        {
+            m_position = position;
+            m_value = value;
+            return true;
+        }
+        return false;
+    }
+    void print(std::size_t i)
+    {
+        std::cout << i << ") Best particle is f(";
+        for (auto position_dimension : m_position)
+        {
+            std::cout << position_dimension << ", ";
+        }
+        std::cout << ") = " << m_value << "\n";
+    }
+};
+BestParticle particle_swarm(double min, double max, std::function<double(Point, Algorithm&)> calculate_value, std::vector<Algorithm> algorithm_vector) // https://en.wikipedia.org/wiki/Particle_swarm_optimization
+{
+    BestParticle best;
     struct Particle
     {
         Point position;
         Point best_known_position;
         Point velocity;
-        Point& best_swarm_position;
+        BestParticle& best;
+        double value;
+        double best_value;
+        std::function<double(Point)> calculate_value;
 // for each particle i = 1, ..., S do
 //     Initialize the particle's position with a uniformly distributed random vector: xi ~ U(blo, bup)
 //     Initialize the particle's best known position to its initial position: pi ← xi
 //     if f(pi) < f(g) then
 //         update the swarm's best known position: g ← pi
 //     Initialize the particle's velocity: vi ~ U(-|bup-blo|, |bup-blo|)
-        Particle(double min, double max, Point& best_swarm_position) : best_swarm_position(best_swarm_position)
+        Particle(double min, double max, BestParticle& best_swarm_position) : best(best_swarm_position), calculate_value(calculate_value)
         {
             double len = max - min;
             for (std::size_t i = 0; i < DIMENSIONS; i++)
@@ -44,14 +75,21 @@ int main() // https://en.wikipedia.org/wiki/Particle_swarm_optimization
                 position[i] = generated;
                 best_known_position[i] = generated;
                 velocity[i] = random_double(-len, len);
-                update_best();
             }
+            
+            update_best();
         }
         void update_best()
         {
-            if (value() < cross_in_tray(best_known_position)) best_known_position = position;
-            if (value() < cross_in_tray(best_swarm_position)) best_swarm_position = position;
+            value = calculate_value(position);
+            if (value < best_value)
+            {
+                best_known_position = position;
+                best_value = value;
+            }
+            best.check_update(position, value);
         }
+        
         void update()
         {
 // while a termination criterion is not met do:
@@ -64,7 +102,6 @@ int main() // https://en.wikipedia.org/wiki/Particle_swarm_optimization
 //             Update the particle's best known position: pi ← xi
 //             if f(pi) < f(g) then
 //                 Update the swarm's best known position: g ← pi
-
             static constexpr double W = 0.5; // Inertia weight < 1
             static constexpr double PHIp = 1.5; // "Typical values are in [1, 3]"
             static constexpr double PHIg = 2.5; // "Typical values are in [1, 3]"
@@ -74,59 +111,81 @@ int main() // https://en.wikipedia.org/wiki/Particle_swarm_optimization
                 double rg = random_double(0, 1);
                 velocity[dimension] = W * velocity[dimension] +
                                                 PHIp * rp * (best_known_position[dimension] - position[dimension]) +
-                                                PHIg * rg * (best_swarm_position[dimension] - position[dimension]);
+                                                PHIg * rg * (best.m_position[dimension] - position[dimension]);
                 position[dimension] += velocity[dimension];
-                update_best();
             }
+            update_best();
         }
-        double value() { return cross_in_tray(position); }
     };
-    static constexpr double PARTICLE_COUNT = 10;
-    static constexpr double PARTICLE_MIN = -50;
-    static constexpr double PARTICLE_MAX = 100;
+    const double PARTICLE_COUNT = algorithm_vector.size();
+    static constexpr double PARTICLE_MIN = 0;
+    static constexpr double PARTICLE_MAX = 1;
 
-    std::vector<Particle> particles(PARTICLE_COUNT, Particle(PARTICLE_MIN, PARTICLE_MAX, swarm_best_known_position));
+    std::vector<Particle> particles(PARTICLE_COUNT, Particle(PARTICLE_MIN, PARTICLE_MAX, best));
     for (auto p : particles)
     {
-        if (p.value() < cross_in_tray(swarm_best_known_position)) swarm_best_known_position = p.position;
+        best.check_update(p.position, p.value);
     }
 
-    for (int i = 0; i < 10000; i++)
+    for (int i = 0; i < 3; i++)
     {
+        std::vector<std::thread> threads;
         for (auto& particle : particles)
         {
-            particle.update();
+            std::thread t([&](){ particle.update(); });
+            threads.emplace_back(t);
+            t.detach();
         }
-        std::cout << i << ") Best particle is f(" << swarm_best_known_position[0] << ", " << swarm_best_known_position[1] << ") = " << cross_in_tray(swarm_best_known_position) << "\n";
+        for (auto& t : threads)
+        {
+            t.join();
+        }
+        best.print(i);
     }
 }
 
-int main2(int argc, char** argv)
+int main(int argc, char** argv)
 {
     std::vector<std::string> args(argv, argv + argc);
     QString input_file = "";
     bool solver = false;
     for (auto arg : args)
     {
-        if      (arg == "-DDO")    qInstallMessageHandler(DisabledDebugOutput); // Disable Debug Output
-        else if (arg == "-SOLVER") solver = true;
-        else                       input_file = arg.c_str();
+        if      (arg == "-DDO")    { qInstallMessageHandler(DisabledDebugOutput); } // Disable Debug Output
+        else if (arg == "-SOLVER") { solver = true; }
+        else                       { assert(input_file.size() == 0); input_file = arg.c_str(); }
     }
-    Algorithm algorithm;
+    std::vector<Algorithm> algorithm_vector;
+    //Algorithm algorithm;
     std::vector<Job*> all_jobs;
     std::vector<Worker*> all_workers;
-    Loader::Load(input_file, algorithm, all_workers, all_jobs);
-    Loader::LoadPreferences(input_file, algorithm);
+    for (auto& algorithm : algorithm_vector)
+    {
+        Loader::Load(input_file, algorithm, all_workers, all_jobs);
+        Loader::LoadPreferences(input_file, algorithm);
+    }
     if (!solver)
     {
-        if (algorithm.get_preference() == Preference::NONE) Loader::LoadWeights(input_file, algorithm);
-        std::cout << " max time: " << algorithm.run() << " ";
-        std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
-        return 0;
+        assert("Not solver -> not ")
+    //    if (algorithm.get_preference() == Preference::NONE) Loader::LoadWeights(input_file, algorithm);
+    //    std::cout << " max time: " << algorithm.run() << " ";
+    //    std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
+    //    return 0;
     }
 
     while (true)
     {
+        auto calculate_value = [](Point point, Algorithm& algorithm) -> double
+        {
+            // Check if point is outside of [0, 1].
+            for (auto dim : point)
+            {
+                if (dim < 1 && dim > 0) { /* good */ }
+                else { return all_jobs.size() * 5; /* punishment for being too far */ }
+            }
+
+        };
+        algorithm.reset();
         AlgorithmWeights weights = generate_random_weights();
         assert(Weights::are_valid(weights));
         algorithm.set_weights(weights);
@@ -137,7 +196,7 @@ int main2(int argc, char** argv)
         //std::cout << Weights::to_string(weights) << "\n";
         //std::cout << " max time: " << algorithm.run() << " ";
         //std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
-        algorithm.reset();
+        //algorithm.reset();
     }
 }
 

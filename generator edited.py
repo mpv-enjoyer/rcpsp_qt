@@ -147,15 +147,27 @@ def dependant_dist_float(low: float, high: float, size: int, dist = 'none'):
 
 import datetime
 
-def move_generated_to_file(generated):
-    now = datetime.datetime.now()
-    file = open("samples/" + str(now) + ".csv", "w+")
-    file.write(generated)
-    generated = ""
-    file.close()
+#def move_generated_to_file(generated):
+#    now = datetime.datetime.now()
+#    file = open("samples/" + str(now) + ".csv", "w+")
+#    file.write(generated)
+#    generated = ""
+#    file.close()
+
+import timeit
+now = datetime.datetime.now()
+f = open("samples/" + str(now) + ".csv", "w+")
 
 # Begin generation:
 generated = ""
+#def write_to(*args):
+#  for arg in args:
+#    generated.__add__(arg)
+    #f.write(arg)
+def write_to(string):
+    f.write(string)
+    #generated.__add__(string)
+
 print(job_count := get_random_int(10000, 200000))
 print(worker_count := get_random_int(max(job_count / 140, 1), job_count / 40))
 #print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
@@ -176,10 +188,10 @@ for plan_id in range(len(PLANS)):
     plan = PLANS[plan_id]
     current_plan_str = "plan;" 
     for start_at in plan[0]:
-        generated += current_plan_str + str(plan_count) + ";" + str(start_at)
+        write_to(current_plan_str + str(plan_count) + ";" + str(start_at))
         for minutes in plan[1]:
-            generated += ";" + str(minutes)
-        generated += "\n"
+            write_to(";" + str(minutes))
+        write_to("\n")
         plan_count += 1
 
 min_job_time_to_spend = get_random_int(1, max_plan_unit)
@@ -194,12 +206,8 @@ wdist3 = get_random_whatever_dist()
 wdist4 = get_random_whatever_dist()
 job_groups_dict = dict() # id with skips -> job ids
 
-import timeit
-
-now = datetime.datetime.now()
-f = open("samples/" + str(now) + ".csv", "w+")
-f.write(generated)
-generated = ""
+#f.write(generated)
+#generated = ""
 
 for job in range(job_count):
     jobs_left_to_iterate = job_count - 1 - job
@@ -217,18 +225,18 @@ for job in range(job_count):
     else:
         job_groups_dict[current_job_group] = list()
         job_groups_dict[current_job_group].append(job)
-    generated += "job;" + str(job) + ";"
+    write_to("job;" + str(job) + ";")
     if current_job_busyness_section_count == 1:
-        generated += str(current_job_busyness_times) + ";" + str(current_job_busyness_values) + ";"
+        write_to(str(current_job_busyness_times) + ";" + str(current_job_busyness_values) + ";")
     else:
         for i in range(current_job_busyness_section_count):
-            generated += str(current_job_busyness_times[i]) + ";" + str(current_job_busyness_values[i]) + ";"
-    generated += "];"
+            write_to(str(current_job_busyness_times[i]) + ";" + str(current_job_busyness_values[i]) + ";")
+    write_to("];")
     for ancestor in current_job_ancestors:
-        generated += str(ancestor) + ";"
-    generated += "\n"
-    f.write(generated)
-    generated = ""
+        write_to(str(ancestor) + ";")
+    write_to("\n")
+    #f.write(generated)
+    #generated = ""
 
 # Clamp job_group ids:
 current_job_group = 0
@@ -270,14 +278,14 @@ JOB_GROUP_END_BEFORE = 2147483647 - 1 # __INT_MAX__ - 1
 wdist = get_random_whatever_dist()
 for job_group in job_groups_dict:
     current_job_group_start_at = whatever_dist_int(0, max_plan_loop * get_random_int(1, 10), 1, wdist)
-    generated += "job_group;" + str(job_group) + ";" + str(current_job_group_start_at) + ";" + str(JOB_GROUP_END_BEFORE) + ";" + str(job_group_to_worker_groups_dict[job_group][0]) + ";"
+    write_to("job_group;" + str(job_group) + ";" + str(current_job_group_start_at) + ";" + str(JOB_GROUP_END_BEFORE) + ";" + str(job_group_to_worker_groups_dict[job_group][0]) + ";")
     for job in job_groups_dict[job_group]:
-        generated += str(job) + ";"
+        write_to(str(job) + ";")
     if len(job_group_to_worker_groups_dict[job_group]) > 1:
-        generated += "];"
+        write_to("];")
         for i in range(1, len(job_group_to_worker_groups_dict[job_group])):
-            generated += str(job_group_to_worker_groups_dict[job_group][i]) + ";"
-    generated += "\n"
+            write_to(str(job_group_to_worker_groups_dict[job_group][i]) + ";")
+    write_to("\n")
 
 for worker_group in worker_groups_dict:
     worker_group_str = "worker_group;" + str(worker_group) + ";"
@@ -286,13 +294,13 @@ for worker_group in worker_groups_dict:
     subplan_count = base_plan[3]
     current_plan = subplan_first_id
     for worker in worker_groups_dict[worker_group]:
-        generated += "worker;" + str(worker) + ";" + str(current_plan) + "\n"
+        write_to("worker;" + str(worker) + ";" + str(current_plan) + "\n")
         worker_group_str += str(worker) + ";"
         current_plan += 1
         if current_plan >= subplan_first_id + subplan_count:
             current_plan = subplan_first_id
     worker_group_str += "\n"
-    generated += worker_group_str
+    write_to(worker_group_str)
 
-f.write(generated)
+#f.write(generated)
 f.close()

@@ -1,0 +1,134 @@
+--------------------------------------------------------------
+def write_to(*args):
+  for arg in args:
+    f.write(arg)
+
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+174698
+1908
+
+real    2m17,736s
+user    2m17,178s
+sys     0m0,086s
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+56320
+1145
+
+real    1m5,238s
+user    1m4,971s
+sys     0m0,046s
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+52785
+772
+
+real    1m10,854s
+user    1m10,307s
+sys     0m0,087s
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+80747
+1423
+
+real    1m36,618s
+user    1m36,225s
+sys     0m0,072s
+
+--------------------------------------------------------------
+generated = ""
+def write_to(*args):
+  for arg in args:
+    generated.__add__(arg)
+
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+18470
+217
+
+real    0m29,085s
+user    0m28,887s
+sys     0m0,075s
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+158531
+3256
+
+real    2m56,763s
+user    2m56,115s
+sys     0m0,048s
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+140387
+2926
+
+real    1m20,180s
+user    1m19,857s
+sys     0m0,048s
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+194010
+2541
+
+real    3m6,405s
+user    3m5,734s
+sys     0m0,042s
+
+--------------------------------------------------------------
+def write_to(string):
+    generated.__add__(string)
+
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+58102
+535
+
+real    1m11,491s
+user    1m11,187s
+sys     0m0,053s
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+162485
+1968
+
+real    3m4,548s
+user    3m3,875s
+sys     0m0,059s
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+102831
+1547
+
+real    2m18,738s
+user    2m18,250s
+sys     0m0,039s
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+63440
+921
+
+real    0m51,214s
+user    0m50,988s
+sys     0m0,053s
+
+--------------------------------------------------------------
+def write_to(string):
+    f.write(string)
+
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+100411
+2425
+
+real    1m35,449s
+user    1m35,057s
+sys     0m0,058s
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+184937
+1981
+
+real    2m58,431s
+user    2m56,949s
+sys     0m0,125s
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+163510
+1946
+
+real    3m43,901s
+user    3m43,092s
+sys     0m0,050s
+[alex@alex-neom143 rcpsp_qt]$ time python generator\ edited.py 
+187591
+3328
+
+real    2m13,140s
+user    2m12,567s
+sys     0m0,097s
