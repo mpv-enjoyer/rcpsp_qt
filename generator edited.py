@@ -182,25 +182,6 @@ for plan_id in range(len(PLANS)):
         generated += "\n"
         plan_count += 1
 
-#    print(current_plan_unit_count := min(rng.poisson(1) + 1, 100))
-#    if plan == 0:
-#        current_plan_start_at = 0
-#    else:
-#        current_plan_start_at = get_random_int(0, max_plan_loop / 100)
-#    generated += "plan;" + str(plan) + ";" + str(current_plan_start_at) + ";"
-#    work = dependant_dist_int(1, max(max_plan_loop / current_plan_unit_count, 1), current_plan_unit_count)
-#    rest = dependant_dist_int(1, max(max_plan_loop / current_plan_unit_count, 1), current_plan_unit_count)
-#    if current_plan_unit_count == 1:
-#        max_plan_unit = min(work, max_plan_unit)
-#        generated += str(work) + ";" + str(rest) + ";"
-#    else:
-#        local_max_plan_unit = 0
-#        for unit in range(current_plan_unit_count):
-#            generated += str(work[unit]) + ";" + str(rest[unit]) + ";"
-#            local_max_plan_unit = max(local_max_plan_unit, work[unit])
-#        max_plan_unit = min(max_plan_unit, local_max_plan_unit)
-#    generated += "\n"
-
 min_job_time_to_spend = get_random_int(1, max_plan_unit)
 max_job_time_to_spend = get_random_int(1, max_plan_unit)
 if max_job_time_to_spend <= min_job_time_to_spend:
@@ -284,13 +265,6 @@ for job_group in job_groups_dict:
     if current_job_group_worker_group_count == 1:
         current_job_group_worker_groups = list(current_job_group_worker_groups)
     job_group_to_worker_groups_dict[job_group] = current_job_group_worker_groups
-
-# Generate remaining data and write workers, job_groups, worker_groups:
-# wdist = get_random_whatever_dist()
-# for worker in range(worker_count):
-#     current_plan = whatever_dist_int(0, plan_count, 1, wdist)
-#     generated += "worker;" + str(worker) + ";" + str(current_plan) + "\n"
-# workers are already generated later, must have forgotten about this one
 
 JOB_GROUP_END_BEFORE = 2147483647 - 1 # __INT_MAX__ - 1
 wdist = get_random_whatever_dist()

@@ -170,8 +170,6 @@ PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ]
 generated = ""
 job_group_start_at_values = get_random_int()
 
-
-
 plan = get_random_int(0, len(PLANS))
 for plan_unit in plan:
     generated += "plan;"
