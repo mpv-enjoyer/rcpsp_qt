@@ -135,17 +135,29 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
     const double PARTICLE_MAX = max;
 
     //std::vector<Particle> particles(PARTICLE_COUNT, Particle(PARTICLE_MIN, PARTICLE_MAX, best));
+    std::mutex mutex_for_particles;
     std::vector<Particle> particles;
+    std::vector<std::future<Particle>> particle_futures;
     for (auto& algorithm : algorithm_vector)
     {
-        particles.emplace_back(PARTICLE_MIN, PARTICLE_MAX, best, algorithm, calculate_value);
-    }
-    for (auto p : particles)
-    {
-        best.check_update(p.position, p.value);
+        particle_futures.emplace_back(std::async(std::launch::async, [&]() -> Particle { return Particle(PARTICLE_MIN, PARTICLE_MAX, best, algorithm, calculate_value); }));
+        //particle_futures.emplace_back([&]()
+        //{
+        //    Particle p(PARTICLE_MIN, PARTICLE_MAX, best, algorithm, calculate_value);
+        //});
     }
 
-    for (int i = 0; i < 3; i++)
+    for (auto& particle : particle_futures)
+    {
+        particle.wait();
+        particles.push_back(particle.get());
+    }
+    //for (auto p : particles)
+    //{
+    //    best.check_update(p.position, p.value);
+    //}
+
+    for (int i = 0; i < 10; i++)
     {
         std::vector<std::unique_ptr<std::thread>> threads;
         for (auto& particle : particles)
@@ -191,7 +203,7 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    std::vector<Algorithm> algorithm_vector(10);
+    std::vector<Algorithm> algorithm_vector(12); // I have 12 CPU cores ;_;
     std::vector<Job*> all_jobs;
     std::vector<Worker*> all_workers;
     for (auto& algorithm : algorithm_vector)
@@ -208,8 +220,9 @@ int main(int argc, char** argv)
         double sum = 0;
         for (auto dim_value : point)
         {
-            if (dim_value < 1 && dim_value > 0) { /* good */ }
-            else { return all_jobs.size() * 5; /* punishment for being too far */ }
+            //if (dim_value < 1 && dim_value > 0) { /* good */ }
+            //else { return all_jobs.size() * 5; /* punishment for being too far */ }
+            // Allow every point, just normalize afterwards
             sum += dim_value;
         }
         std::size_t dim = 0;

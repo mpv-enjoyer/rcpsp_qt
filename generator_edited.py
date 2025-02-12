@@ -288,7 +288,22 @@ JOB_GROUP_END_BEFORE = 2147483647 - 1 # __INT_MAX__ - 1
 wdist = get_random_whatever_dist()
 for job_group in job_groups_dict:
     current_job_group_start_at = whatever_dist_int(0, max_plan_loop * get_random_int(1, 10), 1, wdist)
-    write_to("job_group;" + str(job_group) + ";" + str(current_job_group_start_at) + ";" + str(JOB_GROUP_END_BEFORE) + ";" + str(job_group_to_worker_groups_dict[job_group][0]) + ";")
+    job_group_end_before = JOB_GROUP_END_BEFORE
+
+    #SETUP FOR ALTERNATIVE CURRENT_JOB_START/END_AT
+    JOB_GROUP_TIME_SECTOR_DIFF = 2
+    JOB_GROUP_TIME_SECTOR_COUNT = 100
+    sector_time = len(job_groups_dict) / 10
+    low_sector = max(0, job_group / len(job_groups_dict) * JOB_GROUP_TIME_SECTOR_COUNT - JOB_GROUP_TIME_SECTOR_DIFF)
+    high_sector = min(JOB_GROUP_TIME_SECTOR_COUNT, job / len(job_groups_dict) * JOB_GROUP_TIME_SECTOR_COUNT + JOB_GROUP_TIME_SECTOR_DIFF)
+    sector = get_random_int(low_sector, high_sector)
+
+    if get_random_float(0, 1) > 0.1:
+        current_job_group_start_at = get_random_int(sector_time * sector, sector_time * (sector + 1))
+    if get_random_float(0, 1) > 0.1:
+        time_to_complete = get_random_int(sector_time * 3, sector_time * 100)
+        job_group_end_before = current_job_group_start_at + time_to_complete
+    write_to("job_group;" + str(job_group) + ";" + str(current_job_group_start_at) + ";" + str(job_group_end_before) + ";" + str(job_group_to_worker_groups_dict[job_group][0]) + ";")
     for job in job_groups_dict[job_group]:
         write_to(str(job) + ";")
     if len(job_group_to_worker_groups_dict[job_group]) > 1:
