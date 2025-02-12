@@ -57,8 +57,10 @@ struct BestParticle
         std::cout << ") = " << m_value << "\n";
     }
 };
-std::pair<Point, double> particle_swarm(double min, double max, std::function<double(Point, Algorithm&)> calculate_value, std::vector<Algorithm>& algorithm_vector) // https://en.wikipedia.org/wiki/Particle_swarm_optimization
+
+std::pair<Point, double> particle_swarm(double min, double max, std::function<double(Point, Algorithm&)> calculate_value, std::vector<Algorithm>& algorithm_vector)
 {
+    // https://en.wikipedia.org/wiki/Particle_swarm_optimization
     BestParticle best;
     struct Particle
     {
@@ -76,7 +78,8 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
 //     if f(pi) < f(g) then
 //         update the swarm's best known position: g ← pi
 //     Initialize the particle's velocity: vi ~ U(-|bup-blo|, |bup-blo|)
-        Particle(double min, double max, BestParticle& best_swarm_position, Algorithm& algorithm, std::function<double(Point, Algorithm&)> calculate_value) : best(best_swarm_position), calculate_value(calculate_value), algorithm(algorithm)
+        Particle(double min, double max, BestParticle& best_swarm_position, Algorithm& algorithm, std::function<double(Point, Algorithm&)> calculate_value)
+        : best(best_swarm_position), calculate_value(calculate_value), algorithm(algorithm)
         {
             double len = max - min;
             for (std::size_t i = 0; i < DIMENSIONS; i++)
@@ -199,6 +202,7 @@ int main(int argc, char** argv)
 
     auto calculate_value = [&all_jobs](Point point, Algorithm& algorithm) -> double
     {
+        assert(algorithm.get_preference() == Preference::NONE);
         // Check if point is outside of [0, 1].
         print_point(point);
         double sum = 0;

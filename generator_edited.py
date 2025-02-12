@@ -220,6 +220,16 @@ for job in range(job_count):
     current_job_ancestors_count = whatever_dist_int(0, min(jobs_left_to_iterate, MAX_ANCESTORS_COUNT), 1, wdist3)
     current_job_ancestors = [(i + job + 1) for i in rng.choice(jobs_left_to_iterate, size=current_job_ancestors_count, replace=False)]
     current_job_group = whatever_dist_int(0, max_job_group_count - 1, 1, wdist4)
+    if get_random_float(0, 1) > 0.1: # pick the group that is likely to be with the nearby jobs
+        JOB_GROUP_DEFAULT_DIFF = 5
+        group_precise = int(job / job_count * max_job_group_count)
+        diff = get_random_int(- JOB_GROUP_DEFAULT_DIFF, JOB_GROUP_DEFAULT_DIFF)
+        if group_precise + diff < 0:
+            current_job_group = 0
+        elif group_precise + diff > max_job_group_count - 1:
+            current_job_group = max_job_group_count - 1
+        else:
+            current_job_group = group_precise + diff
     if current_job_group in job_groups_dict:
         job_groups_dict[current_job_group].append(job)
     else:
