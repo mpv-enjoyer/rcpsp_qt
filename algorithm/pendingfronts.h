@@ -5,6 +5,7 @@
 
 class PendingFronts
 {
+    friend class basic; //TESTS
     int* _current_time;
     AssignedJobs* next;
     const Preference _preference;

@@ -5,6 +5,7 @@
 
 class AssignedJobs
 {
+    friend class basic; //TESTS
     const int* _current_time;
     CompletedJobs* next;
 public:

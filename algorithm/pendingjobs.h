@@ -5,6 +5,7 @@
 
 class PendingJobs
 {
+    friend class basic; //TESTS
     int* _current_time;
     PendingFronts* next;
     const int _look_ahead_time;

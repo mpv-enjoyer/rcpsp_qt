@@ -5,6 +5,7 @@
 
 class CompletedJobs
 {
+    friend class basic; //TESTS
 public:
     typedef ResultPair Data;
     CompletedJobs();
