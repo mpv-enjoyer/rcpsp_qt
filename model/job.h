@@ -35,8 +35,8 @@ public:
     void done();
     void undone();
     bool check_predecessors();
-    void set_ancestors(std::vector<Job*> new_ancestors);
-    std::vector<Job*>* get_ancestors();
+    void set_ancestors(std::vector<Job*> new_ancestors); // i mean successor oops :)
+    std::vector<Job*>* get_ancestors(); // i mean successor oops :)
     void increment_predecessors_count();
     void decrement_predecessors_count();
     int get_critical_time() const;
