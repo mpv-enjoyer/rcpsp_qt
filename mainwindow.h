@@ -34,6 +34,8 @@ private slots:
     //void setupPlot(QCustomPlot *customPlot, const std::vector<ResultPair>& current_completed);
     void on_pushButton_2_clicked();
 
+    void on_actionOpen_triggered();
+
 private:
     Plot _plot;
     std::vector<int> workers_indexes;
@@ -45,6 +47,7 @@ private:
     std::vector<Worker*> all_workers;
     void LoadCSV(QString file_name);
     ChartView* chartview;
+    QString file_name;
 };
 
 #endif // MAINWINDOW_H

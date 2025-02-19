@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QFileDialog>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -19,9 +21,24 @@ void MainWindow::on_pushButton_clicked()
     workers_indexes.clear();
     start_first_job_group_at = 0;
     algorithm = Algorithm();
-    Loader::Load("../sample.csv", algorithm, all_workers, all_jobs);
-    Loader::LoadPreferences("../preferences.csv", algorithm);
-    Loader::LoadWeights("../weights.csv", algorithm);
+    if (file_name.isEmpty())
+    {
+        Loader::Load("../sample.csv", algorithm, all_workers, all_jobs);
+        Loader::LoadPreferences("../preferences.csv", algorithm);
+        Loader::LoadWeights("../weights.csv", algorithm);
+    }
+    else
+    {
+        Loader::Load(file_name, algorithm, all_workers, all_jobs);
+        AlgorithmWeights weights;
+        for (auto name : Weights::WeightsNames)
+        {
+            Weights::set(weights, name, 1.0 / Weights::SIZE);
+        }
+        algorithm.set_weights(weights);
+        //Loader::LoadPreferences(file_name, algorithm);
+        //Loader::LoadWeights(file_name, algorithm);
+    }
     algorithm.run();
     _plot.updatePlot(algorithm.get_completed());
 }
@@ -51,3 +68,13 @@ void MainWindow::on_pushButton_2_clicked()
 
     algorithm.run();
 }
+
+void MainWindow::on_actionOpen_triggered()
+{
+    file_name = QFileDialog::getOpenFileName(this, tr("Open CSV"), QDir::currentPath(), tr("Data Files (*.csv)"));
+    ui->label->setText(file_name);
+}
+
+// Нужно собрать статистику: (может даже показать эти данные графиком в отдельной вкладке)
+// 1) Какой процент работ выполняется сразу после того как поступает?
+// 2) Какой процент в среднем заняло выполнение работы от того, сколько времени ей было выделено?
