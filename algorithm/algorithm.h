@@ -66,6 +66,7 @@ namespace Weights
     bool are_valid(AlgorithmWeights weights);
     AlgorithmWeights fix(AlgorithmWeights weights);
     std::string to_string(AlgorithmWeights weights);
+    AlgorithmWeights create_equal();
 }
 
 struct AlgorithmDataForWeights
@@ -115,6 +116,13 @@ public:
     void set_weights(AlgorithmWeights weights);
     void reset();
     int get_failed_jobs_count();
+};
+
+struct Stats
+{
+    std::map<double, double> wait_coeff; // Сколько работ Y выполняются через X относительных единиц (1 это 100% выделенного времени)
+    std::map<double, double> work_coeff; // Какой процент X от выделенного времени уходит на выполнение работы, Y - количество работ
+    Stats(std::vector<ResultPair> completed, double precision);
 };
 
 #endif // ALGORITHM_H

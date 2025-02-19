@@ -191,15 +191,26 @@ int main(int argc, char** argv)
     }
     if (!solver)
     {
-        std::cout << "No solver.";
+        std::cout << "No solver." << "\n";
         Algorithm algorithm;
         std::vector<Job*> all_jobs;
         std::vector<Worker*> all_workers;
         Loader::Load(input_file, algorithm, all_workers, all_jobs);
         Loader::LoadPreferences(input_file, algorithm);
-        if (algorithm.get_preference() == Preference::NONE) Loader::LoadWeights(input_file, algorithm);
+        if (algorithm.get_preference() == Preference::NONE) algorithm.set_weights(Weights::create_equal());
         std::cout << " max time: " << algorithm.run() << " ";
         std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
+        Stats stats(algorithm.get_completed(), 0.1);
+        std::cout << "STATS (wait_coeff): \n";
+        for (auto point : stats.wait_coeff)
+        {
+            std::cout << "X = " << point.first << ", Y = " << point.second << "\n";
+        }
+        std::cout << "STATS (work_coeff): \n";
+        for (auto point : stats.work_coeff)
+        {
+            std::cout << "X = " << point.first << ", Y = " << point.second << "\n";
+        }
         return 0;
     }
 

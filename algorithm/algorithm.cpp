@@ -52,6 +52,16 @@ std::string Weights::to_string(AlgorithmWeights weights)
     return output;
 }
 
+AlgorithmWeights Weights::create_equal()
+{
+    AlgorithmWeights output;
+    for (auto name : WeightsNames)
+    {
+        output[name] = 1.0 / SIZE;
+    }
+    return output;
+}
+
 Algorithm::Algorithm()
 {
 
@@ -201,4 +211,63 @@ int Algorithm::run()
 std::vector<ResultPair> Algorithm::get_completed()
 {
     return _completed_jobs;
+}
+
+Stats::Stats(std::vector<ResultPair> completed, double precision)
+{
+    //for (double x_id = 0; x_id * precision < 1; x_id++)
+    //{
+    //    double x = x_id * precision;
+    //    wait_coeff[x] = 0;
+    //    work_coeff[x] = 0;
+    //}
+    std::map<double, double> unfiltered_wait_coeff;
+    std::map<double, double> unfiltered_work_coeff;
+    for (auto job : completed)
+    {
+        double dedicated_time = job.job->get_end_before() - job.job->get_start_after();
+        double wait_coeff = double(job.start - job.job->get_start_after()) / double(dedicated_time);
+        double work_coeff = double(job.job->get_time_to_spend()) / double(dedicated_time);
+        unfiltered_wait_coeff[wait_coeff]++;
+        unfiltered_work_coeff[work_coeff]++;
+    }
+
+    qDebug() << "UWC calculated\n";
+
+    double last_wait_x = (--(unfiltered_wait_coeff.end()))->first;
+    for (double x_id = 0; (x_id - 1) * precision < last_wait_x; x_id++)
+    {
+        double x = x_id * precision;
+        wait_coeff[x] = 0;
+    }
+
+    double last_work_x = (--(unfiltered_work_coeff.end()))->first;
+    for (double x_id = 0; (x_id - 1) * precision < last_work_x; x_id++)
+    {
+        double x = x_id * precision;
+        work_coeff[x] = 0;
+    }
+
+    qDebug() << "coeff calculated " << last_wait_x << last_work_x << wait_coeff.size() << work_coeff.size() << " \n";
+
+    auto unfiltered_wait_coeff_iter = unfiltered_wait_coeff.begin();
+    for (auto& pair : wait_coeff)
+    {
+        double x = pair.first;
+        for (; unfiltered_wait_coeff_iter != unfiltered_wait_coeff.end() && std::abs(unfiltered_wait_coeff_iter->first - x) < (precision / 2.0); ++unfiltered_wait_coeff_iter)
+        {
+            pair.second++;
+        }
+    }
+    auto unfiltered_work_coeff_iter = unfiltered_work_coeff.begin();
+    for (auto& pair : work_coeff)
+    {
+        double x = pair.first;
+        for (; unfiltered_work_coeff_iter != unfiltered_work_coeff.end() && std::abs(unfiltered_work_coeff_iter->first - x) < (precision / 2.0); ++unfiltered_work_coeff_iter)
+        {
+            pair.second++;
+        }
+    }
+
+    qDebug() << "Stats calculated";
 }

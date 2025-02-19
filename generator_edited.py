@@ -292,8 +292,8 @@ for job_group in job_groups_dict:
 
     #SETUP FOR ALTERNATIVE CURRENT_JOB_START/END_AT
     JOB_GROUP_TIME_SECTOR_DIFF = 2
-    JOB_GROUP_TIME_SECTOR_COUNT = 100
-    sector_time = len(job_groups_dict) / 10
+    JOB_GROUP_TIME_SECTOR_COUNT = 50
+    sector_time = len(job_groups_dict) / 100
     low_sector = max(0, job_group / len(job_groups_dict) * JOB_GROUP_TIME_SECTOR_COUNT - JOB_GROUP_TIME_SECTOR_DIFF)
     high_sector = min(JOB_GROUP_TIME_SECTOR_COUNT, job / len(job_groups_dict) * JOB_GROUP_TIME_SECTOR_COUNT + JOB_GROUP_TIME_SECTOR_DIFF)
     sector = get_random_int(low_sector, high_sector)

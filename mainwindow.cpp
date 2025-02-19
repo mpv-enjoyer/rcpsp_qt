@@ -30,14 +30,7 @@ void MainWindow::on_pushButton_clicked()
     else
     {
         Loader::Load(file_name, algorithm, all_workers, all_jobs);
-        AlgorithmWeights weights;
-        for (auto name : Weights::WeightsNames)
-        {
-            Weights::set(weights, name, 1.0 / Weights::SIZE);
-        }
-        algorithm.set_weights(weights);
-        //Loader::LoadPreferences(file_name, algorithm);
-        //Loader::LoadWeights(file_name, algorithm);
+        algorithm.set_weights(Weights::create_equal());
     }
     algorithm.run();
     _plot.updatePlot(algorithm.get_completed());
