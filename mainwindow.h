@@ -32,12 +32,17 @@ public:
 private slots:
     void on_pushButton_clicked();
     //void setupPlot(QCustomPlot *customPlot, const std::vector<ResultPair>& current_completed);
-    void on_pushButton_2_clicked();
 
     void on_actionOpen_triggered();
 
+    void on_doubleSpinBox_valueChanged(double arg1);
+
+    void on_doubleSpinBox_editingFinished();
+
 private:
     Plot _plot;
+    WaitStatsPlot _wait_stats_plot;
+    WorkStatsPlot _work_stats_plot;
     std::vector<int> workers_indexes;
     int start_first_job_group_at = 0;
     Preference current_preference = NONE;

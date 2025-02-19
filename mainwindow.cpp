@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     _plot = Plot(ui->plot);
+    _wait_stats_plot = WaitStatsPlot(ui->wait_coeff_plot);
+    _work_stats_plot = WorkStatsPlot(ui->work_coeff_plot);
 }
 
 MainWindow::~MainWindow()
@@ -33,33 +35,11 @@ void MainWindow::on_pushButton_clicked()
         algorithm.set_weights(Weights::create_equal());
     }
     algorithm.run();
-    _plot.updatePlot(algorithm.get_completed());
-}
-
-void MainWindow::on_pushButton_2_clicked()
-{
-    Generator generator("generated.csv", Plan({{1000, 2}}));
-    generator.lowestJobTime = 50;
-    generator.highestJobTime = 70;
-
-    generator.allJobsSize = 5000;
-    generator.allWorkersSize = 20;
-
-    // запретил частичную занятость
-
-    generator.jobGroupLowestBegin = 0;
-    generator.jobGroupHighestBegin = 1000;
-    generator.jobGroupLowestEnd  = 10000;
-    generator.jobGroupHighestEnd = 50000;
-
-    generator.jobGroupsCount = 30;
-    generator.groupSizeEntropy = 4;
-
-    generator.look_ahead = 0;
-
-    generator.generate_and_write();
-
-    algorithm.run();
+    auto completed = algorithm.get_completed();
+    _plot.updatePlot(completed);
+    Stats stats = Stats(completed, ui->doubleSpinBox->value(), true);
+    _work_stats_plot.updatePlot(stats);
+    _wait_stats_plot.updatePlot(stats);
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -71,3 +51,25 @@ void MainWindow::on_actionOpen_triggered()
 // Нужно собрать статистику: (может даже показать эти данные графиком в отдельной вкладке)
 // 1) Какой процент работ выполняется сразу после того как поступает?
 // 2) Какой процент в среднем заняло выполнение работы от того, сколько времени ей было выделено?
+
+void MainWindow::on_doubleSpinBox_valueChanged(double arg1)
+{
+
+}
+
+
+void MainWindow::on_doubleSpinBox_editingFinished()
+{
+    constexpr static double MIN_VALUE = 0.00001;
+    double value = ui->doubleSpinBox->value();
+    if (value == 0)
+    {
+        ui->doubleSpinBox->setValue(MIN_VALUE);
+        value = MIN_VALUE;
+    }
+    auto completed = algorithm.get_completed();
+    Stats stats = Stats(completed, value);
+    _work_stats_plot.updatePlot(stats);
+    _wait_stats_plot.updatePlot(stats);
+}
+

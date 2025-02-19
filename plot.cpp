@@ -254,3 +254,59 @@ void Plot::updatePlot(const std::vector<ResultPair> &completed)
     overhead_set->setData(ticks, overhead_data);
     _plot->replot();
 }
+
+WaitStatsPlot::WaitStatsPlot(QCustomPlot *plot)
+{
+    _plot = plot;
+}
+
+void WaitStatsPlot::updatePlot(const Stats& stats)
+{
+    std::size_t to_reserve = stats.wait_coeff.size();
+    QVector<double> x;
+    x.reserve(to_reserve);
+    QVector<double> y;
+    y.reserve(to_reserve);
+    double max_x = 0;
+    for (auto wait_coeff : stats.wait_coeff)
+    {
+        x.push_back(wait_coeff.first);
+        y.push_back(wait_coeff.second);
+        max_x = wait_coeff.first;
+    }
+    _plot->addGraph();
+    _plot->graph(0)->setData(x, y);
+    _plot->xAxis->setLabel("x");
+    _plot->yAxis->setLabel("y");
+    //_plot->xAxis->setRange(0, max_x);
+    _plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    _plot->replot();
+}
+
+WorkStatsPlot::WorkStatsPlot(QCustomPlot *plot)
+{
+    _plot = plot;
+}
+
+void WorkStatsPlot::updatePlot(const Stats &stats)
+{
+    std::size_t to_reserve = stats.work_coeff.size();
+    QVector<double> x;
+    x.reserve(to_reserve);
+    QVector<double> y;
+    y.reserve(to_reserve);
+    double max_x = 0;
+    for (auto work_coeff : stats.work_coeff)
+    {
+        x.push_back(work_coeff.first);
+        y.push_back(work_coeff.second);
+        max_x = work_coeff.first;
+    }
+    _plot->addGraph();
+    _plot->graph(0)->setData(x, y);
+    _plot->xAxis->setLabel("x");
+    _plot->yAxis->setLabel("y");
+    //_plot->xAxis->setRange(0, max_x);
+    _plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    _plot->replot();
+}

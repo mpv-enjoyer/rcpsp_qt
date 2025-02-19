@@ -122,7 +122,8 @@ struct Stats
 {
     std::map<double, double> wait_coeff; // Сколько работ Y выполняются через X относительных единиц (1 это 100% выделенного времени)
     std::map<double, double> work_coeff; // Какой процент X от выделенного времени уходит на выполнение работы, Y - количество работ
-    Stats(std::vector<ResultPair> completed, double precision);
+    Stats(std::vector<ResultPair> completed, double precision, bool print_raw = false);
+    void print();
 };
 
 #endif // ALGORITHM_H

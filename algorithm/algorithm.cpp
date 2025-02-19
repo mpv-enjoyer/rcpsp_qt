@@ -213,7 +213,7 @@ std::vector<ResultPair> Algorithm::get_completed()
     return _completed_jobs;
 }
 
-Stats::Stats(std::vector<ResultPair> completed, double precision)
+Stats::Stats(std::vector<ResultPair> completed, double precision, bool print_raw)
 {
     //for (double x_id = 0; x_id * precision < 1; x_id++)
     //{
@@ -251,23 +251,63 @@ Stats::Stats(std::vector<ResultPair> completed, double precision)
     qDebug() << "coeff calculated " << last_wait_x << last_work_x << wait_coeff.size() << work_coeff.size() << " \n";
 
     auto unfiltered_wait_coeff_iter = unfiltered_wait_coeff.begin();
+    auto unfiltered_wait_coeff_size = unfiltered_wait_coeff.size();
     for (auto& pair : wait_coeff)
     {
         double x = pair.first;
         for (; unfiltered_wait_coeff_iter != unfiltered_wait_coeff.end() && std::abs(unfiltered_wait_coeff_iter->first - x) < (precision / 2.0); ++unfiltered_wait_coeff_iter)
         {
             pair.second++;
+            unfiltered_wait_coeff_size--;
         }
     }
+    if (unfiltered_wait_coeff_size != 0)
+    {
+        throw std::logic_error("unfiltered wait coeff size != 0");
+        //FIXME: this is bugged for 1MB example
+    }
     auto unfiltered_work_coeff_iter = unfiltered_work_coeff.begin();
+    auto unfiltered_work_coeff_size = unfiltered_work_coeff.size();
     for (auto& pair : work_coeff)
     {
         double x = pair.first;
         for (; unfiltered_work_coeff_iter != unfiltered_work_coeff.end() && std::abs(unfiltered_work_coeff_iter->first - x) < (precision / 2.0); ++unfiltered_work_coeff_iter)
         {
             pair.second++;
+            unfiltered_work_coeff_size--;
         }
+    }
+    if (unfiltered_work_coeff_size != 0)
+    {
+        throw std::logic_error("unfiltered work coeff size != 0");
     }
 
     qDebug() << "Stats calculated";
+    if (print_raw)
+    {
+        qDebug() << "STATS RAW (wait_coeff): \n";
+        for (auto point : unfiltered_wait_coeff)
+        {
+            qDebug() << "X = " << point.first << ", Y = " << point.second << "\n";
+        }
+        qDebug() << "STATS RAW (work_coeff): \n";
+        for (auto point : unfiltered_work_coeff)
+        {
+            qDebug() << "X = " << point.first << ", Y = " << point.second << "\n";
+        }
+    }
+}
+
+void Stats::print()
+{
+    qDebug() << "STATS (wait_coeff): \n";
+    for (auto point : wait_coeff)
+    {
+        qDebug() << "X = " << point.first << ", Y = " << point.second << "\n";
+    }
+    qDebug() << "STATS (work_coeff): \n";
+    for (auto point : work_coeff)
+    {
+        qDebug() << "X = " << point.first << ", Y = " << point.second << "\n";
+    }
 }

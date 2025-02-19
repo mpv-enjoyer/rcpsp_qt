@@ -35,7 +35,9 @@ int PendingJobs::set_critical_time(Data current_job_pair)
         int internal_result = set_critical_time( { current_ancestors->at(j)->get_start_after(), current_ancestors->at(j)->get_end_before(), current_ancestors->at(j) } );
         result = internal_result < result ? internal_result : result;
     }
-    current_job_pair.job->set_critical_time(result - current_job_pair.job->get_time_to_spend());
+    double output = result - current_job_pair.job->get_time_to_spend();
+    if (output == -1) output = 0;
+    current_job_pair.job->set_critical_time(output);
     return result - current_job_pair.job->get_time_to_spend();
 }
 

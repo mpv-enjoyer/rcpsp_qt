@@ -25,4 +25,24 @@ public:
     void updatePlot(const std::vector<ResultPair>& completed);
 };
 
+class WaitStatsPlot
+{
+    QCustomPlot* _plot;
+public:
+    const char* label = "коэффициент ожидания перед началом";
+    WaitStatsPlot() { }
+    WaitStatsPlot(QCustomPlot* plot);
+    void updatePlot(const Stats &stats);
+};
+
+class WorkStatsPlot
+{
+    QCustomPlot* _plot;
+public:
+    const char* label = "коэффициент работы";
+    WorkStatsPlot() { }
+    WorkStatsPlot(QCustomPlot* plot);
+    void updatePlot(const Stats &stats);
+};
+
 #endif // PLOT_H
