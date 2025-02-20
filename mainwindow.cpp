@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     _plot = Plot(ui->plot);
     _wait_stats_plot = WaitStatsPlot(ui->wait_coeff_plot);
     _work_stats_plot = WorkStatsPlot(ui->work_coeff_plot);
-    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) { });
+    //
 }
 
 MainWindow::~MainWindow()
@@ -21,6 +21,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_clicked()
 {
+    if (!(ui->checkbox_logs->isChecked()))
+    {
+        qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) { });
+    }
+    else
+    {
+        qInstallMessageHandler(0);
+    }
     workers_indexes.clear();
     start_first_job_group_at = 0;
     algorithm = Algorithm();
@@ -84,7 +92,7 @@ void MainWindow::on_doubleSpinBox_editingFinished()
 
 void MainWindow::on_checkbox_logs_checkStateChanged(const Qt::CheckState &arg1)
 {
-    if (!arg1 == Qt::CheckState::Checked) qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) { });
-    else qInstallMessageHandler(0);
+    //if ((!arg1) == Qt::CheckState::Checked) qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) { });
+    //else if (arg1 == Qt::CheckState::Unchecked) qInstallMessageHandler(0);
 }
 
