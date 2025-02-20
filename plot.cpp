@@ -252,6 +252,8 @@ void Plot::updatePlot(const std::vector<ResultPair> &completed)
     ready_set->setData(ticks, ready_data);
     overhead_wait_set->setData(ticks, overhead_wait_data);
     overhead_set->setData(ticks, overhead_data);
+    _plot->yAxis->setRange(0, 10);
+    _plot->xAxis->setRange(0, 10);
     _plot->replot();
 }
 

@@ -214,45 +214,9 @@ std::vector<ResultPair> Algorithm::get_completed()
 }
 
 #include <cmath>
-#include <unordered_map>
 
 Stats::Stats(std::vector<ResultPair> completed, double precision, bool print_raw)
-{/*
-    struct Coeff
-    {
-        const double x;
-        const double precision;
-        const double hash_id;
-        Coeff(double _x, double _precision)
-            : x(_x), precision(_precision), hash_id(std::fmod(_x, _precision))
-        { }
-        std::size_t operator()()
-        {
-
-        }
-        bool operator==(const Coeff &other) const
-        { return (x == other.x); }
-
-    };*/
-
-    //for (double x_id = 0; x_id * precision < 1; x_id++)
-    //{
-    //    double x = x_id * precision;
-    //    wait_coeff[x] = 0;
-    //    work_coeff[x] = 0;
-    //}
-    //std::map<int, int> unfiltered_wait_coeff;
-    //std::map<int, int> unfiltered_work_coeff;
-    //for (auto job : completed)
-    //{
-    //    double dedicated_time = job.job->get_end_before() - job.job->get_start_after();
-    //    double wait_coeff = double(job.start - job.job->get_start_after()) / double(dedicated_time);
-    //    int wait_coeff_id = wait_coeff / precision;
-    //    double work_coeff = double(job.job->get_time_to_spend()) / double(dedicated_time);
-    //    int work_coeff_id = work_coeff / precision;
-    //    unfiltered_wait_coeff[wait_coeff_id]++;
-    //    unfiltered_work_coeff[work_coeff_id]++;
-    //}
+{
     init_coeff(wait_coeff, [](ResultPair r) -> double {
         double dedicated_time = r.job->get_end_before() - r.job->get_start_after();
         return double(r.start - r.job->get_start_after()) / double(dedicated_time);
@@ -261,84 +225,6 @@ Stats::Stats(std::vector<ResultPair> completed, double precision, bool print_raw
         double dedicated_time = r.job->get_end_before() - r.job->get_start_after();
         return double(r.job->get_time_to_spend()) / double(dedicated_time);
     }, completed, precision);
-    //auto minmax_wait = std::minmax_element(unfiltered_wait_coeff.begin(), unfiltered_wait_coeff.end());
-    //for (int i = minmax_wait.first + 1; i <= minmax_wait.second + 1; i++)
-    //{
-    //    if (unfiltered_wait_coeff.count(i) == 0) unfiltered_wait_coeff[i] = 0;
-    //}
-
-    //for (auto coeff : unfiltered_wait_coeff)
-    //{
-    //    wait_coeff[coeff.first * precision] = coeff.second;
-    //}
-    //for (auto coeff : unfiltered_work_coeff)
-    //{
-    //    work_coeff[coeff.first * precision] = coeff.second;
-    //}
-
-
-    // qDebug() << "UWC calculated\n";
-
-    // double last_wait_x = (--(unfiltered_wait_coeff.end()))->first;
-    // for (double x_id = 0; (x_id - 1) * precision < last_wait_x; x_id++)
-    // {
-    //     double x = x_id * precision;
-    //     wait_coeff[x] = 0;
-    // }
-
-    // double last_work_x = (--(unfiltered_work_coeff.end()))->first;
-    // for (double x_id = 0; (x_id - 1) * precision < last_work_x; x_id++)
-    // {
-    //     double x = x_id * precision;
-    //     work_coeff[x] = 0;
-    // }
-
-    // qDebug() << "coeff calculated " << last_wait_x << last_work_x << wait_coeff.size() << work_coeff.size() << " \n";
-
-    // auto unfiltered_wait_coeff_iter = unfiltered_wait_coeff.begin();
-    // //auto unfiltered_wait_coeff_size = unfiltered_wait_coeff.size();
-    // for (auto& pair : wait_coeff)
-    // {
-    //     double x = pair.first;
-    //     for (; unfiltered_wait_coeff_iter != unfiltered_wait_coeff.end() && std::abs(unfiltered_wait_coeff_iter->first - x) < (precision / 2.0); ++unfiltered_wait_coeff_iter)
-    //     {
-    //         pair.second += unfiltered_wait_coeff_iter->second;
-    //         //unfiltered_wait_coeff_size--;
-    //     }
-    // }
-    // //if (unfiltered_wait_coeff_size != 0)
-    // {
-    //     //throw std::logic_error("unfiltered wait coeff size != 0");
-    // }
-    // auto unfiltered_work_coeff_iter = unfiltered_work_coeff.begin();
-    // //auto unfiltered_work_coeff_size = unfiltered_work_coeff.size();
-    // for (auto& pair : work_coeff)
-    // {
-    //     double x = pair.first;
-    //     for (; unfiltered_work_coeff_iter != unfiltered_work_coeff.end() && std::abs(unfiltered_work_coeff_iter->first - x) < (precision / 2.0); ++unfiltered_work_coeff_iter)
-    //     {
-    //         pair.second += unfiltered_work_coeff_iter->second;
-    //         //unfiltered_work_coeff_size--;
-    //     }
-    // }
-    // //if (unfiltered_work_coeff_size != 0)
-    // {
-    //     //throw std::logic_error("unfiltered work coeff size != 0");
-    // }
-    // qDebug() << "Stats calculated";
-    // if (print_raw)
-    // {
-    //     qDebug() << "STATS RAW (wait_coeff): \n";
-    //     for (auto point : unfiltered_wait_coeff)
-    //     {
-    //         qDebug() << "X = " << point.first << ", Y = " << point.second << "\n";
-    //     }
-    //     qDebug() << "STATS RAW (work_coeff): \n";
-    //     for (auto point : unfiltered_work_coeff)
-    //     {
-    //         qDebug() << "X = " << point.first << ", Y = " << point.second << "\n";
-    //     }
-    // }
 }
 
 void Stats::print()
@@ -362,15 +248,7 @@ void Stats::init_coeff(std::map<double, double> &coeff, std::function<double (Re
     {
         int id = (calculate_coeff(job) + precision / 2.0) / precision;
         unfiltered[id]++;
-        //double dedicated_time = job.job->get_end_before() - job.job->get_start_after();
-        //double wait_coeff = double(job.start - job.job->get_start_after()) / double(dedicated_time);
-        //int wait_coeff_id = wait_coeff / precision;
-        //double work_coeff = double(job.job->get_time_to_spend()) / double(dedicated_time);
-        //int work_coeff_id = work_coeff / precision;
-        //unfiltered_wait_coeff[wait_coeff_id]++;
-        //unfiltered_work_coeff[work_coeff_id]++;
     }
-
     auto minmax = std::minmax_element(unfiltered.begin(), unfiltered.end());
     int min_x = minmax.first->first;
     int max_x = minmax.second->first;
@@ -383,9 +261,4 @@ void Stats::init_coeff(std::map<double, double> &coeff, std::function<double (Re
     {
         coeff[current.first * precision] = current.second;
     }
-//    for (auto coeff : unfiltered_work_coeff)
-//    {
-//        work_coeff[coeff.first * precision] = coeff.second;
-//    }
-
 }
