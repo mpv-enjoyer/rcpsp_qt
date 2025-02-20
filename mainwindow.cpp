@@ -96,3 +96,11 @@ void MainWindow::on_checkbox_logs_checkStateChanged(const Qt::CheckState &arg1)
     //else if (arg1 == Qt::CheckState::Unchecked) qInstallMessageHandler(0);
 }
 
+#include <QClipboard>
+
+void MainWindow::on_button_copy_logs_clicked()
+{
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    auto qstr = QString::fromStdString(algorithm.get_string_result(algorithm.get_completed()));
+    clipboard->setText(qstr);
+}

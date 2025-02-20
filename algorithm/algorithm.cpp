@@ -138,23 +138,25 @@ std::string Algorithm::get_string_result(const std::vector<ResultPair> &complete
     std::stringstream output;
     for (const auto resultpair : completed)
     {
-        output << "Job ID " << resultpair.job_id <<
+        output <<
+        "Job ID " << resultpair.job_id <<
         " min " << resultpair.job->get_start_after() <<
         " critical " << resultpair.job->get_critical_time() <<
+        " max " << resultpair.job->get_end_before() <<
         " done by Worker ID " << resultpair.worker_internal_id <<
         " group ID " << resultpair.worker_group_id <<
         " start " << resultpair.start;
         if (resultpair.job->get_critical_time() < resultpair.job->get_start_after())
         {
-            output << "[IMPOSSIBLE] ";
+            output << " [IMPOSSIBLE]";
         }
-        else if (resultpair.job->get_start_after() + resultpair.job->get_time_to_spend() > resultpair.job->get_end_before())
+        else if (resultpair.start + resultpair.job->get_time_to_spend() > resultpair.job->get_end_before())
         {
-            output << "[BAD] ";
+            output << " [BAD]";
         }
         else
         {
-            output << "[GOOD] ";
+            output << " [GOOD]";
         }
         output << "\n";
     }

@@ -41,6 +41,8 @@ private slots:
 
     void on_checkbox_logs_checkStateChanged(const Qt::CheckState &arg1);
 
+    void on_button_copy_logs_clicked();
+
 private:
     Plot _plot;
     WaitStatsPlot _wait_stats_plot;
