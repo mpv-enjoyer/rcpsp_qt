@@ -37,6 +37,7 @@ Placement WorkerGroup::get_earliest_placement_time(Job *job)
         if (workers[i]->get_job_count() == 0 && !workers[i]->is_preserved())
         {
             current_nearest = workers[i]->get_plan().get_time_nearest_possible(lookup_time, job_time);
+            if (current_nearest == -1) continue;
             if (lookup_time != *current_time)
                 current_nearest += job->get_start_after() - *current_time;
         }
@@ -84,6 +85,19 @@ int WorkerGroup::get_size()
 int WorkerGroup::get_global_id()
 {
     return global_id;
+}
+
+bool WorkerGroup::check_if_job_is_possible(const Job *job)
+{
+    for (const auto worker : workers)
+    {
+        auto plan_elements = worker->get_plan().get_elements();
+        for (auto plan_element : plan_elements)
+        {
+            if (plan_element.work >= job->get_time_to_spend()) return true;
+        }
+    }
+    return false;
 }
 
 const Worker *WorkerGroup::get_worker(int id) const

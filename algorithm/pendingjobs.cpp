@@ -18,6 +18,15 @@ PendingJobs::PendingJobs(int *current_time, PendingFronts *next, int look_ahead_
 
     for (const auto& job : _data)
     {
+        bool job_possible = false;
+        for (const auto worker_group : job.worker_groups)
+        {
+            job_possible |= worker_group->check_if_job_is_possible(job.job);
+        }
+        if (!job_possible)
+        {
+            throw std::invalid_argument("Job is impossible for current plan");
+        }
         if (_max_critical_time < job.job->get_critical_time()) _max_critical_time = job.job->get_critical_time();
     }
 }

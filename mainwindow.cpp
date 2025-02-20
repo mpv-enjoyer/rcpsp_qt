@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include <QApplication>
 #include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     _plot = Plot(ui->plot);
     _wait_stats_plot = WaitStatsPlot(ui->wait_coeff_plot);
     _work_stats_plot = WorkStatsPlot(ui->work_coeff_plot);
+    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) { });
 }
 
 MainWindow::~MainWindow()
@@ -40,6 +41,15 @@ void MainWindow::on_pushButton_clicked()
     Stats stats = Stats(completed, ui->doubleSpinBox->value(), true);
     _work_stats_plot.updatePlot(stats);
     _wait_stats_plot.updatePlot(stats);
+    double impossible_percent = stats.impossible_jobs_counter / double(completed.size()) * 100;
+    ui->label_counter_impossible_jobs->setText(
+        QString("Impossible jobs: ") +
+        QString::number(stats.impossible_jobs_counter) +
+        QString(" / ") +
+        QString::number(completed.size()) +
+        QString(" (") +
+        QString::number(impossible_percent) +
+        QString("%)"));
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -57,7 +67,6 @@ void MainWindow::on_doubleSpinBox_valueChanged(double arg1)
 
 }
 
-
 void MainWindow::on_doubleSpinBox_editingFinished()
 {
     constexpr static double MIN_VALUE = 0.00001;
@@ -71,5 +80,11 @@ void MainWindow::on_doubleSpinBox_editingFinished()
     Stats stats = Stats(completed, value);
     _work_stats_plot.updatePlot(stats);
     _wait_stats_plot.updatePlot(stats);
+}
+
+void MainWindow::on_checkbox_logs_checkStateChanged(const Qt::CheckState &arg1)
+{
+    if (!arg1 == Qt::CheckState::Checked) qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context, const QString &msg) { });
+    else qInstallMessageHandler(0);
 }
 

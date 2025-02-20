@@ -39,6 +39,8 @@ private slots:
 
     void on_doubleSpinBox_editingFinished();
 
+    void on_checkbox_logs_checkStateChanged(const Qt::CheckState &arg1);
+
 private:
     Plot _plot;
     WaitStatsPlot _wait_stats_plot;

@@ -225,6 +225,13 @@ Stats::Stats(std::vector<ResultPair> completed, double precision, bool print_raw
         double dedicated_time = r.job->get_end_before() - r.job->get_start_after();
         return double(r.job->get_time_to_spend()) / double(dedicated_time);
     }, completed, precision);
+    for (auto pair : completed)
+    {
+        if (pair.job->get_critical_time() < pair.job->get_start_after())
+        {
+            impossible_jobs_counter++;
+        }
+    }
 }
 
 void Stats::print()
@@ -246,6 +253,8 @@ void Stats::init_coeff(std::map<double, double> &coeff, std::function<double (Re
     std::map<int, int> unfiltered;
     for (auto job : completed)
     {
+        // Ignore those jobs with infinite time to complete
+        if (job.job->get_end_before() >= __INT_MAX__ - 1) continue;
         int id = (calculate_coeff(job) + precision / 2.0) / precision;
         unfiltered[id]++;
     }
