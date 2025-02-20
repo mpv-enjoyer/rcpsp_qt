@@ -173,8 +173,8 @@ print(job_count := get_random_int(10000, 200000))
 print(worker_count := get_random_int(max(job_count / 140, 1), job_count / 40))
 #print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
 PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ]
-#    [[ 0 ], [ 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 3780 ], 0, 1], # 5/2 (9 часов рабочий день с перерывом в 1 час)
-#    [[ 0, 1440, 2880, 4320, 5760, 720, 2160, 3600, 5040, 6480 ], [ 660, 780, 660, 780, 660, 3660 ], 1, 10], # 3/2 (11 часов смена)
+    [[ 0 ], [ 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 3780 ], 0, 1], # 5/2 (9 часов рабочий день с перерывом в 1 час)
+    [[ 0, 1440, 2880, 4320, 5760, 720, 2160, 3600, 5040, 6480 ], [ 660, 780, 660, 780, 660, 3660 ], 1, 10], # 3/2 (11 часов смена)
     [[ 0, 720, 2880, 3600 ], [ 720, 1440, 720, 2880 ], 11, 4], # 2/2 (12 часов смена, сначала дневная, потом ночная)
     [[ 0, 480, 960, 2880, 3360, 3840 ], [ 480, 960, 480, 3840 ], 15, 6] # 2/2 (8 часов смена)
     ]
@@ -292,15 +292,15 @@ for job_group in job_groups_dict:
     job_group_end_before = JOB_GROUP_END_BEFORE
 
     #SETUP FOR ALTERNATIVE CURRENT_JOB_START/END_AT
-    JOB_GROUP_TIME_SECTOR_DIFF = 2
+    JOB_GROUP_TIME_SECTOR_DIFF = 1
     
     #sector_time = len(job_groups_dict) / 100
     sector_time = MAX_PLAN_UNIT
     SECTOR_COEFFICIENT = 1
     JOB_GROUP_TIME_SECTOR_COUNT = len(job_groups_dict) * SECTOR_COEFFICIENT / sector_time
     current_job_group_coeff = float(job_group / len(job_groups_dict))
-    low_sector = max(0, current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT - JOB_GROUP_TIME_SECTOR_DIFF)
-    high_sector = min(JOB_GROUP_TIME_SECTOR_COUNT, current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT + JOB_GROUP_TIME_SECTOR_DIFF)
+    low_sector = current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT
+    high_sector = current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT + 2 * JOB_GROUP_TIME_SECTOR_DIFF
     sector = get_random_int(low_sector, high_sector)
 
     if get_random_float(0, 1) > 0.1:
@@ -331,6 +331,14 @@ for worker_group in worker_groups_dict:
             current_plan = subplan_first_id
     worker_group_str += "\n"
     write_to(worker_group_str)
+
+def write_log(name, arg):
+    write_to("LOG;" + str(name) + ";" + str(arg) + "\n")
+
+write_log("min_job_time_to_spend", min_job_time_to_spend)
+write_log("max_job_time_to_spend", max_job_time_to_spend)
+write_log("max_job_group_count", max_job_group_count)
+write_log("max_worker_group_count", max_worker_group_count)
 
 #f.write(generated)
 f.close()

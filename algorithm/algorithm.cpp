@@ -133,6 +133,34 @@ int Algorithm::get_failed_jobs_count()
     return _failed_jobs_count;
 }
 
+std::string Algorithm::get_string_result(const std::vector<ResultPair> &completed) const
+{
+    std::stringstream output;
+    for (const auto resultpair : completed)
+    {
+        output << "Job ID " << resultpair.job_id <<
+        " min " << resultpair.job->get_start_after() <<
+        " critical " << resultpair.job->get_critical_time() <<
+        " done by Worker ID " << resultpair.worker_internal_id <<
+        " group ID " << resultpair.worker_group_id <<
+        " start " << resultpair.start;
+        if (resultpair.job->get_critical_time() < resultpair.job->get_start_after())
+        {
+            output << "[IMPOSSIBLE] ";
+        }
+        else if (resultpair.job->get_start_after() + resultpair.job->get_time_to_spend() > resultpair.job->get_end_before())
+        {
+            output << "[BAD] ";
+        }
+        else
+        {
+            output << "[GOOD] ";
+        }
+        output << "\n";
+    }
+    return output.str();
+}
+
 int Algorithm::run()
 {
     int best_failed_jobs = __INT_MAX__;

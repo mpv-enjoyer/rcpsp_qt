@@ -200,17 +200,19 @@ int main(int argc, char** argv)
         if (algorithm.get_preference() == Preference::NONE) algorithm.set_weights(Weights::create_equal());
         std::cout << " max time: " << algorithm.run() << " ";
         std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
-        Stats stats(algorithm.get_completed(), 0.1);
-        std::cout << "STATS (wait_coeff): \n";
-        for (auto point : stats.wait_coeff)
-        {
-            std::cout << "X = " << point.first << ", Y = " << point.second << "\n";
-        }
-        std::cout << "STATS (work_coeff): \n";
-        for (auto point : stats.work_coeff)
-        {
-            std::cout << "X = " << point.first << ", Y = " << point.second << "\n";
-        }
+        auto completed = algorithm.get_completed();
+        Stats stats(completed, 0.1);
+        std::cout << algorithm.get_string_result(completed);
+        //std::cout << "STATS (wait_coeff): \n";
+        //for (auto point : stats.wait_coeff)
+        //{
+        //    std::cout << "X = " << point.first << ", Y = " << point.second << "\n";
+        //}
+        //std::cout << "STATS (work_coeff): \n";
+        //for (auto point : stats.work_coeff)
+        //{
+        //    std::cout << "X = " << point.first << ", Y = " << point.second << "\n";
+        //}
         return 0;
     }
 

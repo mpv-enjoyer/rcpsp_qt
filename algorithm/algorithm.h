@@ -117,6 +117,7 @@ public:
     void set_weights(AlgorithmWeights weights);
     void reset();
     int get_failed_jobs_count();
+    std::string get_string_result(const std::vector<ResultPair>& completed) const;
 };
 
 #include <functional>
