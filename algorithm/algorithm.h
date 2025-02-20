@@ -4,6 +4,7 @@
 #include "jobgroup.h"
 #include "workergroup.h"
 #include <QtDebug>
+#include <sstream>
 //#include <QProgressBar>
 #include <QFile>
 #include <map>
@@ -118,12 +119,17 @@ public:
     int get_failed_jobs_count();
 };
 
-struct Stats
+#include <functional>
+
+class Stats
 {
+public:
     std::map<double, double> wait_coeff; // Сколько работ Y выполняются через X относительных единиц (1 это 100% выделенного времени)
     std::map<double, double> work_coeff; // Какой процент X от выделенного времени уходит на выполнение работы, Y - количество работ
     Stats(std::vector<ResultPair> completed, double precision, bool print_raw = false);
     void print();
+private:
+    void init_coeff(std::map<double, double>& coeff, std::function<double(ResultPair)> calculate_coeff, std::vector<ResultPair>& completed, double precision);
 };
 
 #endif // ALGORITHM_H
