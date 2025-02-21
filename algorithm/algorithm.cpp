@@ -146,17 +146,13 @@ std::string Algorithm::get_string_result(const std::vector<ResultPair> &complete
         " done by Worker ID " << resultpair.worker_internal_id <<
         " group ID " << resultpair.worker_group_id <<
         " start " << resultpair.start;
-        if (resultpair.job->get_critical_time() < resultpair.job->get_start_after())
+        if (resultpair.start + resultpair.job->get_time_to_spend() <= resultpair.job->get_end_before())
         {
-            output << " [IMPOSSIBLE]";
-        }
-        else if (resultpair.start + resultpair.job->get_time_to_spend() > resultpair.job->get_end_before())
-        {
-            output << " [BAD]";
+            output << " [GOOD]";
         }
         else
         {
-            output << " [GOOD]";
+            output << " [BAD]";
         }
         output << "\n";
     }

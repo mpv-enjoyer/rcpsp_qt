@@ -65,6 +65,7 @@ void MainWindow::on_pushButton_clicked()
         QString(" (") +
         QString::number(good_percent) +
         QString("%)"));
+    QApplication::alert(this);
 }
 
 void MainWindow::on_actionOpen_triggered()

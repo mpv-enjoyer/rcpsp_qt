@@ -285,38 +285,6 @@ for job_group in job_groups_dict:
         current_job_group_worker_groups = list(current_job_group_worker_groups)
     job_group_to_worker_groups_dict[job_group] = current_job_group_worker_groups
 
-JOB_GROUP_END_BEFORE = 2147483647 - 1 # __INT_MAX__ - 1
-wdist = get_random_whatever_dist()
-for job_group in job_groups_dict:
-    current_job_group_start_at = 0 #whatever_dist_int(0, max_plan_loop * get_random_int(1, 10), 1, wdist)
-    job_group_end_before = JOB_GROUP_END_BEFORE
-
-    #SETUP FOR ALTERNATIVE CURRENT_JOB_START/END_AT
-    JOB_GROUP_TIME_SECTOR_DIFF = 1
-    
-    #sector_time = len(job_groups_dict) / 100
-    sector_time = MAX_PLAN_UNIT
-    SECTOR_COEFFICIENT = 1
-    JOB_GROUP_TIME_SECTOR_COUNT = len(job_groups_dict) * SECTOR_COEFFICIENT / sector_time
-    current_job_group_coeff = float(job_group / len(job_groups_dict))
-    low_sector = current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT
-    high_sector = current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT + 2 * JOB_GROUP_TIME_SECTOR_DIFF
-    sector = get_random_int(low_sector, high_sector)
-
-    if get_random_float(0, 1) > 0.1:
-        current_job_group_start_at = get_random_int(sector_time * sector, sector_time * (sector + 1))
-    if get_random_float(0, 1) > 0.1:
-        time_to_complete = get_random_int(sector_time * 3, sector_time * 100)
-        job_group_end_before = current_job_group_start_at + time_to_complete
-    write_to("job_group;" + str(job_group) + ";" + str(current_job_group_start_at) + ";" + str(job_group_end_before) + ";" + str(job_group_to_worker_groups_dict[job_group][0]) + ";")
-    for job in job_groups_dict[job_group]:
-        write_to(str(job) + ";")
-    if len(job_group_to_worker_groups_dict[job_group]) > 1:
-        write_to("];")
-        for i in range(1, len(job_group_to_worker_groups_dict[job_group])):
-            write_to(str(job_group_to_worker_groups_dict[job_group][i]) + ";")
-    write_to("\n")
-
 for worker_group in worker_groups_dict:
     worker_group_str = "worker_group;" + str(worker_group) + ";"
     base_plan = PLANS[get_random_int(0, len(PLANS))]
@@ -332,6 +300,42 @@ for worker_group in worker_groups_dict:
     worker_group_str += "\n"
     write_to(worker_group_str)
 
+JOB_GROUP_END_BEFORE = 2147483647 - 1 # __INT_MAX__ - 1
+wdist = get_random_whatever_dist()
+for job_group in job_groups_dict:
+    current_job_group_start_at = 0 #whatever_dist_int(0, max_plan_loop * get_random_int(1, 10), 1, wdist)
+    job_group_end_before = JOB_GROUP_END_BEFORE
+
+    #SETUP FOR ALTERNATIVE CURRENT_JOB_START/END_AT
+    JOB_GROUP_TIME_SECTOR_DIFF = 1
+    
+    #sector_time = len(job_groups_dict) / 100
+    sector_time = MAX_PLAN_UNIT
+    SECTOR_COEFFICIENT = len(job_groups_dict)
+    WORKER_COEFFICIENT = 15000 / worker_count
+    JOB_GROUP_TIME_SECTOR_COUNT = WORKER_COEFFICIENT * SECTOR_COEFFICIENT / sector_time
+    current_job_group_coeff = float(job_group / len(job_groups_dict))
+    low_sector = current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT
+    high_sector = current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT + 2 * JOB_GROUP_TIME_SECTOR_DIFF
+    sector = get_random_int(low_sector, high_sector)
+
+    if get_random_float(0, 1) > 0.1:
+        current_job_group_start_at = get_random_int(sector_time * sector, sector_time * (sector + 1))
+    if get_random_float(0, 1) > 0.1:
+        time_to_complete = get_random_int(sector_time * 3, sector_time * 100)
+        if current_job_group_start_at == 0:
+            job_group_end_before = get_random_int(sector_time * sector, sector_time * (sector + 1)) + time_to_complete
+        else:
+            job_group_end_before = current_job_group_start_at + time_to_complete
+    write_to("job_group;" + str(job_group) + ";" + str(current_job_group_start_at) + ";" + str(job_group_end_before) + ";" + str(job_group_to_worker_groups_dict[job_group][0]) + ";")
+    for job in job_groups_dict[job_group]:
+        write_to(str(job) + ";")
+    if len(job_group_to_worker_groups_dict[job_group]) > 1:
+        write_to("];")
+        for i in range(1, len(job_group_to_worker_groups_dict[job_group])):
+            write_to(str(job_group_to_worker_groups_dict[job_group][i]) + ";")
+    write_to("\n")
+
 def write_log(name, arg):
     write_to("LOG;" + str(name) + ";" + str(arg) + "\n")
 
@@ -339,6 +343,6 @@ write_log("min_job_time_to_spend", min_job_time_to_spend)
 write_log("max_job_time_to_spend", max_job_time_to_spend)
 write_log("max_job_group_count", max_job_group_count)
 write_log("max_worker_group_count", max_worker_group_count)
-
+write_log("worker_end_count", worker_count)
 #f.write(generated)
 f.close()
