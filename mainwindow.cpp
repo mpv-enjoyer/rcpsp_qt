@@ -112,3 +112,12 @@ void MainWindow::on_button_copy_logs_clicked()
     auto qstr = QString::fromStdString(algorithm.get_string_result(algorithm.get_completed()));
     clipboard->setText(qstr);
 }
+
+#include <QDesktopServices>
+
+void MainWindow::on_button_current_file_clicked()
+{
+    if (this->file_name.isEmpty()) return;
+    QDesktopServices::openUrl(QUrl(QString("file://") + this->file_name));
+}
+

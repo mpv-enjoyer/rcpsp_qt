@@ -217,12 +217,13 @@ for job in range(job_count):
     if current_job_busyness_section_count < 1:
         current_job_busyness_section_count = 1
     current_job_busyness_values = dependant_dist_float(0, 1, current_job_busyness_section_count)
-    current_job_busyness_times = get_random_int(1, current_job_max_time_to_spend / current_job_busyness_section_count, current_job_busyness_section_count)
+    min_current_job_busyness_times = max(current_job_max_time_to_spend / current_job_busyness_section_count, 1)
+    current_job_busyness_times = get_random_int(1, min_current_job_busyness_times, current_job_busyness_section_count)
     current_job_ancestors_count = whatever_dist_int(0, min(jobs_left_to_iterate, MAX_ANCESTORS_COUNT), 1, wdist3)
     current_job_ancestors = [(i + job + 1) for i in rng.choice(jobs_left_to_iterate, size=current_job_ancestors_count, replace=False)]
     current_job_group = whatever_dist_int(0, max_job_group_count - 1, 1, wdist4)
-    if get_random_float(0, 1) > 0.1: # pick the group that is likely to be with the nearby jobs
-        JOB_GROUP_DEFAULT_DIFF = 5
+    if get_random_float(0, 1) >= 0: # fix: ALWAYS pick the group that is likely to be with the nearby jobs
+        JOB_GROUP_DEFAULT_DIFF = 10
         group_precise = int(job / job_count * max_job_group_count)
         diff = get_random_int(- JOB_GROUP_DEFAULT_DIFF, JOB_GROUP_DEFAULT_DIFF)
         if group_precise + diff < 0:
@@ -300,6 +301,8 @@ for worker_group in worker_groups_dict:
     worker_group_str += "\n"
     write_to(worker_group_str)
 
+import math
+
 JOB_GROUP_END_BEFORE = 2147483647 - 1 # __INT_MAX__ - 1
 wdist = get_random_whatever_dist()
 for job_group in job_groups_dict:
@@ -307,7 +310,7 @@ for job_group in job_groups_dict:
     job_group_end_before = JOB_GROUP_END_BEFORE
 
     #SETUP FOR ALTERNATIVE CURRENT_JOB_START/END_AT
-    JOB_GROUP_TIME_SECTOR_DIFF = 1
+    JOB_GROUP_TIME_SECTOR_DIFF = 5
     
     #sector_time = len(job_groups_dict) / 100
     sector_time = MAX_PLAN_UNIT
@@ -319,14 +322,16 @@ for job_group in job_groups_dict:
     high_sector = current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT + 2 * JOB_GROUP_TIME_SECTOR_DIFF
     sector = get_random_int(low_sector, high_sector)
 
+    time_to_complete = get_random_int(sector_time * 3, sector_time * 40)
     if get_random_float(0, 1) > 0.1:
         current_job_group_start_at = get_random_int(sector_time * sector, sector_time * (sector + 1))
-    if get_random_float(0, 1) > 0.1:
-        time_to_complete = get_random_int(sector_time * 3, sector_time * 100)
-        if current_job_group_start_at == 0:
-            job_group_end_before = get_random_int(sector_time * sector, sector_time * (sector + 1)) + time_to_complete
-        else:
+        assert current_job_group_start_at >= sector_time * math.floor(low_sector)
+        if get_random_float(0, 1) > 0.1:
             job_group_end_before = current_job_group_start_at + time_to_complete
+    else:
+        if get_random_float(0, 1) > 0.1:
+            job_group_end_before = get_random_int(sector_time * sector, sector_time * (sector + 1)) + time_to_complete
+    assert job_group_end_before >= sector_time * low_sector
     write_to("job_group;" + str(job_group) + ";" + str(current_job_group_start_at) + ";" + str(job_group_end_before) + ";" + str(job_group_to_worker_groups_dict[job_group][0]) + ";")
     for job in job_groups_dict[job_group]:
         write_to(str(job) + ";")

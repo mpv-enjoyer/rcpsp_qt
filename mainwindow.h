@@ -43,6 +43,8 @@ private slots:
 
     void on_button_copy_logs_clicked();
 
+    void on_button_current_file_clicked();
+
 private:
     Plot _plot;
     WaitStatsPlot _wait_stats_plot;
