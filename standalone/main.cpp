@@ -216,7 +216,7 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    std::vector<Algorithm> algorithm_vector(12); // I have 12 CPU cores ;_;
+    std::vector<Algorithm> algorithm_vector(11); // I have 12 CPU cores ;_;
     std::vector<Job*> all_jobs;
     std::vector<Worker*> all_workers;
     for (auto& algorithm : algorithm_vector)
