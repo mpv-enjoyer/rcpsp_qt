@@ -49,14 +49,21 @@ void MainWindow::on_pushButton_clicked()
     Stats stats = Stats(completed, ui->doubleSpinBox->value(), true);
     _work_stats_plot.updatePlot(stats);
     _wait_stats_plot.updatePlot(stats);
-    double impossible_percent = stats.impossible_jobs_counter / double(completed.size()) * 100;
+    double impossible_percent = stats.leads_to_impossible_jobs_counter / double(completed.size()) * 100;
+    double good_percent = (completed.size() - algorithm.get_failed_jobs_count()) / double(completed.size()) * 100;
     ui->label_counter_impossible_jobs->setText(
-        QString("Impossible jobs: ") +
-        QString::number(stats.impossible_jobs_counter) +
+        QString("Leads to impossible jobs: ") +
+        QString::number(stats.leads_to_impossible_jobs_counter) +
         QString(" / ") +
         QString::number(completed.size()) +
         QString(" (") +
         QString::number(impossible_percent) +
+        QString("%). Good: ") +
+        QString::number(completed.size() - algorithm.get_failed_jobs_count()) +
+        QString(" / ") +
+        QString::number(completed.size()) +
+        QString(" (") +
+        QString::number(good_percent) +
         QString("%)"));
 }
 

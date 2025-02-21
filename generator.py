@@ -172,15 +172,15 @@ def write_to(string):
 print(job_count := get_random_int(10000, 200000))
 print(worker_count := get_random_int(max(job_count / 140, 1), job_count / 40))
 #print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
-PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ]
+PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ], ID_begin????, count
     [[ 0 ], [ 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 3780 ], 0, 1], # 5/2 (9 часов рабочий день с перерывом в 1 час)
     [[ 0, 1440, 2880, 4320, 5760, 720, 2160, 3600, 5040, 6480 ], [ 660, 780, 660, 780, 660, 3660 ], 1, 10], # 3/2 (11 часов смена)
     [[ 0, 720, 2880, 3600 ], [ 720, 1440, 720, 2880 ], 11, 4], # 2/2 (12 часов смена, сначала дневная, потом ночная)
     [[ 0, 480, 960, 2880, 3360, 3840 ], [ 480, 960, 480, 3840 ], 15, 6] # 2/2 (8 часов смена)
     ]
-MAX_PLAN_UNIT = 240 * 2 # 4 * 2 hours
+MAX_PLAN_UNIT = 240 # 4 hours
 max_plan_unit = MAX_PLAN_UNIT
-MAX_PLAN_LOOP = 10080 * (4 / 7) # 7 * (4 / 7) days
+MAX_PLAN_LOOP = 10080 # 7 days
 max_plan_loop = MAX_PLAN_LOOP
 MAX_ANCESTORS_COUNT = 5
 
@@ -288,7 +288,7 @@ for job_group in job_groups_dict:
 JOB_GROUP_END_BEFORE = 2147483647 - 1 # __INT_MAX__ - 1
 wdist = get_random_whatever_dist()
 for job_group in job_groups_dict:
-    current_job_group_start_at = whatever_dist_int(0, max_plan_loop * get_random_int(1, 10), 1, wdist)
+    current_job_group_start_at = 0 #whatever_dist_int(0, max_plan_loop * get_random_int(1, 10), 1, wdist)
     job_group_end_before = JOB_GROUP_END_BEFORE
 
     #SETUP FOR ALTERNATIVE CURRENT_JOB_START/END_AT

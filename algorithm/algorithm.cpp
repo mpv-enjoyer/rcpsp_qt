@@ -259,7 +259,7 @@ Stats::Stats(std::vector<ResultPair> completed, double precision, bool print_raw
     {
         if (pair.job->get_critical_time() < pair.job->get_start_after())
         {
-            impossible_jobs_counter++;
+            leads_to_impossible_jobs_counter++;
         }
     }
 }
