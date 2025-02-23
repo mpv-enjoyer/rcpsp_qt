@@ -23,7 +23,6 @@ SOURCES += \
     algorithm/pendingjobs.cpp \
     algorithm/loader.cpp \
     contentwidget.cpp \
-    generator.cpp \
     main.cpp \
     mainwindow.cpp \
     misc/debugoutput.cpp \
@@ -44,7 +43,6 @@ HEADERS += \
     algorithm/pendingjobs.h \
     algorithm/loader.h \
     contentwidget.h \
-    generator.h \
     mainwindow.h \
     misc/debugoutput.h \
     model/job.h \

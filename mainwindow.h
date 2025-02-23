@@ -11,7 +11,6 @@
 #include "algorithm.h"
 #include <signal.h>
 #include "chartview.h"
-#include "generator.h"
 #include "plot.h"
 #include "loader.h"
 
