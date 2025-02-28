@@ -2,7 +2,6 @@
 #define JOB_H
 
 #include <vector>
-#include <QRandomGenerator>
 
 struct OccupancyPair
 {
@@ -26,6 +25,7 @@ private:
     int global_id = 0;
     std::vector<OccupancyPair> occupancy;
     int preference_coefficient = 0;
+    double avg_occupancy_buffered = 0;
 public:
     Job(int renewable, int non_renewable, std::vector<OccupancyPair> occupancy);
     int get_time_to_spend() const;
@@ -35,8 +35,8 @@ public:
     void done();
     void undone();
     bool check_predecessors();
-    void set_ancestors(std::vector<Job*> new_ancestors);
-    std::vector<Job*>* get_ancestors();
+    void set_ancestors(std::vector<Job*> new_ancestors); // i mean successor oops :)
+    std::vector<Job*>* get_ancestors(); // i mean successor oops :)
     void increment_predecessors_count();
     void decrement_predecessors_count();
     int get_critical_time() const;
@@ -50,6 +50,7 @@ public:
     void set_global_id(int id);
     int get_global_id();
     std::vector<OccupancyPair> get_occupancy() const;
+    double get_average_occupancy() const;
     int get_preference_coefficient() const;
     void set_preference_coefficient(int coefficient);
 };

@@ -8,6 +8,8 @@ class Loader
 {
 public:
     static bool Load(QString file_name, Algorithm &algorithm, std::vector<Worker *> &all_workers, std::vector<Job *> &all_jobs);
+    static bool LoadPreferences(QString file_name, Algorithm& algorithm);
+    static bool LoadWeights(QString file_name, Algorithm &algorithm);
 };
 
 #endif // LOADER_H

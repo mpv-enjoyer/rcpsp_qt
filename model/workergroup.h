@@ -30,6 +30,7 @@ public:
     AssignedWorker assign(Job* job);
     int get_size();
     int get_global_id();
+    bool check_if_job_is_possible(const Job* job);
     const Worker* get_worker(int id) const;
 };
 

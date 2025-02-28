@@ -63,7 +63,7 @@ int Plan::get_time_nearest_possible(int current_time, int job_time) const
 {
     int current_element = 0;
     current_time -= start;
-    if (current_time < 0) return 0;
+    if (current_time < 0) return -1;
     current_time = current_time % time_loop;
     for (int i = 0; i < elements.size(); i++)
     {

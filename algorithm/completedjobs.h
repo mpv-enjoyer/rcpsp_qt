@@ -5,6 +5,7 @@
 
 class CompletedJobs
 {
+    friend class basic; //TESTS
 public:
     typedef ResultPair Data;
     CompletedJobs();
@@ -13,6 +14,7 @@ public:
     int failed_count();
     int succeded_count();
     void prepare_for_next_iteration();
+    std::size_t data_size();
 private:
     std::vector<Data> _data;
 };

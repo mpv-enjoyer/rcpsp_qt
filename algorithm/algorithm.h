@@ -4,8 +4,12 @@
 #include "jobgroup.h"
 #include "workergroup.h"
 #include <QtDebug>
-#include <QProgressBar>
+#include <sstream>
+//#include <QProgressBar>
 #include <QFile>
+#include <map>
+#include <set>
+#include <numeric>
 
 class PendingJobs;
 class PendingFronts;
@@ -27,6 +31,7 @@ struct JobPair
     Job* job;
     std::vector<WorkerGroup*> worker_groups;
     int id;
+    double current_preference = 0;
 };
 
 struct ResultPair
@@ -37,6 +42,39 @@ struct ResultPair
     int job_id;
     int worker_group_id;
     int worker_internal_id;
+};
+
+using AlgorithmWeights = std::unordered_map<std::string, double>;
+#define REGISTER_WEIGHT(N) const std::string N = #N
+namespace Weights
+{
+    REGISTER_WEIGHT(ancestors_per_left); // кол-во последователей / кол-во оставшихся требований
+    REGISTER_WEIGHT(ancestors_per_job); // кол-во последователей / кол-во требований всего
+    REGISTER_WEIGHT(critical_time_per_max_critical_time); // критическое время требования / максимальное критическое время всех требований
+    REGISTER_WEIGHT(avg_occupancy); // средняя занятость станка во время выполнения
+    REGISTER_WEIGHT(time_after_begin_per_overall_time); // время от начала выполнения до текущего момента / время всего на выполнение этого требования
+    constexpr static size_t SIZE = 5;
+    const std::set<std::string> WeightsNames =
+    {
+        "ancestors_per_left", // кол-во последователей / кол-во оставшихся требований
+        "ancestors_per_job", // кол-во последователей / кол-во требований всего
+        "critical_time_per_max_critical_time", // критическое время требования / максимальное критическое время всех требований
+        "avg_occupancy", // средняя занятость станка во время выполнения
+        "time_after_begin_per_overall_time" // время от начала выполнения до текущего момента / время всего на выполнение этого требования
+    };
+    double get(AlgorithmWeights weights, std::string name);
+    bool set(AlgorithmWeights& weights, std::string name, double value);
+    bool are_valid(AlgorithmWeights weights);
+    AlgorithmWeights fix(AlgorithmWeights weights);
+    std::string to_string(AlgorithmWeights weights);
+    AlgorithmWeights create_equal();
+}
+
+struct AlgorithmDataForWeights
+{
+    double job_count_not_assigned;
+    double job_count_overall;
+    double max_critical_time;
 };
 
 #include "pendingjobs.h"
@@ -63,55 +101,37 @@ class Algorithm
     std::vector<ResultPair> _completed_jobs;
     int look_ahead_time = 0;
     int longest_plan_loop = 0;
+    int _failed_jobs_count = 0;
+    AlgorithmWeights _weights;
+    static const int CURRENT_EQUAL_MAX = 1;
+    static const int PASS_MAX_COUNT = 1;
 public:
     Algorithm();
+    void add_job_group(JobGroup *jobs, std::vector<WorkerGroup *> worker_groups);
     void set_preference(Preference new_preference);
-    void add_job_group(JobGroup* jobs, WorkerGroup* workers);
-    void run();
+    int run();
     std::vector<ResultPair> get_completed();
-    void LoadCSV(QString file_name, std::vector<Worker *> &all_workers, std::vector<Job *> &all_jobs);
     int get_look_ahead_time() const;
+    Preference get_preference() const;
     void set_look_ahead_time(int newLook_ahead_time);
+    void set_weights(AlgorithmWeights weights);
+    void reset();
+    int get_failed_jobs_count();
+    std::string get_string_result(const std::vector<ResultPair>& completed) const;
 };
 
-struct JobLoad
-{
-    Job* assign;
-    int id;
-    std::vector<OccupancyPair> occupancy;
-    std::vector<int> ancestors;
-};
+#include <functional>
 
-struct WorkerLoad
+class Stats
 {
-    Worker* assign;
-    int id;
-    int plan;
-};
-
-struct PlanLoad
-{
-    Plan* assign;
-    int id;
-    int start_at;
-    std::vector<PlanElement> plan;
-};
-
-struct JobGroupLoad
-{
-    JobGroup* assign;
-    int id;
-    int start_after;
-    int end_before;
-    int worker_group;
-    std::vector<int> jobs;
-};
-
-struct WorkerGroupLoad
-{
-    WorkerGroup* assign;
-    int id;
-    std::vector<int> workers;
+public:
+    std::map<double, double> wait_coeff; // Сколько работ Y выполняются через X относительных единиц (1 это 100% выделенного времени)
+    std::map<double, double> work_coeff; // Какой процент X от выделенного времени уходит на выполнение работы, Y - количество работ
+    std::size_t leads_to_impossible_jobs_counter = 0;
+    Stats(std::vector<ResultPair> completed, double precision, bool print_raw = false);
+    void print();
+private:
+    void init_coeff(std::map<double, double>& coeff, std::function<double(ResultPair)> calculate_coeff, std::vector<ResultPair>& completed, double precision);
 };
 
 #endif // ALGORITHM_H

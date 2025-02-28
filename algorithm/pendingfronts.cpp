@@ -41,19 +41,41 @@ bool compare_EST(JobPair lhs, JobPair rhs)
     return (lhs.job->get_critical_time() < rhs.job->get_critical_time());
 }
 
-void PendingFronts::sort_current_front(Data& current_front)
+bool compare_weights(JobPair lhs, JobPair rhs)
 {
-    switch (_preference)
+    return (lhs.current_preference < rhs.current_preference);
+}
+
+void PendingFronts::sort_current_front(Data& current_front, AlgorithmDataForWeights data_for_weights)
+{
+    double job_count_not_assigned = data_for_weights.job_count_not_assigned;
+    for (const auto& front : _data)
     {
-    case SPT:
-        std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_SPT);
-        break;
-    case LPT:
-        std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_LPT);
-        break;
-    case FLS:
-        std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_EST);
-        break;
+        job_count_not_assigned += front.job_pairs.size();
+    }
+
+    for (std::size_t i = 0; i < current_front.job_pairs.size(); i++)
+    {
+        auto& job_pair = current_front.job_pairs[i];
+        auto* job = job_pair.job;
+        AlgorithmWeights jw;
+        Weights::set(jw, Weights::ancestors_per_left, job->get_ancestors()->size() / job_count_not_assigned);
+        Weights::set(jw, Weights::ancestors_per_job, job->get_ancestors()->size() / data_for_weights.job_count_overall);
+        Weights::set(jw, Weights::critical_time_per_max_critical_time, job->get_critical_time() / data_for_weights.max_critical_time);
+        Weights::set(jw, Weights::avg_occupancy, job->get_average_occupancy());
+        Weights::set(jw, Weights::time_after_begin_per_overall_time,
+            (*_current_time - job->get_start_after()) / static_cast<double>(job->get_end_before() - job->get_start_after()));
+        job_pair.current_preference = 0;
+        for (auto& name : Weights::WeightsNames)
+        {
+            job_pair.current_preference += jw.at(name) * _weights.at(name);
+        }
+        // Current preference will probably be <= 1 in theory?
+    }
+    std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_weights);
+    for (auto& job : current_front.job_pairs)
+    {
+        qDebug() << "Time" << (*_current_time) << "Job" << job.job->get_global_id() << "Preference" << job.current_preference;
     }
 }
 
@@ -69,8 +91,8 @@ void PendingFronts::apply_preference_coefficient_to_current_front(Data& current_
     }
 }
 
-PendingFronts::PendingFronts(int *current_time, AssignedJobs *next, Preference preference, int look_ahead_time)
-    : _current_time(current_time), next(next), _look_ahead_time(look_ahead_time), _preference(preference)
+PendingFronts::PendingFronts(int *current_time, AssignedJobs *next, Preference preference, int look_ahead_time, AlgorithmWeights weights)
+    : _current_time(current_time), next(next), _look_ahead_time(look_ahead_time), _preference(preference), _weights(weights)
 {
 
 }
@@ -109,13 +131,30 @@ void PendingFronts::add(int front_time)
     }
 }
 
-bool PendingFronts::tick()
+void PendingFronts::sort_current_front_by_preference(Data& current_front)
+{
+    switch (_preference)
+    {
+    case SPT:
+        std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_SPT);
+        break;
+    case LPT:
+        std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_LPT);
+        break;
+    case FLS:
+        std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_EST);
+        break;
+    }
+}
+
+bool PendingFronts::tick(AlgorithmDataForWeights data_for_weights)
 {
     if (_data.size() == 0) return false;
-    bool result = false;
     int current_time = _data[0].time;
     Data current_front = _data[0];
-    sort_current_front(current_front);
+    if (_preference == Preference::NONE) sort_current_front(current_front, data_for_weights);
+    else sort_current_front_by_preference(current_front);
+
     apply_preference_coefficient_to_current_front(current_front);
 
     int transmitted_to_another_front = 0;
@@ -128,8 +167,12 @@ bool PendingFronts::tick()
         for (int j = 0; j < current_pending.worker_groups.size(); j++)
         {
             Placement earliest_placement = current_pending.worker_groups[j]->get_earliest_placement_time(current_pending.job);
-
+            
             if (!earliest_placement.worker) continue; // No available worker in that worker group
+            if (earliest_placement.time_before == 0 && current_time < current_pending.job->get_start_after())
+            {
+                earliest_placement.time_before = current_pending.job->get_start_after() - current_time; // Data fixer for look_ahead_time
+            }
             if (earliest_placement.time_before == 0) // Assign right now
             {
                 AssignedWorker assigned_to = current_pending.worker_groups[j]->assign(current_pending.job);
@@ -156,34 +199,19 @@ bool PendingFronts::tick()
             }
         }
         if (new_front_time == -1) continue; // Assigned right now
-        result = true;
         new_front_time += current_time;
         add(new_front_time, current_pending);
         // Check if new_front_time == current_time -> exception()?
         transmitted_to_another_front++;
     }
 
-    /*bool should_copy_front_plus_one = _data.size() == 1 && result;
-    if (last_loop_check_begin != 1 &&
-        last_loop_check_begin + _longest_plan_loop < current_time &&
-        _data.size() == 1)
+    if (_data[0].job_pairs.size() != transmitted_to_another_front + sent_to_next)
     {
-        should_copy_front_plus_one = true;
-    } // Just add everything in fronts instead of whatever this is?
-    if (should_copy_front_plus_one)
-    {
-        _data[0] = current_front;
-        _data[0].time++;
-        return true;
-    }*/
-
-    // ^ Shouldn't be needed. Every job must have a front with time equal to it's arrival plus ^
-    // ^  if this job cannot be started because of predecessors, they will trigger the update  ^
-
-    if (_data[0].job_pairs.size() != transmitted_to_another_front + sent_to_next) throw std::invalid_argument("Some job was lost");
+        throw std::invalid_argument("Some job was lost");
+    }
     _data.erase(_data.begin());
 
-    qDebug() << "Time before is" << (*_current_time);
+    //qDebug() << "Time before is" << (*_current_time);
 
     return update_time_to_front();
 }

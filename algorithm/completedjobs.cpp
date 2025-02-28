@@ -39,3 +39,8 @@ void CompletedJobs::prepare_for_next_iteration()
         job.job->set_preference_coefficient(old_coefficient + 1);
     }
 }
+
+std::size_t CompletedJobs::data_size()
+{
+    return _data.size();
+}

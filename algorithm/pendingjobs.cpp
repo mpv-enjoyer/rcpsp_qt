@@ -15,6 +15,20 @@ PendingJobs::PendingJobs(int *current_time, PendingFronts *next, int look_ahead_
         }
     }
     begin_set_critical_time();
+
+    for (const auto& job : _data)
+    {
+        bool job_possible = false;
+        for (const auto worker_group : job.worker_groups)
+        {
+            job_possible |= worker_group->check_if_job_is_possible(job.job);
+        }
+        if (!job_possible)
+        {
+            throw std::invalid_argument("Job is impossible for current plan");
+        }
+        if (_max_critical_time < job.job->get_critical_time()) _max_critical_time = job.job->get_critical_time();
+    }
 }
 
 int PendingJobs::set_critical_time(Data current_job_pair)
@@ -30,7 +44,9 @@ int PendingJobs::set_critical_time(Data current_job_pair)
         int internal_result = set_critical_time( { current_ancestors->at(j)->get_start_after(), current_ancestors->at(j)->get_end_before(), current_ancestors->at(j) } );
         result = internal_result < result ? internal_result : result;
     }
-    current_job_pair.job->set_critical_time(result - current_job_pair.job->get_time_to_spend());
+    double output = result - current_job_pair.job->get_time_to_spend();
+    if (output == -1) output = 0;
+    current_job_pair.job->set_critical_time(output);
     return result - current_job_pair.job->get_time_to_spend();
 }
 
@@ -55,14 +71,24 @@ bool PendingJobs::tick()
     bool result = false;
     for (int i = 0; i < _data.size(); i++)
     {
-        result = true; //moved up to not give up after current_time is too large.
-        if (_data[i].start_after > current_time + _look_ahead_time) continue; // previously -
+        result = true;
+        if (_data[i].start_after > current_time + _look_ahead_time) continue;
         if (!(_data[i].job->check_predecessors())) continue;
 
         next->add(current_time, _data[i]);
         _data.erase(_data.begin() + i);
         i--;
     }
-    qDebug() << "Pending jobs left:" << _data.size();
+    //qDebug() << "Pending jobs left:" << _data.size();
     return result;
+}
+
+std::size_t PendingJobs::data_size()
+{
+    return _data.size();
+}
+
+int PendingJobs::get_max_critical_time()
+{
+    return _max_critical_time;
 }

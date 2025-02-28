@@ -1,6 +1,53 @@
 #include "loader.h"
 #include "algorithm.h"
 
+struct JobLoad
+{
+    Job* assign;
+    int id;
+    std::vector<OccupancyPair> occupancy;
+    std::vector<int> ancestors;
+};
+
+struct WorkerLoad
+{
+    Worker* assign;
+    int id;
+    int plan;
+};
+
+struct PlanLoad
+{
+    Plan* assign;
+    int id;
+    int start_at;
+    std::vector<PlanElement> plan;
+};
+
+struct JobGroupLoad
+{
+    JobGroup* assign;
+    int id;
+    int start_after;
+    int end_before;
+    std::vector<int> worker_groups;
+    std::vector<int> jobs;
+};
+
+struct WorkerGroupLoad
+{
+    WorkerGroup* assign;
+    int id;
+    std::vector<int> workers;
+};
+
+// 0            | 1                         | 2                 | 3             | 4            | 5       | 6            | 7...
+// --------------------------------------------------------------------------------------------------------------------------------------------------
+// job          | id (from 0 without skips) | time, busyness... | ]             | ancestors... |         |              |
+// worker       | id (from 0 without skips) | plan_id           |               |              |         |              |
+// plan         | id (from 0 without skips) | start_at          | work, rest... |              |         |              |
+// job_group    | id (from 0 without skips) | start_after       | end_before    | worker_group | jobs... | ] (optional) | worker_groups... (optional)
+// worker_group | id (from 0 without skips) | workers...        |               |              |         |              |
 bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>& all_workers, std::vector<Job*>& all_jobs)
 {
     QFile file(file_name);
@@ -8,9 +55,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
         qDebug() << "File not exists";
         return false;
     }
-    // Создаём поток для извлечения данных из файла
     QTextStream in(&file);
-    // Считываем данные до конца файла
     std::vector<JobLoad> jobs_load;
     std::vector<WorkerLoad> workers_load;
     std::vector<PlanLoad> plans_load;
@@ -26,13 +71,15 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             JobLoad current = { nullptr, 0, {}, std::vector<int>() };
             current.id = list[1].toInt();
             int i = 2;
-            for (; list[i] != ']'; i += 2)
+            for (; list[i] != "]"; i += 2)
             {
-                current.occupancy.push_back({list[i].toInt(), list[i+1].toFloat() - 0.0001f});
+                if (list[i].size() == 0) break;
+                current.occupancy.push_back({list[i].toInt(), list[i+1].toFloat()});
             }
             i++;
             for (; i < list.size(); i++)
             {
+                if (list[i].size() == 0) break;
                 current.ancestors.push_back(list[i].toInt());
             }
             jobs_load.push_back(current);
@@ -51,20 +98,29 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             current.start_at = list[2].toInt();
             for (int i = 3; i < list.size(); i+=2)
             {
+                if (list[i].size() == 0) break;
                 current.plan.push_back({ list[i].toInt(), list[i + 1].toInt() });
             }
             plans_load.push_back(current);
         }
         if (list[0] == "job_group")
         {
-            JobGroupLoad current = { nullptr, 0, 0, 0, 0, std::vector<int>() };
+            JobGroupLoad current = { nullptr, 0, 0, 0, std::vector<int>(), std::vector<int>() };
             current.id = list[1].toInt();
             current.start_after = list[2].toInt();
             current.end_before = list[3].toInt();
-            current.worker_group = list[4].toInt();
-            for (int i = 5; i < list.size(); i++)
+            current.worker_groups.push_back(list[4].toInt());
+            int i = 5;
+            for (; i < list.size(); i++)
             {
+                if (list[i] == "]" || list[i].size() == 0) break;
                 current.jobs.push_back(list[i].toInt());
+            }
+            i++;
+            for (; i < list.size(); i++)
+            {
+                if (list[i].size() == 0) break;
+                current.worker_groups.push_back(list[i].toInt());
             }
             job_groups_load.push_back(current);
         }
@@ -74,26 +130,11 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             current.id = list[1].toInt();
             for (int i = 2; i < list.size(); i++)
             {
+                if (list[i].size() == 0) break;
                 current.workers.push_back(list[i].toInt());
             }
             worker_groups_load.push_back(current);
         }
-        if (list[0] == "preference")
-        {
-            if (list[1] == "SPT") algorithm.set_preference(SPT);
-            if (list[1] == "LPT") algorithm.set_preference(LPT);
-            if (list[1] == "FLS") algorithm.set_preference(FLS);
-        }
-        if (list[0] == "look_ahead")
-        {
-            algorithm.set_look_ahead_time(list[1].toInt());
-        }
-        // 1) job | worker | plan | job_group | worker_group | preference | look_ahead
-        // 2) id (from 0 without skips) | preference: "SPT | LPT | FLS" | look_ahead: number
-        // 3) job: time, busyness... | worker: plan_id | plan: start_at | job_group: start_after | worker_group: workers...
-        // 4) job: ] | | plan: work, rest... | job_group: end_before |
-        // 5) job: ancestors... | | | job_group: worker_group
-        // 6) | | | job_group: jobs...
     }
     file.close();
 
@@ -103,13 +144,22 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
         std::swap(plans_load[i], plans_load[plans_load[i].id]);
     }
     all_workers = std::vector<Worker*>(workers_load.size());
-    for (int i = 0; i < workers_load.size(); i++)
+    
+    bool workers_load_skipped_someone = true; // TODO: I can do this in one cycle
+    while (workers_load_skipped_someone)
     {
-        workers_load[i].assign = new Worker(*plans_load[workers_load[i].plan].assign);
-        int id_true = workers_load[i].id;
-        std::swap(workers_load[i], workers_load[id_true]);
-        all_workers[id_true] = workers_load[id_true].assign;
+        workers_load_skipped_someone = false;
+        for (int i = 0; i < workers_load.size(); i++)
+        {
+            if (workers_load[i].assign != nullptr) continue;
+            workers_load[i].assign = new Worker(*plans_load[workers_load[i].plan].assign);
+            int id_true = workers_load[i].id;
+            std::swap(workers_load[i], workers_load[id_true]);
+            all_workers[id_true] = workers_load[id_true].assign;
+            workers_load_skipped_someone = true;
+        }
     }
+
     for (int i = 0; i < worker_groups_load.size(); i++)
     {
         WorkerGroup* worker_group = new WorkerGroup();
@@ -166,8 +216,68 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             want_jobs.push_back(jobs_load[id].assign);
         }
         job_groups_load[i].assign = new JobGroup(want_jobs, job_groups_load[i].start_after, job_groups_load[i].end_before);
-        int current_worker_group_id = job_groups_load[i].worker_group;
-        algorithm.add_job_group(job_groups_load[i].assign, worker_groups_load[current_worker_group_id].assign);
+        auto current_worker_group_ids = job_groups_load[i].worker_groups;
+        std::vector<WorkerGroup*> worker_groups_for_job;
+        for (auto worker_group_id : current_worker_group_ids)
+        {
+            worker_groups_for_job.push_back(worker_groups_load[worker_group_id].assign);
+        }
+        algorithm.add_job_group(job_groups_load[i].assign, worker_groups_for_job);
     }
+    return true;
+}
+
+// preference | SPT or LPT or FLS
+// look_ahead | number
+bool Loader::LoadPreferences(QString file_name, Algorithm &algorithm)
+{
+    QFile file(file_name);
+    if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
+        qDebug() << "File not exists";
+        return false;
+    }
+    QTextStream in(&file);
+    while (!in.atEnd())
+    {
+        QString line = in.readLine();
+        QStringList list = line.split(";");
+        if (list[0] == "preference")
+        {
+            if (list[1] == "SPT") algorithm.set_preference(SPT);
+            if (list[1] == "LPT") algorithm.set_preference(LPT);
+            if (list[1] == "FLS") algorithm.set_preference(FLS);
+        }
+        if (list[0] == "look_ahead")
+        {
+            algorithm.set_look_ahead_time(list[1].toInt());
+        }
+    }
+    return true;
+}
+
+bool Loader::LoadWeights(QString file_name, Algorithm &algorithm)
+{
+    QFile file(file_name);
+    if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
+        qDebug() << "File not exists";
+        throw std::invalid_argument("Cannot start executing without weights");
+        return false;
+    }
+    QTextStream in(&file);
+    AlgorithmWeights weights = { };
+    while (!in.atEnd())
+    {
+        QString line = in.readLine();
+        QStringList list = line.split(";");
+        if (list.size() < 2) continue;
+        QString name = list[0];
+        double value = list[1].toDouble();
+        Weights::set(weights, name.toStdString(), value);
+    }
+    if (!Weights::are_valid(weights))
+    {
+        throw std::invalid_argument("Invalid weights");
+    }
+    algorithm.set_weights(weights);
     return true;
 }
