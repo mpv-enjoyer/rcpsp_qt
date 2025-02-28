@@ -102,6 +102,7 @@ class Algorithm
     int look_ahead_time = 0;
     int longest_plan_loop = 0;
     int _failed_jobs_count = 0;
+    std::size_t _penalty = 0;
     AlgorithmWeights _weights;
     static const int CURRENT_EQUAL_MAX = 1;
     static const int PASS_MAX_COUNT = 1;
@@ -118,6 +119,7 @@ public:
     void reset();
     int get_failed_jobs_count();
     std::string get_string_result(const std::vector<ResultPair>& completed) const;
+    std::size_t get_penalty() const;
 };
 
 #include <functional>

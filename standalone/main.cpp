@@ -183,10 +183,12 @@ int main(int argc, char** argv)
     bool solver = false;
     bool file_received = false;
     args.erase(args.begin());
+    int thread_count = 11; // I have 12 CPU cores ;_;
     for (auto arg : args)
     {
         if      (arg == "-DDO")    { qInstallMessageHandler(DisabledDebugOutput); } // Disable Debug Output
         else if (arg == "-SOLVER") { solver = true; }
+        else if (arg == "-T4")     { thread_count = 3; }
         else                       { assert(!file_received); input_file = arg.c_str(); file_received = true; }
     }
     if (!solver)
@@ -216,7 +218,7 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    std::vector<Algorithm> algorithm_vector(11); // I have 12 CPU cores ;_;
+    std::vector<Algorithm> algorithm_vector(thread_count);
     std::vector<Job*> all_jobs;
     std::vector<Worker*> all_workers;
     for (auto& algorithm : algorithm_vector)

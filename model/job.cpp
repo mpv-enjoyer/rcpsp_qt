@@ -173,3 +173,20 @@ void Job::set_preference_coefficient(int coefficient)
 {
     preference_coefficient = coefficient;
 }
+
+int Job::get_global_group_id() const
+{
+    if (global_group_id == -1) throw std::invalid_argument("Global group id not set");
+    return global_group_id;
+}
+
+void Job::set_global_group_id(int id)
+{
+    if (global_group_id != -1) throw std::invalid_argument("Global group id already set");
+    global_group_id = id;
+}
+
+bool Job::is_failed(int start_time) const
+{
+    return (start_time + get_time_to_spend()) > get_end_before();
+}

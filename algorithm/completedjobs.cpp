@@ -17,7 +17,7 @@ int CompletedJobs::failed_count()
     int result = 0;
     for (const auto& data : _data)
     {
-        if (data.start + data.job->get_time_to_spend() > data.job->get_end_before()) result++;
+        if (data.job->is_failed(data.start)) result++;
     }
     return result;
 }

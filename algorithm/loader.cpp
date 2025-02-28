@@ -209,10 +209,15 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
     }
     for (int i = 0; i < job_groups_load.size(); i++)
     {
+        if (job_groups_load[i].id != i) throw std::invalid_argument("Bad job group ID");
+    }
+    for (int i = 0; i < job_groups_load.size(); i++)
+    {
         std::vector<Job*> want_jobs;
         for (int j = 0; j < job_groups_load[i].jobs.size(); j++)
         {
             int id = job_groups_load[i].jobs[j];
+            jobs_load[id].assign->set_global_group_id(i);
             want_jobs.push_back(jobs_load[id].assign);
         }
         job_groups_load[i].assign = new JobGroup(want_jobs, job_groups_load[i].start_after, job_groups_load[i].end_before);

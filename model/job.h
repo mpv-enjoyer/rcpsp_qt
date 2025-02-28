@@ -26,6 +26,7 @@ private:
     std::vector<OccupancyPair> occupancy;
     int preference_coefficient = 0;
     double avg_occupancy_buffered = 0;
+    int global_group_id = -1;
 public:
     Job(int renewable, int non_renewable, std::vector<OccupancyPair> occupancy);
     int get_time_to_spend() const;
@@ -53,6 +54,9 @@ public:
     double get_average_occupancy() const;
     int get_preference_coefficient() const;
     void set_preference_coefficient(int coefficient);
+    int get_global_group_id() const;
+    void set_global_group_id(int id);
+    bool is_failed(int start_time) const;
 };
 
 #endif // JOB_H

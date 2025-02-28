@@ -159,6 +159,8 @@ std::string Algorithm::get_string_result(const std::vector<ResultPair> &complete
     return output.str();
 }
 
+#include <unordered_map>
+
 int Algorithm::run()
 {
     int best_failed_jobs = __INT_MAX__;
@@ -231,12 +233,32 @@ int Algorithm::run()
     }
     qDebug() << "final failed job count:" << best_failed_jobs << "with" << _completed_jobs.size() << "completed";
     _failed_jobs_count = best_failed_jobs;
+
+    // Calculate penalty
+    _penalty = 0;
+    std::unordered_map<int, int> failed_groups; // job_group_id -> time
+    for (auto& resultpair : _completed_jobs)
+    {
+        auto id = resultpair.job->get_global_group_id();
+        if (!(resultpair.job->is_failed(resultpair.start))) continue;
+        int failed_time = resultpair.start + resultpair.job->get_time_to_spend() - resultpair.job->get_end_before(); 
+        failed_groups[id] = std::max(failed_groups[id], failed_time);
+    }
+    for (auto failed_group : failed_groups)
+    {
+        _penalty += failed_group.second;
+    }
     return time_used;
 }
 
 std::vector<ResultPair> Algorithm::get_completed()
 {
     return _completed_jobs;
+}
+
+std::size_t Algorithm::get_penalty() const
+{
+    return _penalty;
 }
 
 #include <cmath>
@@ -297,3 +319,5 @@ void Stats::init_coeff(std::map<double, double> &coeff, std::function<double (Re
         coeff[current.first * precision] = current.second;
     }
 }
+
+
