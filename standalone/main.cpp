@@ -205,6 +205,7 @@ int main(int argc, char** argv)
         auto completed = algorithm.get_completed();
         Stats stats(completed, 0.1);
         std::cout << algorithm.get_string_result(completed);
+        std::cout << "Penalty: " << algorithm.get_penalty();
         //std::cout << "STATS (wait_coeff): \n";
         //for (auto point : stats.wait_coeff)
         //{
@@ -250,8 +251,8 @@ int main(int argc, char** argv)
         if (!Weights::are_valid(weights)) weights = Weights::fix(weights);
         algorithm.set_weights(weights);
         std::cout << " max time: " << algorithm.run() << "\n";
-        std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
-        int value = algorithm.get_failed_jobs_count();
+        std::cout << " penalty: " << algorithm.get_penalty() << "\n";
+        std::size_t value = algorithm.get_penalty();
         algorithm.reset();
         return value;
     };
