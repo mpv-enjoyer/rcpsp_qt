@@ -169,8 +169,8 @@ def write_to(string):
     f.write(string)
     #generated.__add__(string)
 
-print(job_count := get_random_int(10000, 200000))
-print(worker_count := get_random_int(max(job_count / 140, 1), job_count / 40))
+print(job_count := get_random_int(70000, 75000))
+print(worker_count := get_random_int(max(job_count / 70, 1), job_count / 50))
 #print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
 PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ], ID_begin????, count
     [[ 0 ], [ 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 3780 ], 0, 1], # 5/2 (9 часов рабочий день с перерывом в 1 час)
@@ -195,12 +195,12 @@ for plan_id in range(len(PLANS)):
         write_to("\n")
         plan_count += 1
 
-min_job_time_to_spend = get_random_int(1, max_plan_unit)
-max_job_time_to_spend = get_random_int(1, max_plan_unit)
+min_job_time_to_spend = get_random_int(60, 100)
+max_job_time_to_spend = get_random_int(101, 140)
 if max_job_time_to_spend <= min_job_time_to_spend:
     max_job_time_to_spend, min_job_time_to_spend = min_job_time_to_spend + 1, max_job_time_to_spend
 # Swapped them if necessary
-max_job_group_count = get_random_int(1, job_count)
+max_job_group_count = get_random_int(job_count * 2.0 / 3.0, job_count)
 wdist1 = get_random_whatever_dist() # We need to preserve the same "whatever" dists for all jobs
 wdist2 = get_random_whatever_dist()
 wdist3 = get_random_whatever_dist()

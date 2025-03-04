@@ -84,18 +84,26 @@ bool Worker::is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time)
     }
     if (time_left < time_want_to_use) return false;
 
-    std::vector<std::vector<OccupancyPair>> all_occupancies;
+    struct OccupancyWithIndex
+    {
+        std::vector<OccupancyPair> data;
+        std::size_t i;
+    };
+
+    std::vector<OccupancyWithIndex> all_occupancies;
+    all_occupancies.reserve(current_jobs.size());
     for (auto job : current_jobs)
     {
         auto current = job.job->get_occupancy();
         int difference = fetch_time - job.time_start;
-        for (int i = 0; i < current.size(); i++)
+        std::size_t i = 0;
+        for (; i < current.size(); i++)
         {
             if (current[i].time - difference <= 0)
             {
                 difference -= current[i].time;
-                current.erase(current.begin());
-                i--;
+                //current.erase(current.begin());
+                //i--;
             }
             else
             {
@@ -103,21 +111,26 @@ bool Worker::is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time)
                 break;
             }
         }
-        if (current.size() != 0) all_occupancies.push_back(current);
+        if (current.size() != 0) all_occupancies.push_back(OccupancyWithIndex{ .data = std::vector<OccupancyPair>(current.begin() + i, current.end()), .i = 0 });
     }
-    while (want_occupancy.size() != 0)
+    std::size_t want_occupancy_i = 0;
+    while (want_occupancy_i < want_occupancy.size())
     {
         float occupancy = 0.0f;
-        occupancy += want_occupancy[0].occupancy;
-        want_occupancy[0].time -= 1;
-        if (want_occupancy[0].time <= 0) want_occupancy.erase(want_occupancy.begin());
+        occupancy += want_occupancy[want_occupancy_i].occupancy;
+        want_occupancy[want_occupancy_i].time -= 1;
+        if (want_occupancy[want_occupancy_i].time <= 0) want_occupancy_i++;
         for (int i = 0; i < all_occupancies.size(); i++)
         {
-            occupancy += all_occupancies[i][0].occupancy;
-            all_occupancies[i][0].time -= 1;
-            if (all_occupancies[i][0].time <= 0)
+            auto& local_occupancy = all_occupancies[i];
+            if (local_occupancy.i >= local_occupancy.data.size()) continue;
+            occupancy += local_occupancy.data[local_occupancy.i].occupancy;
+            local_occupancy.data[local_occupancy.i].time -= 1;
+            if (local_occupancy.data[local_occupancy.i].time <= 0)
             {
-                all_occupancies[i].erase(all_occupancies[i].begin());
+                local_occupancy.i++;
+
+                //all_occupancies.erase(all_occupancies[i].begin());
             }
         }
         if (occupancy > 1.0f) return false;
