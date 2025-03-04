@@ -15,14 +15,20 @@ bool Weights::set(AlgorithmWeights& weights, std::string name, double value)
 bool Weights::are_valid(AlgorithmWeights weights)
 {
     double sum = 0;
-    for (auto key : WeightsNames) sum += weights.at(key);
+    for (auto key : WeightsNames) sum += std::abs(weights.at(key));
     if (sum != 1) return false;
     return true;
 }
 AlgorithmWeights Weights::fix(AlgorithmWeights weights)
 {
     double sum = 0;
-    for (auto key : WeightsNames) sum += weights.at(key);
+    for (auto key : WeightsNames) sum += std::abs(weights.at(key));
+    for (auto key : WeightsNames)
+    {
+        weights[key] /= sum;
+    }
+    sum = 0; // further fix for double inaccuracy
+    for (auto key : WeightsNames) sum += std::abs(weights.at(key));
     double diff = sum - 1;
     if (diff == 0) return weights;
     if (diff < 0)

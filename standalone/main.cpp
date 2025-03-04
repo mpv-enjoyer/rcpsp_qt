@@ -157,7 +157,7 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
     //    best.check_update(p.position, p.value);
     //}
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 50; i++)
     {
         std::vector<std::unique_ptr<std::thread>> threads;
         for (auto& particle : particles)
@@ -256,7 +256,7 @@ int main(int argc, char** argv)
         algorithm.reset();
         return value;
     };
-    particle_swarm(0.1, 0.9, calculate_value, algorithm_vector);
+    particle_swarm(0.0001, 0.9999, calculate_value, algorithm_vector);
 }
 
 /*
