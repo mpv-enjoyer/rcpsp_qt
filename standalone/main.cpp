@@ -35,7 +35,19 @@ struct BestParticle
 {
     Point m_position;
     std::mutex m_mutex;
+    std::mutex m_mutex_position;
+    std::mutex m_mutex_value;
     double m_value = __DBL_MAX__;
+    Point get_position()
+    {
+        //std::lock_guard g(m_mutex_position);
+        return m_position;
+    };
+    double get_value()
+    {
+        //std::lock_guard g(m_mutex_value);
+        return m_value;
+    }
     bool check_update(Point position, double value)
     {
         std::lock_guard g(m_mutex);
@@ -58,15 +70,15 @@ struct BestParticle
     }
 };
 
-std::pair<Point, double> particle_swarm(double min, double max, std::function<double(Point, Algorithm&)> calculate_value, std::vector<Algorithm>& algorithm_vector)
+std::pair<Point, double> particle_swarm(double min, double max, std::function<double(Point, std::string)> calculate_value, std::vector<std::string>& input_files)
 {
     // https://en.wikipedia.org/wiki/Particle_swarm_optimization
     BestParticle best;
     struct Particle
     {
         BestParticle& best;
-        std::function<double(Point, Algorithm&)> calculate_value;
-        Algorithm& algorithm;
+        std::function<double(Point, std::string)> calculate_value;
+        std::vector<std::string> input_files;
         Point position;
         Point best_known_position;
         Point velocity;
@@ -78,8 +90,8 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
 //     if f(pi) < f(g) then
 //         update the swarm's best known position: g ← pi
 //     Initialize the particle's velocity: vi ~ U(-|bup-blo|, |bup-blo|)
-        Particle(double min, double max, BestParticle& best_swarm_position, Algorithm& algorithm, std::function<double(Point, Algorithm&)> calculate_value)
-        : best(best_swarm_position), calculate_value(calculate_value), algorithm(algorithm)
+        Particle(double min, double max, BestParticle& best_swarm_position, std::vector<std::string> input_files, std::function<double(Point, std::string)> calculate_value)
+        : best(best_swarm_position), calculate_value(calculate_value), input_files(input_files)
         {
             double len = max - min;
             for (std::size_t i = 0; i < DIMENSIONS; i++)
@@ -89,12 +101,16 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
                 best_known_position[i] = generated;
                 velocity[i] = random_double(-len, len);
             }
-            
+            position = normalize_point(position);
             update_best();
         }
         void update_best()
         {
-            value = calculate_value(position, algorithm);
+            double value = 0;
+            for (auto input_file : input_files)
+            {
+                value += calculate_value(position, input_file);
+            }
             if (value < best_value)
             {
                 best_known_position = position;
@@ -103,6 +119,34 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
             best.check_update(position, value);
         }
         
+        Point normalize_point(Point point)
+        {
+            double sum = 0;
+            for (auto dim : point) sum += std::abs(dim);
+            for (auto& dim : point)
+            {
+                dim /= sum;
+            }
+            sum = 0; // further fix for double inaccuracy
+            for (auto dim : point) sum += std::abs(dim);
+            double diff = sum - 1;
+            if (diff == 0) return point;
+            if (diff < 0)
+            {
+                *point.begin() -= diff;
+                return point;
+            }
+            for (auto& dim : point)
+            {
+                if (dim >= -1 + diff)
+                {
+                    dim -= diff;
+                    return point;
+                }
+            }
+            assert(false);
+        }
+
         void update()
         {
 // while a termination criterion is not met do:
@@ -118,54 +162,47 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
             static constexpr double W = 0.5; // Inertia weight < 1
             static constexpr double PHIp = 1.5; // "Typical values are in [1, 3]"
             static constexpr double PHIg = 2.5; // "Typical values are in [1, 3]"
+            Point best_position = best.get_position();
             for (std::size_t dimension = 0; dimension < DIMENSIONS; dimension++)
             {
                 double rp = random_double(0, 1);
                 double rg = random_double(0, 1);
                 velocity[dimension] = W * velocity[dimension] +
                                                 PHIp * rp * (best_known_position[dimension] - position[dimension]) +
-                                                PHIg * rg * (best.m_position[dimension] - position[dimension]);
+                                                PHIg * rg * (best_position[dimension] - position[dimension]);
                 position[dimension] += velocity[dimension];
             }
+            position = normalize_point(position);
             update_best();
         }
     };
-    const double PARTICLE_COUNT = algorithm_vector.size();
+    const int PARTICLE_COUNT = 11;//algorithm_vector.size();
     const double PARTICLE_MIN = min;
     const double PARTICLE_MAX = max;
 
     //std::vector<Particle> particles(PARTICLE_COUNT, Particle(PARTICLE_MIN, PARTICLE_MAX, best));
-    std::mutex mutex_for_particles;
+    //std::mutex mutex_for_particles;
     std::vector<Particle> particles;
     std::vector<std::future<Particle>> particle_futures;
-    for (auto& algorithm : algorithm_vector)
+    
+    for (int particle_common_id = 0; particle_common_id < PARTICLE_COUNT; particle_common_id++)
     {
-        particle_futures.emplace_back(std::async(std::launch::async, [&]() -> Particle { return Particle(PARTICLE_MIN, PARTICLE_MAX, best, algorithm, calculate_value); }));
-        //particle_futures.emplace_back([&]()
-        //{
-        //    Particle p(PARTICLE_MIN, PARTICLE_MAX, best, algorithm, calculate_value);
-        //});
+        particle_futures.emplace_back(std::async(std::launch::async, [&]() -> Particle
+        {
+            return Particle(PARTICLE_MIN, PARTICLE_MAX, best, input_files, calculate_value);
+        }));
     }
-
     for (auto& particle : particle_futures)
     {
         particle.wait();
         particles.push_back(particle.get());
     }
-    //for (auto p : particles)
-    //{
-    //    best.check_update(p.position, p.value);
-    //}
-
     for (int i = 0; i < 50; i++)
     {
         std::vector<std::unique_ptr<std::thread>> threads;
         for (auto& particle : particles)
         {
-            //std::unique_ptr<std::thread> t = std::make_unique<std::thread>([&](){ particle.update(); });
             threads.push_back(std::make_unique<std::thread>([&](){ particle.update(); }));
-            //std::cout << "p";
-            //threads.back()->detach();
         }
         for (auto& t : threads)
         {
@@ -183,14 +220,14 @@ int main(int argc, char** argv)
     bool solver = false;
     bool file_received = false;
     args.erase(args.begin());
-    int thread_count = 11; // I have 12 CPU cores ;_;
+    std::vector<std::string> input_files;
     for (auto arg : args)
     {
         if      (arg == "-DDO")    { qInstallMessageHandler(DisabledDebugOutput); } // Disable Debug Output
         else if (arg == "-SOLVER") { solver = true; }
-        else if (arg == "-T4")     { thread_count = 3; }
-        else                       { assert(!file_received); input_file = arg.c_str(); file_received = true; }
+        else                       { input_files.push_back(arg); std::cout << "Input file " << input_files.size() << " " << arg << "\n"; }
     }
+    input_file = QString::fromStdString(input_files.front());
     if (!solver)
     {
         std::cout << "No solver." << "\n";
@@ -219,44 +256,53 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    std::vector<Algorithm> algorithm_vector(thread_count);
-    std::vector<Job*> all_jobs;
-    std::vector<Worker*> all_workers;
-    for (auto& algorithm : algorithm_vector)
-    {
-        Loader::Load(input_file, algorithm, all_workers, all_jobs);
-        Loader::LoadPreferences(input_file, algorithm);
-    }
+    //std::vector<Algorithm> algorithm_vector(thread_count);
+    //std::vector<Job*> all_jobs;
+    //std::vector<Worker*> all_workers;
+    //for (auto& algorithm : algorithm_vector)
+    //{
+    //    Loader::Load(input_file, algorithm, all_workers, all_jobs);
+    //    Loader::LoadPreferences(input_file, algorithm);
+    //}
 
-    auto calculate_value = [&all_jobs](Point point, Algorithm& algorithm) -> double
+    auto calculate_value = [](Point point, std::string input_file) -> double
     {
+        Algorithm algorithm;
+        std::vector<Job*> all_jobs;
+        std::vector<Worker*> all_workers;
+        static std::mutex LOAD_MUTEX;
+        {
+            std::lock_guard g(LOAD_MUTEX);
+            Loader::Load(QString::fromStdString(input_file), algorithm, all_workers, all_jobs);
+            Loader::LoadPreferences(QString::fromStdString(input_file), algorithm);
+        }
         assert(algorithm.get_preference() == Preference::NONE);
         // Check if point is outside of [0, 1].
         print_point(point);
-        double sum = 0;
-        for (auto dim_value : point)
-        {
-            //if (dim_value < 1 && dim_value > 0) { /* good */ }
-            //else { return all_jobs.size() * 5; /* punishment for being too far */ }
-            // Allow every point, just normalize afterwards
-            sum += dim_value;
-        }
+        //double sum = 0;
+        //for (auto dim_value : point)
+        //{
+        //    //if (dim_value < 1 && dim_value > 0) { /* good */ }
+        //    //else { return all_jobs.size() * 5; /* punishment for being too far */ }
+        //    // Allow every point, just normalize afterwards
+        //    sum += dim_value;
+        //}
         std::size_t dim = 0;
         AlgorithmWeights weights;
         for (auto name : Weights::WeightsNames)
         {
-            Weights::set(weights, name, point[dim] / sum);
+            Weights::set(weights, name, point[dim]);
             dim++;
         }
         if (!Weights::are_valid(weights)) weights = Weights::fix(weights);
         algorithm.set_weights(weights);
         std::cout << " max time: " << algorithm.run() << "\n";
-        std::cout << " penalty: " << algorithm.get_penalty() << "\n";
         std::size_t value = algorithm.get_penalty();
+        std::cout << " penalty: " << value << "\n";
         algorithm.reset();
         return value;
     };
-    particle_swarm(0.0001, 0.9999, calculate_value, algorithm_vector);
+    particle_swarm(-1, 1, calculate_value, input_files);
 }
 
 /*

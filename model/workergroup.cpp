@@ -104,3 +104,11 @@ const Worker *WorkerGroup::get_worker(int id) const
 {
     return workers.at(id);
 }
+
+WorkerGroup::~WorkerGroup()
+{
+    for (auto worker : workers)
+    {
+        delete worker;
+    }
+}

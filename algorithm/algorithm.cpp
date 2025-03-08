@@ -38,7 +38,7 @@ AlgorithmWeights Weights::fix(AlgorithmWeights weights)
     }
     for (auto key : WeightsNames)
     {
-        if (weights.at(key) >= diff)
+        if (weights.at(key) >= -1 + diff)
         {
             weights.at(key) -= diff;
             return weights;
@@ -276,6 +276,25 @@ std::vector<ResultPair> Algorithm::get_completed()
 std::size_t Algorithm::get_penalty() const
 {
     return _penalty;
+}
+
+#include <unordered_set>
+
+Algorithm::~Algorithm()
+{
+    std::unordered_set<WorkerGroup*> worker_groups_deleted;
+    for (auto pending_job : _pending_jobs)
+    {
+        delete pending_job.job;
+        for (auto worker_group : pending_job.worker_groups)
+        {
+            if (worker_groups_deleted.count(worker_group) == 0)
+            {
+                worker_groups_deleted.insert(worker_group);
+                delete worker_group;
+            }
+        }        
+    }
 }
 
 #include <cmath>

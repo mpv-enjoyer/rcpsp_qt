@@ -32,6 +32,7 @@ public:
     int get_global_id();
     bool check_if_job_is_possible(const Job* job);
     const Worker* get_worker(int id) const;
+    ~WorkerGroup();
 };
 
 #endif // WORKERGROUP_H

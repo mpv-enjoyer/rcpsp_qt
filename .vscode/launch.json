@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/standalone/rcpsp",
-            "args": ["/home/alex/Projects/rcpsp_qt/samples/2025-02-12 17:35:06.197479.csv", "-DDO"],
+            "args": ["/home/alex/Projects/rcpsp_test/case1.csv", "-DDO", "-SOLVER"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/standalone",
             "environment": [],

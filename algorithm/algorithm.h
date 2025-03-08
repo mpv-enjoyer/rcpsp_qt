@@ -124,6 +124,7 @@ public:
     int get_failed_jobs_count();
     std::string get_string_result(const std::vector<ResultPair>& completed) const;
     std::size_t get_penalty() const;
+    ~Algorithm();
 };
 
 #include <functional>
