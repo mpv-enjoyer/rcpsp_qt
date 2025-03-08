@@ -31,6 +31,7 @@ struct JobPair
     Job* job;
     std::vector<WorkerGroup*> worker_groups;
     int id;
+    double worker_count;
     double current_preference = 0;
 };
 
@@ -45,7 +46,7 @@ struct ResultPair
 };
 
 using AlgorithmWeights = std::unordered_map<std::string, double>;
-#define REGISTER_WEIGHT(N) const std::string N = #N
+#define REGISTER_WEIGHT(N) const static std::string N = #N
 namespace Weights
 {
     REGISTER_WEIGHT(ancestors_per_left); // кол-во последователей / кол-во оставшихся требований
@@ -53,14 +54,16 @@ namespace Weights
     REGISTER_WEIGHT(critical_time_per_max_critical_time); // критическое время требования / максимальное критическое время всех требований
     REGISTER_WEIGHT(avg_occupancy); // средняя занятость станка во время выполнения
     REGISTER_WEIGHT(time_after_begin_per_overall_time); // время от начала выполнения до текущего момента / время всего на выполнение этого требования
-    constexpr static size_t SIZE = 5;
+    REGISTER_WEIGHT(worker_count_per_max_worker_count); // кол-во станков / максимальное число станков для требования
+    constexpr static size_t SIZE = 6;
     const std::set<std::string> WeightsNames =
     {
         "ancestors_per_left", // кол-во последователей / кол-во оставшихся требований
         "ancestors_per_job", // кол-во последователей / кол-во требований всего
         "critical_time_per_max_critical_time", // критическое время требования / максимальное критическое время всех требований
         "avg_occupancy", // средняя занятость станка во время выполнения
-        "time_after_begin_per_overall_time" // время от начала выполнения до текущего момента / время всего на выполнение этого требования
+        "time_after_begin_per_overall_time", // время от начала выполнения до текущего момента / время всего на выполнение этого требования
+        "worker_count_per_max_worker_count" // кол-во станков / максимальное число станков для требования
     };
     double get(AlgorithmWeights weights, std::string name);
     bool set(AlgorithmWeights& weights, std::string name, double value);
@@ -75,6 +78,7 @@ struct AlgorithmDataForWeights
     double job_count_not_assigned;
     double job_count_overall;
     double max_critical_time;
+    double worker_max_count;
 };
 
 #include "pendingjobs.h"

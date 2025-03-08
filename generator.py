@@ -169,7 +169,7 @@ def write_to(string):
     f.write(string)
     #generated.__add__(string)
 
-print(job_count := get_random_int(70000, 75000))
+print(job_count := get_random_int(120000, 130000))
 print(worker_count := get_random_int(max(job_count / 70, 1), job_count / 50))
 #print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
 PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ], ID_begin????, count
@@ -195,8 +195,8 @@ for plan_id in range(len(PLANS)):
         write_to("\n")
         plan_count += 1
 
-min_job_time_to_spend = get_random_int(60, 100)
-max_job_time_to_spend = get_random_int(101, 140)
+min_job_time_to_spend = get_random_int(80, 120)
+max_job_time_to_spend = get_random_int(130, 170)
 if max_job_time_to_spend <= min_job_time_to_spend:
     max_job_time_to_spend, min_job_time_to_spend = min_job_time_to_spend + 1, max_job_time_to_spend
 # Swapped them if necessary
@@ -315,7 +315,7 @@ for job_group in job_groups_dict:
     #sector_time = len(job_groups_dict) / 100
     sector_time = MAX_PLAN_UNIT
     SECTOR_COEFFICIENT = len(job_groups_dict)
-    WORKER_COEFFICIENT = 15000 / worker_count
+    WORKER_COEFFICIENT = 10000 / worker_count
     JOB_GROUP_TIME_SECTOR_COUNT = WORKER_COEFFICIENT * SECTOR_COEFFICIENT / sector_time
     current_job_group_coeff = float(job_group / len(job_groups_dict))
     low_sector = current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT

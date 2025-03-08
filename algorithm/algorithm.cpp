@@ -75,11 +75,16 @@ Algorithm::Algorithm()
 
 void Algorithm::add_job_group(JobGroup* jobs, std::vector<WorkerGroup*> worker_groups)
 {
+    std::size_t worker_count = 0;
+    for (const auto& worker_group : worker_groups)
+    {
+        worker_count += worker_group->get_size();
+    }
     for (int i = 0; i < jobs->get_size(); i++)
     {
         int start = jobs->get_start();
         int end = jobs->get_end();
-        JobPair new_pair = {start, end, jobs->get_job(i), worker_groups, static_cast<int>(_pending_jobs.size())};
+        JobPair new_pair = {start, end, jobs->get_job(i), worker_groups, static_cast<int>(_pending_jobs.size()), worker_count};
         _pending_jobs.push_back(new_pair);
     }
     for (auto workers : worker_groups)
@@ -174,6 +179,11 @@ int Algorithm::run()
     int current_failed_jobs = 0;
     int current_equal_failed = 0;
     std::vector<ResultPair> current_completed_jobs;
+    std::size_t worker_max_count = 0;
+    for (const auto& pending_job : _pending_jobs)
+    {
+        worker_max_count = std::max(static_cast<double>(worker_max_count), pending_job.worker_count);
+    }
     for (int i = 0; ; i++)
     {
         int current_time = 0;
@@ -190,7 +200,8 @@ int Algorithm::run()
             {
             .job_count_not_assigned = pending_jobs.data_size(),
             .job_count_overall = _pending_jobs.size(),
-            .max_critical_time = pending_jobs.get_max_critical_time()
+            .max_critical_time = pending_jobs.get_max_critical_time(),
+            .worker_max_count = worker_max_count
             };
 
             must_continue = false;
@@ -200,7 +211,7 @@ int Algorithm::run()
         }
 
         current_completed_jobs = completed_jobs.result();
-        if (current_completed_jobs.size() != _pending_jobs.size()) throw std::invalid_argument("Lost some jobs"); // Lost some jobs
+        if (current_completed_jobs.size() != _pending_jobs.size()) throw std::invalid_argument("Lost some jobs");
 
         current_failed_jobs = completed_jobs.failed_count();
         if (current_failed_jobs == 0 || i + 1 >= PASS_MAX_COUNT)
