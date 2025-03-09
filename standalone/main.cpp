@@ -6,6 +6,7 @@
 #include <QRandomGenerator>
 #include <mutex>
 #include <future>
+#include <optional>
 
 static constexpr auto DIMENSIONS = Weights::SIZE;
 using Point = std::array<double, DIMENSIONS>;
@@ -61,6 +62,7 @@ struct BestParticle
     }
     void print(std::size_t i)
     {
+        std::cout << "\n";
         std::cout << i << ") Best particle is f(";
         for (auto position_dimension : m_position)
         {
@@ -109,13 +111,18 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
             double value = 0;
             for (auto input_file : input_files)
             {
+                //std::cout << ".";
                 value += calculate_value(position, input_file);
+                std::cout << ".";
+                std::cout.flush();
             }
             if (value < best_value)
             {
                 best_known_position = position;
                 best_value = value;
             }
+            std::cout << "Penalty sum (" << value << ") for ";
+            print_point(position);
             best.check_update(position, value);
         }
         
@@ -176,7 +183,7 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
             update_best();
         }
     };
-    const int PARTICLE_COUNT = 11;//algorithm_vector.size();
+    const int PARTICLE_COUNT = 12;//algorithm_vector.size();
     const double PARTICLE_MIN = min;
     const double PARTICLE_MAX = max;
 
@@ -184,7 +191,7 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
     //std::mutex mutex_for_particles;
     std::vector<Particle> particles;
     std::vector<std::future<Particle>> particle_futures;
-    
+
     for (int particle_common_id = 0; particle_common_id < PARTICLE_COUNT; particle_common_id++)
     {
         particle_futures.emplace_back(std::async(std::launch::async, [&]() -> Particle
@@ -221,11 +228,14 @@ int main(int argc, char** argv)
     bool file_received = false;
     args.erase(args.begin());
     std::vector<std::string> input_files;
-    for (auto arg : args)
+    std::optional<AlgorithmWeights> weights;
+    for (std::size_t i = 0; i < args.size(); i++)
     {
-        if      (arg == "-DDO")    { qInstallMessageHandler(DisabledDebugOutput); } // Disable Debug Output
-        else if (arg == "-SOLVER") { solver = true; }
-        else                       { input_files.push_back(arg); std::cout << "Input file " << input_files.size() << " " << arg << "\n"; }
+        auto arg = args[i];
+        if      (arg == "-DDO")     { qInstallMessageHandler(DisabledDebugOutput); } // Disable Debug Output
+        else if (arg == "-SOLVER")  { solver = true; }
+        else if (arg == "-WEIGHTS") { weights = AlgorithmWeights(); for (auto name : Weights::WeightsNames) { i++; double value = std::atof(args[i].c_str()); weights->insert({name, value}); } }
+        else                        { input_files.push_back(arg); std::cout << "Input file " << input_files.size() << " " << arg << "\n"; }
     }
     input_file = QString::fromStdString(input_files.front());
     if (!solver)
@@ -236,7 +246,14 @@ int main(int argc, char** argv)
         std::vector<Worker*> all_workers;
         Loader::Load(input_file, algorithm, all_workers, all_jobs);
         Loader::LoadPreferences(input_file, algorithm);
-        if (algorithm.get_preference() == Preference::NONE) algorithm.set_weights(Weights::create_equal());
+        if (algorithm.get_preference() == Preference::NONE)
+        {
+            algorithm.set_weights(*weights);
+        }
+        else
+        {
+            assert(!weights.has_value());
+        }
         std::cout << " max time: " << algorithm.run() << " ";
         std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
         auto completed = algorithm.get_completed();
@@ -265,20 +282,18 @@ int main(int argc, char** argv)
     //    Loader::LoadPreferences(input_file, algorithm);
     //}
 
+    assert(!weights.has_value());
+
     auto calculate_value = [](Point point, std::string input_file) -> double
     {
         Algorithm algorithm;
         std::vector<Job*> all_jobs;
         std::vector<Worker*> all_workers;
-        static std::mutex LOAD_MUTEX;
-        {
-            std::lock_guard g(LOAD_MUTEX);
-            Loader::Load(QString::fromStdString(input_file), algorithm, all_workers, all_jobs);
-            Loader::LoadPreferences(QString::fromStdString(input_file), algorithm);
-        }
+        Loader::Load(QString::fromStdString(input_file), algorithm, all_workers, all_jobs);
+        Loader::LoadPreferences(QString::fromStdString(input_file), algorithm);
         assert(algorithm.get_preference() == Preference::NONE);
         // Check if point is outside of [0, 1].
-        print_point(point);
+        //print_point(point);
         //double sum = 0;
         //for (auto dim_value : point)
         //{
@@ -296,9 +311,10 @@ int main(int argc, char** argv)
         }
         if (!Weights::are_valid(weights)) weights = Weights::fix(weights);
         algorithm.set_weights(weights);
-        std::cout << " max time: " << algorithm.run() << "\n";
+        algorithm.run();
+        //std::cout << " max time: " << algorithm.run() << "\n";
         std::size_t value = algorithm.get_penalty();
-        std::cout << " penalty: " << value << "\n";
+        //std::cout << " penalty: " << value << "\n";
         algorithm.reset();
         return value;
     };
