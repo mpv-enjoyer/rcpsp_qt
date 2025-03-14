@@ -12,40 +12,54 @@ bool Weights::set(AlgorithmWeights& weights, std::string name, double value)
     weights[name] = value;
     return true;
 }
-bool Weights::are_valid(AlgorithmWeights weights)
+bool Weights::are_valid(AlgorithmWeights& weights)
 {
-    double sum = 0;
-    for (auto key : WeightsNames) sum += std::abs(weights.at(key));
-    if (sum != 1) return false;
+    static constexpr double EPSILON = 0.0001;
+    for (auto name : WeightsNames)
+    {
+        auto& value = weights.at(name);
+        if (std::abs(value) > 1 + EPSILON) return false;
+        if (std::abs(value) > 1) value = 1;
+    }
     return true;
+    //double sum = 0;
+    //for (auto key : WeightsNames) sum += std::abs(weights.at(key));
+    //if (sum != 1) return false;
+    //return true;
 }
-AlgorithmWeights Weights::fix(AlgorithmWeights weights)
-{
-    double sum = 0;
-    for (auto key : WeightsNames) sum += std::abs(weights.at(key));
-    for (auto key : WeightsNames)
-    {
-        weights[key] /= sum;
-    }
-    sum = 0; // further fix for double inaccuracy
-    for (auto key : WeightsNames) sum += std::abs(weights.at(key));
-    double diff = sum - 1;
-    if (diff == 0) return weights;
-    if (diff < 0)
-    {
-        weights.at(*WeightsNames.begin()) -= diff;
-        return weights;
-    }
-    for (auto key : WeightsNames)
-    {
-        if (weights.at(key) >= -1 + diff)
-        {
-            weights.at(key) -= diff;
-            return weights;
-        }
-    }
-    assert(false);
-}
+//AlgorithmWeights Weights::fix(AlgorithmWeights weights)
+//{
+//    static constexpr double EPSILON = 0.0001;
+//    for (auto name : WeightsNames)
+//    {
+//        auto value = weights.at(name);
+//        if (std::abs(value))
+//    }
+//    //double sum = 0;
+//    //for (auto key : WeightsNames) sum += std::abs(weights.at(key));
+//    //for (auto key : WeightsNames)
+//    //{
+//    //    weights[key] /= sum;
+//    //}
+//    //sum = 0; // further fix for double inaccuracy
+//    //for (auto key : WeightsNames) sum += std::abs(weights.at(key));
+//    //double diff = sum - 1;
+//    //if (diff == 0) return weights;
+//    //if (diff < 0)
+//    //{
+//    //    weights.at(*WeightsNames.begin()) -= diff;
+//    //    return weights;
+//    //}
+//    //for (auto key : WeightsNames)
+//    //{
+//    //    if (weights.at(key) >= -1 + diff)
+//    //    {
+//    //        weights.at(key) -= diff;
+//    //        return weights;
+//    //    }
+//    //}
+//    //assert(false);
+//}
 std::string Weights::to_string(AlgorithmWeights weights)
 {
     std::string output = "Weights: ";
@@ -170,6 +184,22 @@ std::string Algorithm::get_string_result(const std::vector<ResultPair> &complete
     return output.str();
 }
 
+std::unordered_set<WorkerGroup *> Algorithm::get_worker_groups()
+{
+    std::unordered_set<WorkerGroup *> output;
+    for (auto pending_job : _pending_jobs)
+    {
+        for (auto worker_group : pending_job.worker_groups)
+        {
+            if (output.count(worker_group) == 0)
+            {
+                output.insert(worker_group);
+            }
+        }
+    }
+    return output;
+}
+
 #include <unordered_map>
 
 int Algorithm::run()
@@ -282,19 +312,23 @@ std::size_t Algorithm::get_penalty() const
 
 Algorithm::~Algorithm()
 {
-    std::unordered_set<WorkerGroup*> worker_groups_deleted;
-    for (auto pending_job : _pending_jobs)
-    {
-        delete pending_job.job;
-        for (auto worker_group : pending_job.worker_groups)
-        {
-            if (worker_groups_deleted.count(worker_group) == 0)
-            {
-                worker_groups_deleted.insert(worker_group);
-                delete worker_group;
-            }
-        }        
-    }
+    //std::unordered_set<WorkerGroup*> worker_groups_deleted;
+    //for (auto pending_job : _pending_jobs)
+    //{
+    //    delete pending_job.job;
+    //    //for (auto worker_group : pending_job.worker_groups)
+    //    //{
+    //    //    if (worker_groups_deleted.count(worker_group) == 0)
+    //    //    {
+    //    //        worker_groups_deleted.insert(worker_group);
+    //    //        delete worker_group;
+    //    //    }
+    //    //}        
+    //}
+    //for (auto completed_job : _completed_jobs)
+    //{
+    //    delete completed_job.job;
+    //}
 }
 
 #include <cmath>

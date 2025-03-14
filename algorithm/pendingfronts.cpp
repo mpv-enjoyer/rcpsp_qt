@@ -66,12 +66,13 @@ void PendingFronts::sort_current_front(Data& current_front, AlgorithmDataForWeig
         Weights::set(jw, Weights::time_after_begin_per_overall_time,
             (*_current_time - job->get_start_after()) / static_cast<double>(job->get_end_before() - job->get_start_after()));
         Weights::set(jw, Weights::worker_count_per_max_worker_count, job_pair.worker_count / data_for_weights.worker_max_count);
+        Weights::set(jw, Weights::bias, 1);
         job_pair.current_preference = 0;
         for (auto& name : Weights::WeightsNames)
         {
             job_pair.current_preference += jw.at(name) * _weights.at(name);
         }
-        // Current preference will probably be <= 1 in theory?
+        // Current preference will probably be <= 1 in theory? No.
     }
     std::sort(current_front.job_pairs.begin(), current_front.job_pairs.end(), compare_weights);
     for (auto& job : current_front.job_pairs)

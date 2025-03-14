@@ -55,7 +55,8 @@ namespace Weights
     REGISTER_WEIGHT(avg_occupancy); // средняя занятость станка во время выполнения
     REGISTER_WEIGHT(time_after_begin_per_overall_time); // время от начала выполнения до текущего момента / время всего на выполнение этого требования
     REGISTER_WEIGHT(worker_count_per_max_worker_count); // кол-во станков / максимальное число станков для требования
-    constexpr static size_t SIZE = 6;
+    REGISTER_WEIGHT(bias);
+    constexpr static size_t SIZE = 7;
     const std::set<std::string> WeightsNames =
     {
         "ancestors_per_left", // кол-во последователей / кол-во оставшихся требований
@@ -63,12 +64,13 @@ namespace Weights
         "critical_time_per_max_critical_time", // критическое время требования / максимальное критическое время всех требований
         "avg_occupancy", // средняя занятость станка во время выполнения
         "time_after_begin_per_overall_time", // время от начала выполнения до текущего момента / время всего на выполнение этого требования
-        "worker_count_per_max_worker_count" // кол-во станков / максимальное число станков для требования
+        "worker_count_per_max_worker_count", // кол-во станков / максимальное число станков для требования
+        "bias"
     };
     double get(AlgorithmWeights weights, std::string name);
     bool set(AlgorithmWeights& weights, std::string name, double value);
-    bool are_valid(AlgorithmWeights weights);
-    AlgorithmWeights fix(AlgorithmWeights weights);
+    bool are_valid(AlgorithmWeights& weights);
+    //AlgorithmWeights fix(AlgorithmWeights weights);
     std::string to_string(AlgorithmWeights weights);
     AlgorithmWeights create_equal();
 }
@@ -98,6 +100,8 @@ struct SearchResult
     int pos;
 };
 
+#include <unordered_set>
+
 class Algorithm
 {
     Preference preference = NONE;
@@ -124,6 +128,7 @@ public:
     int get_failed_jobs_count();
     std::string get_string_result(const std::vector<ResultPair>& completed) const;
     std::size_t get_penalty() const;
+    std::unordered_set<WorkerGroup*> get_worker_groups();
     ~Algorithm();
 };
 

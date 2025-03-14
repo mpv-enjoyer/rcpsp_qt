@@ -85,7 +85,7 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
         Point best_known_position;
         Point velocity;
         double value;
-        double best_value;
+        double best_value = __DBL_MAX__;
 // for each particle i = 1, ..., S do
 //     Initialize the particle's position with a uniformly distributed random vector: xi ~ U(blo, bup)
 //     Initialize the particle's best known position to its initial position: pi ← xi
@@ -103,8 +103,28 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
                 best_known_position[i] = generated;
                 velocity[i] = random_double(-len, len);
             }
-            position = normalize_point(position);
+            position = reflect_boundaries(position);
             update_best();
+        }
+        Point reflect_boundaries(Point position) // TODO: use min max from layer above here
+        {
+            for (std::size_t i = 0; i < DIMENSIONS; i++)
+            {
+                auto& dim = position[i];
+                auto& vel = velocity[i];
+                dim = std::clamp(dim, -2.0, 2.0);
+                if (dim > 1)
+                {
+                    dim = 1 - (dim - 1);
+                    vel = -vel;
+                }
+                else if (dim < -1)
+                {
+                    dim = (-1) - (dim - (-1));
+                    vel = -vel;
+                }
+            }
+            return position;
         }
         void update_best()
         {
@@ -126,7 +146,7 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
             best.check_update(position, value);
         }
         
-        Point normalize_point(Point point)
+        Point normalize_point(Point point) // Use reflect_boundaries instead!
         {
             double sum = 0;
             for (auto dim : point) sum += std::abs(dim);
@@ -179,11 +199,11 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
                                                 PHIg * rg * (best_position[dimension] - position[dimension]);
                 position[dimension] += velocity[dimension];
             }
-            position = normalize_point(position);
+            position = reflect_boundaries(position);
             update_best();
         }
     };
-    const int PARTICLE_COUNT = 12;//algorithm_vector.size();
+    const int PARTICLE_COUNT = 1;//algorithm_vector.size();
     const double PARTICLE_MIN = min;
     const double PARTICLE_MAX = max;
 
@@ -309,13 +329,26 @@ int main(int argc, char** argv)
             Weights::set(weights, name, point[dim]);
             dim++;
         }
-        if (!Weights::are_valid(weights)) weights = Weights::fix(weights);
+        assert(Weights::are_valid(weights));
+        //if (!Weights::are_valid(weights)) weights = Weights::fix(weights);
         algorithm.set_weights(weights);
         algorithm.run();
         //std::cout << " max time: " << algorithm.run() << "\n";
         std::size_t value = algorithm.get_penalty();
         //std::cout << " penalty: " << value << "\n";
         algorithm.reset();
+        for (auto worker_group : algorithm.get_worker_groups())
+        {
+            delete worker_group;
+        }
+        for (auto worker : all_workers)
+        {
+            delete worker; // FIXME: weird outer destructor because Algorithm doesn't contain all_workers
+        }
+        for (auto job : all_jobs)
+        {
+            delete job;
+        }
         return value;
     };
     particle_swarm(-1, 1, calculate_value, input_files);

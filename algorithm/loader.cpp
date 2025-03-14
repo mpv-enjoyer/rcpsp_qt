@@ -1,6 +1,6 @@
 #include "loader.h"
 #include "algorithm.h"
-
+#include <unordered_set>
 struct JobLoad
 {
     Job* assign;
@@ -18,7 +18,7 @@ struct WorkerLoad
 
 struct PlanLoad
 {
-    Plan* assign;
+    Plan assign;
     int id;
     int start_at;
     std::vector<PlanElement> plan;
@@ -93,7 +93,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
         }
         if (list[0] == "plan")
         {
-            PlanLoad current = { nullptr, 0, 0, std::vector<PlanElement>() };
+            PlanLoad current = { Plan({{1, 1}}, 0), 0, 0, std::vector<PlanElement>() };
             current.id = list[1].toInt();
             current.start_at = list[2].toInt();
             for (int i = 3; i < list.size(); i+=2)
@@ -140,7 +140,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
 
     for (int i = 0; i < plans_load.size(); i++)
     {
-        plans_load[i].assign = new Plan(plans_load[i].plan, plans_load[i].start_at);
+        plans_load[i].assign = Plan(plans_load[i].plan, plans_load[i].start_at);
         std::swap(plans_load[i], plans_load[plans_load[i].id]);
     }
     all_workers = std::vector<Worker*>(workers_load.size());
@@ -152,7 +152,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
         for (int i = 0; i < workers_load.size(); i++)
         {
             if (workers_load[i].assign != nullptr) continue;
-            workers_load[i].assign = new Worker(*plans_load[workers_load[i].plan].assign);
+            workers_load[i].assign = new Worker(plans_load[workers_load[i].plan].assign);
             int id_true = workers_load[i].id;
             std::swap(workers_load[i], workers_load[id_true]);
             all_workers[id_true] = workers_load[id_true].assign;
@@ -160,9 +160,12 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
         }
     }
 
+    std::unordered_set<WorkerGroup*> unused_worker_groups;
+
     for (int i = 0; i < worker_groups_load.size(); i++)
     {
         WorkerGroup* worker_group = new WorkerGroup();
+        unused_worker_groups.insert(worker_group);
         worker_group->set_global_id(worker_groups_load[i].id);
         worker_groups_load[i].assign = worker_group;
         std::swap(worker_groups_load[i], worker_groups_load[worker_groups_load[i].id]);
@@ -225,9 +228,15 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
         std::vector<WorkerGroup*> worker_groups_for_job;
         for (auto worker_group_id : current_worker_group_ids)
         {
+            if (unused_worker_groups.count(worker_groups_load[worker_group_id].assign) != 0) unused_worker_groups.erase(worker_groups_load[worker_group_id].assign);
             worker_groups_for_job.push_back(worker_groups_load[worker_group_id].assign);
         }
         algorithm.add_job_group(job_groups_load[i].assign, worker_groups_for_job);
+        delete job_groups_load[i].assign;
+    }
+    for (auto unused_worker_group : unused_worker_groups)
+    {
+        delete unused_worker_group;
     }
     return true;
 }
