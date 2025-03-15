@@ -203,7 +203,7 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
             update_best();
         }
     };
-    const int PARTICLE_COUNT = 1;//algorithm_vector.size();
+    const int PARTICLE_COUNT = 11;//algorithm_vector.size();
     const double PARTICLE_MIN = min;
     const double PARTICLE_MAX = max;
 
