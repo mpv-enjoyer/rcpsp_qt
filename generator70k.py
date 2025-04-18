@@ -170,7 +170,7 @@ def write_to(string):
     #generated.__add__(string)
 
 print(job_count := get_random_int(70000, 75000))
-print(worker_count := get_random_int(max(job_count / 70, 1), job_count / 50))
+print(worker_count := get_random_int(np.log(job_count) - 2, np.log(job_count) + 2))
 #print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
 PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ], ID_begin????, count
     [[ 0 ], [ 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 3780 ], 0, 1], # 5/2 (9 часов рабочий день с перерывом в 1 час)
@@ -348,7 +348,7 @@ for job_group in job_groups_dict:
     #sector_time = len(job_groups_dict) / 100
     sector_time = MAX_PLAN_UNIT
     SECTOR_COEFFICIENT = len(job_groups_dict)
-    WORKER_COEFFICIENT = 15000 / worker_count
+    WORKER_COEFFICIENT = 170 / worker_count
     JOB_GROUP_TIME_SECTOR_COUNT = WORKER_COEFFICIENT * SECTOR_COEFFICIENT / sector_time
     current_job_group_coeff = float(job_group / len(job_groups_dict))
     low_sector = current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT
