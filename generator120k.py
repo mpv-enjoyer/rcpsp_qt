@@ -157,7 +157,7 @@ import datetime
 import timeit
 now = datetime.datetime.now()
 note = input("Input note: ")
-f = open("samples/" + str(now) + "(" + note + ").csv", "w+")
+f = open("samples/120k/" + str(now) + "(" + note + ").csv", "w+")
 
 # Begin generation:
 generated = ""

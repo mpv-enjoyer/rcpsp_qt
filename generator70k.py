@@ -182,7 +182,8 @@ MAX_PLAN_UNIT = 240 # 4 hours
 max_plan_unit = MAX_PLAN_UNIT
 MAX_PLAN_LOOP = 10080 # 7 days
 max_plan_loop = MAX_PLAN_LOOP
-MAX_ANCESTORS_COUNT = 5
+MAX_ANCESTORS_COUNT = 10
+MIN_ANCESTORS_COUNT = 4
 
 plan_count = 0
 for plan_id in range(len(PLANS)):
@@ -209,6 +210,35 @@ job_groups_dict = dict() # id with skips -> job ids
 
 #f.write(generated)
 #generated = ""
+MAX_ANCESTORS_HEIGHT = 15
+
+job_all_successors = list() # id -> successors
+for i in range(0, job_count):
+    job_all_successors.append([])
+job_all_ancestors = list() # id -> (ancestors, height in tree) Yes I mean ANCESTORS like _PREDECESSORS_
+for i in range(0, job_count):
+    job_all_ancestors.append(([], 0))
+    if i < MAX_ANCESTORS_COUNT:
+        continue
+    if get_random_float(0, 1) <= 0.5: # Chance to not depend on anything
+        continue
+    current_job_ancestors_count = whatever_dist_int(MIN_ANCESTORS_COUNT, MAX_ANCESTORS_COUNT, 1, wdist3)
+    current_job_ancestors = rng.choice(i, size=current_job_ancestors_count, replace=False)
+    ancestors_max_height = 0
+    for job_id in current_job_ancestors:
+        ancestors_max_height = max(ancestors_max_height, job_all_ancestors[job_id][1])
+    if ancestors_max_height > MAX_ANCESTORS_HEIGHT:
+        continue
+    #if current_job_ancestors_count == 1:
+    #    job_all_successors[current_job_ancestors].append(i)
+    #    job_all_ancestors[i] = ([current_job_ancestors], ancestors_max_height + 1)
+    #else:
+    for ancestor in current_job_ancestors:
+        job_all_successors[ancestor].append(i)
+    job_all_ancestors[i] = (current_job_ancestors, ancestors_max_height + 1)
+
+del job_all_ancestors
+# Now we have a nice successor list (which is later called predesessor list for some reason)
 
 for job in range(job_count):
     jobs_left_to_iterate = job_count - 1 - job
@@ -219,8 +249,8 @@ for job in range(job_count):
     current_job_busyness_values = dependant_dist_float(0, 1, current_job_busyness_section_count)
     min_current_job_busyness_times = max(current_job_max_time_to_spend / current_job_busyness_section_count, 1)
     current_job_busyness_times = get_random_int(1, min_current_job_busyness_times, current_job_busyness_section_count)
-    current_job_ancestors_count = whatever_dist_int(0, min(jobs_left_to_iterate, MAX_ANCESTORS_COUNT), 1, wdist3)
-    current_job_ancestors = [(i + job + 1) for i in rng.choice(jobs_left_to_iterate, size=current_job_ancestors_count, replace=False)]
+    #current_job_ancestors_count = whatever_dist_int(0, min(jobs_left_to_iterate, MAX_ANCESTORS_COUNT), 1, wdist3)
+    #current_job_ancestors = [(i + job + 1) for i in rng.choice(jobs_left_to_iterate, size=current_job_ancestors_count, replace=False)]
     current_job_group = whatever_dist_int(0, max_job_group_count - 1, 1, wdist4)
     if get_random_float(0, 1) >= 0: # fix: ALWAYS pick the group that is likely to be with the nearby jobs
         JOB_GROUP_DEFAULT_DIFF = 10
@@ -244,7 +274,10 @@ for job in range(job_count):
         for i in range(current_job_busyness_section_count):
             write_to(str(current_job_busyness_times[i]) + ";" + str(current_job_busyness_values[i]) + ";")
     write_to("];")
-    for ancestor in current_job_ancestors:
+    # PLEASE disregard the stupidity that is successor and ancestor.
+    # I thought for a year that ancestor is the opposite of predecessor so
+    # the naming is very bad!
+    for ancestor in job_all_successors[job]: 
         write_to(str(ancestor) + ";")
     write_to("\n")
     #f.write(generated)

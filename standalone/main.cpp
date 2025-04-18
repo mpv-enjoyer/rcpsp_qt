@@ -274,12 +274,15 @@ int main(int argc, char** argv)
         {
             assert(!weights.has_value());
         }
-        std::cout << " max time: " << algorithm.run() << " ";
-        std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
+        auto max_time = algorithm.run();
         auto completed = algorithm.get_completed();
-        Stats stats(completed, 0.1);
+#ifdef PRINT_FULL_RESULT
+        std::cout << " max time: " << max_time << " ";
+        std::cout << " failed jobs: " << algorithm.get_failed_jobs_count() << "\n";
         std::cout << algorithm.get_string_result(completed);
-        std::cout << "Penalty: " << algorithm.get_penalty();
+#endif
+        Stats stats(completed, 0.1);
+        std::cout << "Penalty: " << algorithm.get_penalty() << "\n";
         //std::cout << "STATS (wait_coeff): \n";
         //for (auto point : stats.wait_coeff)
         //{
