@@ -157,7 +157,7 @@ import datetime
 import timeit
 now = datetime.datetime.now()
 note = input("Input note: ")
-f = open("samples/" + str(now) + "(" + note + ").csv", "w+")
+f = open("samples/" + str(now) + "(" + note + ")(2).csv", "w+")
 
 # Begin generation:
 generated = ""
@@ -170,7 +170,7 @@ def write_to(string):
     #generated.__add__(string)
 
 print(job_count := get_random_int(70000, 75000))
-print(worker_count := get_random_int(max(job_count / 70, 1), job_count / 50))
+print(worker_count := get_random_int(np.log(job_count) - 2, np.log(job_count) + 2))
 #print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
 PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ], ID_begin????, count
     [[ 0 ], [ 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 3780 ], 0, 1], # 5/2 (9 часов рабочий день с перерывом в 1 час)
@@ -182,8 +182,8 @@ MAX_PLAN_UNIT = 240 # 4 hours
 max_plan_unit = MAX_PLAN_UNIT
 MAX_PLAN_LOOP = 10080 # 7 days
 max_plan_loop = MAX_PLAN_LOOP
-MAX_ANCESTORS_COUNT = 10
-MIN_ANCESTORS_COUNT = 4
+MAX_ANCESTORS_COUNT = 7
+MIN_ANCESTORS_COUNT = 3
 
 plan_count = 0
 for plan_id in range(len(PLANS)):
@@ -210,7 +210,7 @@ job_groups_dict = dict() # id with skips -> job ids
 
 #f.write(generated)
 #generated = ""
-MAX_ANCESTORS_HEIGHT = 15
+MAX_ANCESTORS_HEIGHT = 25
 
 job_all_successors = list() # id -> successors
 for i in range(0, job_count):
@@ -348,7 +348,7 @@ for job_group in job_groups_dict:
     #sector_time = len(job_groups_dict) / 100
     sector_time = MAX_PLAN_UNIT
     SECTOR_COEFFICIENT = len(job_groups_dict)
-    WORKER_COEFFICIENT = 15000 / worker_count
+    WORKER_COEFFICIENT = 180 / worker_count
     JOB_GROUP_TIME_SECTOR_COUNT = WORKER_COEFFICIENT * SECTOR_COEFFICIENT / sector_time
     current_job_group_coeff = float(job_group / len(job_groups_dict))
     low_sector = current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT

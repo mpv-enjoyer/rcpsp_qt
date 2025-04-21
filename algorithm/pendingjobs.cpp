@@ -29,6 +29,7 @@ PendingJobs::PendingJobs(int *current_time, PendingFronts *next, int look_ahead_
         }
         if (_max_critical_time < job.job->get_critical_time()) _max_critical_time = job.job->get_critical_time();
     }
+    std::sort(_data.begin(), _data.end(), [](const Data& l, const Data& r) -> bool { return l.start_after < r.start_after; });
 }
 
 int PendingJobs::set_critical_time(Data current_job_pair)
@@ -72,7 +73,7 @@ bool PendingJobs::tick()
     for (int i = 0; i < _data.size(); i++)
     {
         result = true;
-        if (_data[i].start_after > current_time + _look_ahead_time) continue;
+        if (_data[i].start_after > current_time + _look_ahead_time) break; // sorted
         if (!(_data[i].job->check_predecessors())) continue;
 
         next->add(current_time, _data[i]);

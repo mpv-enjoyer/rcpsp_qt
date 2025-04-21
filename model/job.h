@@ -3,6 +3,9 @@
 
 #include <vector>
 
+#include <string>
+void GLOBAL_LOG(std::string log);
+
 struct OccupancyPair
 {
     int time;

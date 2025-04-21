@@ -190,3 +190,12 @@ bool Job::is_failed(int start_time) const
 {
     return (start_time + get_time_to_spend()) > get_end_before();
 }
+
+#include <fstream>
+
+std::ofstream GLOBAL_LOGGING_FILE("GLOBAL_LOG.LOG");
+
+void GLOBAL_LOG(std::string log)
+{
+    GLOBAL_LOGGING_FILE << log;
+}

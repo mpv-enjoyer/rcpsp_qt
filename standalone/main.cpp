@@ -24,11 +24,14 @@ double random_double(double min, double max)
 
 void print_point(Point point)
 {
+    GLOBAL_LOG("Point (");
     std::cout << "Point (";
     for (auto position_dimension : point)
     {
+        GLOBAL_LOG(std::to_string(position_dimension) + ", ");
         std::cout << position_dimension << ", ";
     }
+    GLOBAL_LOG(")\n");
     std::cout << ")\n";
 }
 
@@ -62,12 +65,16 @@ struct BestParticle
     }
     void print(std::size_t i)
     {
+        GLOBAL_LOG("\n");
         std::cout << "\n";
+        GLOBAL_LOG(std::to_string(i) + ") Best particle is f(");
         std::cout << i << ") Best particle is f(";
         for (auto position_dimension : m_position)
         {
+            GLOBAL_LOG(std::to_string(position_dimension) + ", ");
             std::cout << position_dimension << ", ";
         }
+        GLOBAL_LOG(std::string(") = ") + std::to_string(m_value) + std::string("\n"));
         std::cout << ") = " << m_value << "\n";
     }
 };
@@ -141,6 +148,7 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
                 best_known_position = position;
                 best_value = value;
             }
+            GLOBAL_LOG(std::string("Penalty sum (") + std::to_string(value) + std::string(") for"));
             std::cout << "Penalty sum (" << value << ") for ";
             print_point(position);
             best.check_update(position, value);
@@ -203,37 +211,54 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
             update_best();
         }
     };
-    const int PARTICLE_COUNT = 11;//algorithm_vector.size();
+    const int PROCESSOR_CORE_COUNT = 11;
+    const int PARTICLE_COUNT_COEFF = 4;
+
+    //const int PROCESSOR_CORE_COUNT = 1;
+    //const int PARTICLE_COUNT_COEFF = 1;
+
+    //const int PARTICLE_COUNT = (PROCESSOR_CORE_COUNT - 1) * PARTICLE_COUNT_COEFF;
+    // const int PARTICLE_COUNT = 11;//algorithm_vector.size();
     const double PARTICLE_MIN = min;
     const double PARTICLE_MAX = max;
 
     //std::vector<Particle> particles(PARTICLE_COUNT, Particle(PARTICLE_MIN, PARTICLE_MAX, best));
     //std::mutex mutex_for_particles;
-    std::vector<Particle> particles;
-    std::vector<std::future<Particle>> particle_futures;
+    std::vector<std::vector<Particle>> particles;
+    for (int coeff_id = 0; coeff_id < PARTICLE_COUNT_COEFF; coeff_id++)
+    {
+        particles.push_back(std::vector<Particle>());
+        std::vector<std::future<Particle>> particle_futures;
 
-    for (int particle_common_id = 0; particle_common_id < PARTICLE_COUNT; particle_common_id++)
-    {
-        particle_futures.emplace_back(std::async(std::launch::async, [&]() -> Particle
+        for (int particle_common_id = 0; particle_common_id < PROCESSOR_CORE_COUNT; particle_common_id++)
         {
-            return Particle(PARTICLE_MIN, PARTICLE_MAX, best, input_files, calculate_value);
-        }));
+            particle_futures.emplace_back(std::async(std::launch::async, [&]() -> Particle
+            {
+                return Particle(PARTICLE_MIN, PARTICLE_MAX, best, input_files, calculate_value);
+            }));
+        }
+        for (auto& particle : particle_futures)
+        {
+            particle.wait();
+            particles.back().push_back(particle.get());
+        }
     }
-    for (auto& particle : particle_futures)
-    {
-        particle.wait();
-        particles.push_back(particle.get());
-    }
+
     for (int i = 0; i < 50; i++)
     {
-        std::vector<std::unique_ptr<std::thread>> threads;
-        for (auto& particle : particles)
+        for (int coeff_id = 0; coeff_id < PARTICLE_COUNT_COEFF; coeff_id++)
         {
-            threads.push_back(std::make_unique<std::thread>([&](){ particle.update(); }));
-        }
-        for (auto& t : threads)
-        {
-            if (t->joinable()) t->join();
+            std::vector<std::unique_ptr<std::thread>> threads;
+            for (auto& particle : particles[coeff_id])
+            {
+                threads.push_back(std::make_unique<std::thread>([&](){ particle.update(); }));
+            }
+            for (auto& t : threads)
+            {
+                if (t->joinable()) t->join();
+            }
+            GLOBAL_LOG("|");
+            std::cout << "|";
         }
         best.print(i);
     }
@@ -283,6 +308,7 @@ int main(int argc, char** argv)
 #endif
         Stats stats(completed, 0.1);
         std::cout << "Penalty: " << algorithm.get_penalty() << "\n";
+        GLOBAL_LOG(std::string("Penalty") + std::to_string(algorithm.get_penalty()) + std::string("\n"));
         //std::cout << "STATS (wait_coeff): \n";
         //for (auto point : stats.wait_coeff)
         //{
