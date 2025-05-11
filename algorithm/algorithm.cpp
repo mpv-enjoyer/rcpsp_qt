@@ -17,6 +17,7 @@ bool Weights::are_valid(AlgorithmWeights& weights)
     static constexpr double EPSILON = 0.0001;
     for (auto name : WeightsNames)
     {
+        if (!weights.count(name)) return false;
         auto& value = weights.at(name);
         if (std::abs(value) > 1 + EPSILON) return false;
         if (std::abs(value) > 1) value = 1;
@@ -141,6 +142,11 @@ void Algorithm::set_look_ahead_time(int newLook_ahead_time)
 void Algorithm::set_weights(AlgorithmWeights weights)
 {
     _weights = weights;
+}
+
+AlgorithmWeights Algorithm::get_weights()
+{
+    return _weights;
 }
 
 void Algorithm::reset()

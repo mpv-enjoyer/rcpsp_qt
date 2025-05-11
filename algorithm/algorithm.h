@@ -125,6 +125,7 @@ public:
     Preference get_preference() const;
     void set_look_ahead_time(int newLook_ahead_time);
     void set_weights(AlgorithmWeights weights);
+    AlgorithmWeights get_weights();
     void reset();
     int get_failed_jobs_count();
     std::string get_string_result(const std::vector<ResultPair>& completed) const;

@@ -161,6 +161,9 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="toolTip">
+         <string extracomment="ancestors_per_left"/>
+        </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
         </property>
@@ -182,6 +185,9 @@
        <widget class="QDoubleSpinBox" name="doubleSpinBox_3">
         <property name="enabled">
          <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string extracomment="ancestors_per_job"/>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -205,6 +211,9 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="toolTip">
+         <string extracomment="critical_time_per_max_critical_time"/>
+        </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
         </property>
@@ -226,6 +235,9 @@
        <widget class="QDoubleSpinBox" name="doubleSpinBox_5">
         <property name="enabled">
          <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string extracomment="avg_occupancy"/>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -249,6 +261,9 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="toolTip">
+         <string extracomment="time_after_begin_per_overall_time"/>
+        </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
         </property>
@@ -270,6 +285,9 @@
        <widget class="QDoubleSpinBox" name="doubleSpinBox_7">
         <property name="enabled">
          <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string extracomment="worker_count_per_max_worker_count"/>
         </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
@@ -293,6 +311,9 @@
         <property name="enabled">
          <bool>false</bool>
         </property>
+        <property name="toolTip">
+         <string extracomment="bias"/>
+        </property>
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
         </property>
@@ -315,7 +336,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QCustomPlot" name="plot">
        <attribute name="title">
@@ -387,6 +408,11 @@
    </property>
    <property name="text">
     <string>Open</string>
+   </property>
+  </action>
+  <action name="actionOpen_weights">
+   <property name="text">
+    <string>Open weights</string>
    </property>
   </action>
  </widget>

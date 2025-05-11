@@ -269,12 +269,38 @@ bool Loader::LoadPreferences(QString file_name, Algorithm &algorithm)
     return true;
 }
 
+AlgorithmWeights Loader::LoadWeights(QString file_name)
+{
+    QFile file(file_name);
+    if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
+        qDebug() << "File not exists";
+        return Weights::create_empty();
+    }
+    QTextStream in(&file);
+    AlgorithmWeights weights = { };
+    while (!in.atEnd())
+    {
+        QString line = in.readLine();
+        QStringList list = line.split(";");
+        if (list.size() < 2) continue;
+        QString name = list[0];
+        double value = list[1].toDouble();
+        Weights::set(weights, name.toStdString(), value);
+    }
+    if (!Weights::are_valid(weights))
+    {
+        return Weights::create_empty();
+    }
+    return weights;
+}
+
 bool Loader::LoadWeights(QString file_name, Algorithm &algorithm)
 {
     QFile file(file_name);
     if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
         qDebug() << "File not exists";
         throw std::invalid_argument("Cannot start executing without weights");
+        // probably unnessecary check
         return false;
     }
     QTextStream in(&file);
@@ -290,7 +316,8 @@ bool Loader::LoadWeights(QString file_name, Algorithm &algorithm)
     }
     if (!Weights::are_valid(weights))
     {
-        throw std::invalid_argument("Invalid weights");
+        qDebug("Got invalid weights...");
+        //throw std::invalid_argument("Invalid weights");
     }
     algorithm.set_weights(weights);
     return true;

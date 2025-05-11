@@ -11,7 +11,15 @@ MainWindow::MainWindow(QWidget *parent)
     _plot = Plot(ui->plot);
     _wait_stats_plot = WaitStatsPlot(ui->wait_coeff_plot);
     _work_stats_plot = WorkStatsPlot(ui->work_coeff_plot);
-    //
+    AlgorithmWeights w = Loader::LoadWeights("weights.csv");
+    auto niter = Weights::WeightsNames.begin();
+    ui->doubleSpinBox_2->setValue(Weights::get(w, *(niter++)));
+    ui->doubleSpinBox_3->setValue(Weights::get(w, *(niter++)));
+    ui->doubleSpinBox_4->setValue(Weights::get(w, *(niter++)));
+    ui->doubleSpinBox_5->setValue(Weights::get(w, *(niter++)));
+    ui->doubleSpinBox_6->setValue(Weights::get(w, *(niter++)));
+    ui->doubleSpinBox_7->setValue(Weights::get(w, *(niter++)));
+    ui->doubleSpinBox_8->setValue(Weights::get(w, *(niter)));
 }
 
 MainWindow::~MainWindow()
@@ -53,8 +61,16 @@ void MainWindow::on_pushButton_clicked()
         AlgorithmWeights ws = Weights::create_equal(); // ONLY FOR LWS
         auto niter = Weights::WeightsNames.begin(); // ONLY FOR LWS
         Loader::Load(file_name, algorithm, all_workers, all_jobs);
+        Loader::LoadPreferences(file_name, algorithm);
+        Loader::LoadWeights(file_name, algorithm);
+        auto wwws = algorithm.get_weights(); // ONLY FOR NONE
         switch (ui->comboBox->currentIndex()) {
-        case COMBOBOX_INDEX_NONE: algorithm.set_weights(Weights::create_empty()); break;
+        case COMBOBOX_INDEX_NONE:
+            if (!Weights::are_valid(wwws))
+            {
+                algorithm.set_weights(Weights::create_empty());
+            }
+            break;
         case COMBOBOX_INDEX_LPT: algorithm.set_preference(LPT); break;
         case COMBOBOX_INDEX_SPT: algorithm.set_preference(SPT); break;
         case COMBOBOX_INDEX_SLS: algorithm.set_preference(FLS); break;
@@ -105,10 +121,6 @@ void MainWindow::on_actionOpen_triggered()
     file_name = QFileDialog::getOpenFileName(this, tr("Open CSV"), QDir::currentPath(), tr("Data Files (*.csv)"));
     ui->label->setText(file_name);
 }
-
-// Нужно собрать статистику: (может даже показать эти данные графиком в отдельной вкладке)
-// 1) Какой процент работ выполняется сразу после того как поступает?
-// 2) Какой процент в среднем заняло выполнение работы от того, сколько времени ей было выделено?
 
 void MainWindow::on_doubleSpinBox_valueChanged(double arg1)
 {

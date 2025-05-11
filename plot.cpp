@@ -137,7 +137,7 @@ void Plot::updatePlot(const std::vector<ResultPair> &completed)
         current_left.append(QString().number(completed[i].worker_internal_id));
         current_left.append(", Начало: ");
         current_left.append(QString().number(completed[i].start));
-        current_left.append(", Крит. время: ");
+        current_left.append(", Позднее начало: ");
         current_left.append(QString().number(completed[i].job->get_critical_time()));
         labels[i] = current_left;
     }
