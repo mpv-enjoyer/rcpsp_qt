@@ -19,6 +19,15 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+enum COMBOBOX_INDEXES
+{
+    COMBOBOX_INDEX_NONE = 0,
+    COMBOBOX_INDEX_LPT = 1,
+    COMBOBOX_INDEX_SPT = 2,
+    COMBOBOX_INDEX_SLS = 3,
+    COMBOBOX_INDEX_LWS = 4
+};
+
 void MainWindow::on_pushButton_clicked()
 {
     if (!(ui->checkbox_logs->isChecked()))
@@ -34,14 +43,36 @@ void MainWindow::on_pushButton_clicked()
     algorithm = Algorithm();
     if (file_name.isEmpty())
     {
+        return; /* ignore */
         Loader::Load("../sample.csv", algorithm, all_workers, all_jobs);
         Loader::LoadPreferences("../preferences.csv", algorithm);
         Loader::LoadWeights("../weights.csv", algorithm);
     }
     else
     {
+        AlgorithmWeights ws = Weights::create_equal(); // ONLY FOR LWS
+        auto niter = Weights::WeightsNames.begin(); // ONLY FOR LWS
         Loader::Load(file_name, algorithm, all_workers, all_jobs);
-        algorithm.set_weights(Weights::create_equal());
+        switch (ui->comboBox->currentIndex()) {
+        case COMBOBOX_INDEX_NONE: algorithm.set_weights(Weights::create_empty()); break;
+        case COMBOBOX_INDEX_LPT: algorithm.set_preference(LPT); break;
+        case COMBOBOX_INDEX_SPT: algorithm.set_preference(SPT); break;
+        case COMBOBOX_INDEX_SLS: algorithm.set_preference(FLS); break;
+        case COMBOBOX_INDEX_LWS:
+            Weights::set(ws, *(niter++), ui->doubleSpinBox_2->value());
+            Weights::set(ws, *(niter++), ui->doubleSpinBox_3->value());
+            Weights::set(ws, *(niter++), ui->doubleSpinBox_4->value());
+            Weights::set(ws, *(niter++), ui->doubleSpinBox_5->value());
+            Weights::set(ws, *(niter++), ui->doubleSpinBox_6->value());
+            Weights::set(ws, *(niter++), ui->doubleSpinBox_7->value());
+            Weights::set(ws, *(niter), ui->doubleSpinBox_8->value());
+            assert(Weights::are_valid(ws));
+            algorithm.set_weights(ws);
+            algorithm.set_preference(NONE);
+            break;
+        default:
+            break;
+        }
     }
     algorithm.run();
     auto completed = algorithm.get_completed();
@@ -52,7 +83,7 @@ void MainWindow::on_pushButton_clicked()
     double impossible_percent = stats.leads_to_impossible_jobs_counter / double(completed.size()) * 100;
     double good_percent = (completed.size() - algorithm.get_failed_jobs_count()) / double(completed.size()) * 100;
     ui->label_counter_impossible_jobs->setText(
-        QString("Leads to impossible jobs: ") +
+        QString("Lead to impossible jobs: ") +
         QString::number(stats.leads_to_impossible_jobs_counter) +
         QString(" / ") +
         QString::number(completed.size()) +
@@ -64,7 +95,8 @@ void MainWindow::on_pushButton_clicked()
         QString::number(completed.size()) +
         QString(" (") +
         QString::number(good_percent) +
-        QString("%)"));
+        QString("%), Penalty: ") +
+        QString::number(algorithm.get_penalty()));
     QApplication::alert(this);
 }
 
@@ -119,5 +151,18 @@ void MainWindow::on_button_current_file_clicked()
 {
     if (this->file_name.isEmpty()) return;
     QDesktopServices::openUrl(QUrl(QString("file://") + this->file_name));
+}
+
+
+void MainWindow::on_comboBox_currentIndexChanged(int index)
+{
+    bool is_enabled = index == COMBOBOX_INDEX_LWS;
+    ui->doubleSpinBox_2->setEnabled(is_enabled);
+    ui->doubleSpinBox_3->setEnabled(is_enabled);
+    ui->doubleSpinBox_4->setEnabled(is_enabled);
+    ui->doubleSpinBox_5->setEnabled(is_enabled);
+    ui->doubleSpinBox_6->setEnabled(is_enabled);
+    ui->doubleSpinBox_7->setEnabled(is_enabled);
+    ui->doubleSpinBox_8->setEnabled(is_enabled);
 }
 

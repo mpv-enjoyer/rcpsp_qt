@@ -44,6 +44,8 @@ private slots:
 
     void on_button_current_file_clicked();
 
+    void on_comboBox_currentIndexChanged(int index);
+
 private:
     Plot _plot;
     WaitStatsPlot _wait_stats_plot;

@@ -391,3 +391,13 @@ void Stats::init_coeff(std::map<double, double> &coeff, std::function<double (Re
 }
 
 
+
+AlgorithmWeights Weights::create_empty()
+{
+    AlgorithmWeights w;
+    for (const auto& name : Weights::WeightsNames)
+    {
+        w[name] = 0;
+    }
+    return w;
+}

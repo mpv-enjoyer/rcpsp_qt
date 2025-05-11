@@ -73,6 +73,7 @@ namespace Weights
     //AlgorithmWeights fix(AlgorithmWeights weights);
     std::string to_string(AlgorithmWeights weights);
     AlgorithmWeights create_equal();
+    AlgorithmWeights create_empty();
 }
 
 struct AlgorithmDataForWeights
