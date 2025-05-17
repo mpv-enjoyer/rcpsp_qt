@@ -265,8 +265,15 @@ std::pair<Point, double> particle_swarm(double min, double max, std::function<do
     return {best.m_position, best.m_value};
 }
 
+#include "argh.h"
+
 int main(int argc, char** argv)
 {
+    argh::parser argh_args(argc, argv);
+    for (auto arg : argh_args)
+    {
+        
+    };
     std::vector<std::string> args(argv, argv + argc);
     QString input_file = "";
     bool solver = false;

@@ -343,7 +343,7 @@ for job_group in job_groups_dict:
     job_group_end_before = JOB_GROUP_END_BEFORE
 
     #SETUP FOR ALTERNATIVE CURRENT_JOB_START/END_AT
-    JOB_GROUP_TIME_SECTOR_DIFF = 5
+    JOB_GROUP_TIME_SECTOR_DIFF = 1
     
     #sector_time = len(job_groups_dict) / 100
     sector_time = MAX_PLAN_UNIT
