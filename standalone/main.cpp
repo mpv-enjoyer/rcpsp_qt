@@ -86,6 +86,7 @@ int main(int argc, char** argv)
             assert(Weights::are_valid(weights));
             //if (!Weights::are_valid(weights)) weights = Weights::fix(weights);
             algorithm.set_weights(weights);
+            algorithm.shuffle_pending_jobs(); // SHUFFLE TO AVOID LEARNING TO PICK STRICTLY ASCENDING VALUES (MAY BE BUGGY)
             algorithm.run();
             //std::cout << " max time: " << algorithm.run() << "\n";
             std::size_t value = algorithm.get_penalty();

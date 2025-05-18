@@ -207,6 +207,12 @@ std::unordered_set<WorkerGroup *> Algorithm::get_worker_groups()
 }
 
 #include <unordered_map>
+#include <random>
+
+void Algorithm::shuffle_pending_jobs()
+{
+    std::shuffle(std::begin(_pending_jobs), std::end(_pending_jobs), std::default_random_engine{});
+}
 
 int Algorithm::run()
 {
@@ -216,6 +222,7 @@ int Algorithm::run()
     int current_equal_failed = 0;
     std::vector<ResultPair> current_completed_jobs;
     std::size_t worker_max_count = 0;
+
     for (const auto& pending_job : _pending_jobs)
     {
         worker_max_count = std::max(static_cast<double>(worker_max_count), pending_job.worker_count);

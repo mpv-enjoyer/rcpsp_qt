@@ -119,6 +119,7 @@ public:
     Algorithm();
     void add_job_group(JobGroup *jobs, std::vector<WorkerGroup *> worker_groups);
     void set_preference(Preference new_preference);
+    void shuffle_pending_jobs();
     int run();
     std::vector<ResultPair> get_completed();
     int get_look_ahead_time() const;
