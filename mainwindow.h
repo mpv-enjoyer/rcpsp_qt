@@ -46,6 +46,8 @@ private slots:
 
     void on_comboBox_currentIndexChanged(int index);
 
+    void on_actionCopy_weights_from_clipboard_triggered();
+
 private:
     Plot _plot;
     WaitStatsPlot _wait_stats_plot;

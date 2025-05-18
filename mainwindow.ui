@@ -167,6 +167,12 @@
         <property name="buttonSymbols">
          <enum>QAbstractSpinBox::NoButtons</enum>
         </property>
+        <property name="prefix">
+         <string/>
+        </property>
+        <property name="suffix">
+         <string/>
+        </property>
         <property name="decimals">
          <number>9</number>
         </property>
@@ -336,7 +342,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QCustomPlot" name="plot">
        <attribute name="title">
@@ -398,6 +404,7 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen"/>
+    <addaction name="actionCopy_weights_from_clipboard"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -413,6 +420,11 @@
   <action name="actionOpen_weights">
    <property name="text">
     <string>Open weights</string>
+   </property>
+  </action>
+  <action name="actionCopy_weights_from_clipboard">
+   <property name="text">
+    <string>Copy weights from clipboard</string>
    </property>
   </action>
  </widget>

@@ -173,17 +173,18 @@ print(job_count := 70000)
 print(worker_count := 1200)
 #print(plan_count := get_random_int(max(worker_count / 100, 1), max(worker_count / 50, 2)))
 PLANS = [ # Time in minutes. Format: [ start_at ], [ plan_loop... ], ID_begin????, count
-    [[ 0 ], [ 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 3780 ], 0, 1], # 5/2 (9 часов рабочий день с перерывом в 1 час)
-    [[ 0, 1440, 2880, 4320, 5760, 720, 2160, 3600, 5040, 6480 ], [ 660, 780, 660, 780, 660, 3660 ], 1, 10], # 3/2 (11 часов смена)
-    [[ 0, 720, 2880, 3600 ], [ 720, 1440, 720, 2880 ], 11, 4], # 2/2 (12 часов смена, сначала дневная, потом ночная)
-    [[ 0, 480, 960, 2880, 3360, 3840 ], [ 480, 960, 480, 3840 ], 15, 6] # 2/2 (8 часов смена)
+    #[[ 0 ], [ 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 900, 240, 60, 240, 3780 ], 0, 1], # 5/2 (9 часов рабочий день с перерывом в 1 час)
+    #[[ 0, 1440, 2880, 4320, 5760, 720, 2160, 3600, 5040, 6480 ], [ 660, 780, 660, 780, 660, 3660 ], 1, 10], # 3/2 (11 часов смена)
+    #[[ 0, 720, 2880, 3600 ], [ 720, 1440, 720, 2880 ], 11, 4], # 2/2 (12 часов смена, сначала дневная, потом ночная)
+    #[[ 0, 480, 960, 2880, 3360, 3840 ], [ 480, 960, 480, 3840 ], 15, 6] # 2/2 (8 часов смена)
+    [[ 0, 480, 960, 2880, 3360, 3840 ], [ 480, 960, 480, 3840 ], 0, 6] # 2/2 (8 часов смена)
     ]
 MAX_PLAN_UNIT = 240 # 4 hours
 max_plan_unit = MAX_PLAN_UNIT
 MAX_PLAN_LOOP = 10080 # 7 days
 max_plan_loop = MAX_PLAN_LOOP
-MAX_ANCESTORS_COUNT = 11
-MIN_ANCESTORS_COUNT = 9
+MAX_ANCESTORS_COUNT = 4
+MIN_ANCESTORS_COUNT = 0
 
 plan_count = 0
 for plan_id in range(len(PLANS)):
@@ -253,7 +254,7 @@ for job in range(job_count):
     #current_job_ancestors = [(i + job + 1) for i in rng.choice(jobs_left_to_iterate, size=current_job_ancestors_count, replace=False)]
     current_job_group = whatever_dist_int(0, max_job_group_count - 1, 1, wdist4)
     if get_random_float(0, 1) >= 0: # fix: ALWAYS pick the group that is likely to be with the nearby jobs
-        JOB_GROUP_DEFAULT_DIFF = 10
+        JOB_GROUP_DEFAULT_DIFF = 5
         group_precise = int(job / job_count * max_job_group_count)
         diff = get_random_int(- JOB_GROUP_DEFAULT_DIFF, JOB_GROUP_DEFAULT_DIFF)
         if group_precise + diff < 0:
@@ -348,21 +349,26 @@ for job_group in job_groups_dict:
     #sector_time = len(job_groups_dict) / 100
     sector_time = MAX_PLAN_UNIT
     SECTOR_COEFFICIENT = len(job_groups_dict)
-    WORKER_COEFFICIENT = 8500 / worker_count
+    WORKER_COEFFICIENT = 5500 / worker_count
     JOB_GROUP_TIME_SECTOR_COUNT = WORKER_COEFFICIENT * SECTOR_COEFFICIENT / sector_time
     current_job_group_coeff = float(job_group / len(job_groups_dict))
     low_sector = current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT
     high_sector = current_job_group_coeff * JOB_GROUP_TIME_SECTOR_COUNT + 2 * JOB_GROUP_TIME_SECTOR_DIFF
     sector = get_random_int(low_sector, high_sector)
 
-    time_to_complete = get_random_int(sector_time * 3, sector_time * 40)
+    comment____ = "comment" # for job group time debugging
+    time_to_complete = get_random_int(sector_time * 15, sector_time * 20)
     if get_random_float(0, 1) > 0.1:
+        comment____ += "1"
         current_job_group_start_at = get_random_int(sector_time * sector, sector_time * (sector + 1))
         assert current_job_group_start_at >= sector_time * math.floor(low_sector)
         if get_random_float(0, 1) > 0.1:
+            comment____ += "2"
             job_group_end_before = current_job_group_start_at + time_to_complete
     else:
+        comment____ += "3"
         if get_random_float(0, 1) > 0.1:
+            comment____ += "4"
             job_group_end_before = get_random_int(sector_time * sector, sector_time * (sector + 1)) + time_to_complete
     assert job_group_end_before >= sector_time * low_sector
     write_to("job_group;" + str(job_group) + ";" + str(current_job_group_start_at) + ";" + str(job_group_end_before) + ";" + str(job_group_to_worker_groups_dict[job_group][0]) + ";")
@@ -373,6 +379,7 @@ for job_group in job_groups_dict:
         for i in range(1, len(job_group_to_worker_groups_dict[job_group])):
             write_to(str(job_group_to_worker_groups_dict[job_group][i]) + ";")
     write_to("\n")
+    write_to("LOG;comment____;" + str(comment____) + "\n")
 
 def write_log(name, arg):
     write_to("LOG;" + str(name) + ";" + str(arg) + "\n")
