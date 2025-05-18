@@ -82,6 +82,8 @@
         "qapplication": "cpp",
         "*.inc": "cpp",
         "qtdebug": "cpp",
-        "qfile": "cpp"
+        "qfile": "cpp",
+        "queue": "cpp",
+        "ranges": "cpp"
     }
 }
