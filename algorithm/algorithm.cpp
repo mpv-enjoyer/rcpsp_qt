@@ -350,7 +350,7 @@ Stats::Stats(std::vector<ResultPair> completed, double precision, bool print_raw
 {
     init_coeff(wait_coeff, [](ResultPair r) -> double {
         double dedicated_time = r.job->get_end_before() - r.job->get_start_after();
-        return double(r.start - r.job->get_start_after()) / double(dedicated_time);
+        return double(r.start + r.job->get_time_to_spend() - r.job->get_start_after()) / double(dedicated_time);
     }, completed, precision);
     init_coeff(work_coeff, [](ResultPair r) -> double {
         double dedicated_time = r.job->get_end_before() - r.job->get_start_after();
