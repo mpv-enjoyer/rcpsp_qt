@@ -166,6 +166,8 @@ std::pair<Point, double> particle_swarm(
                 best_known_position = position;
                 best_value = value;
             }
+            static std::mutex print_mutex;
+            std::lock_guard g(print_mutex);
             GLOBAL_LOG(std::string("Penalty sum (") + std::to_string(value) + std::string(") for"));
             std::cout << "Penalty sum (" << value << ") for ";
             print_point(position);
@@ -279,6 +281,7 @@ std::pair<Point, double> particle_swarm(
             std::cout << "|";
         }
         best.print(i);
+        if (best.m_value == 0) return {best.m_position, best.m_value};
     }
     return {best.m_position, best.m_value};
 }
