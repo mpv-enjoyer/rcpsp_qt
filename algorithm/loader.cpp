@@ -241,8 +241,9 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
     return true;
 }
 
-// preference | SPT or LPT or FLS
-// look_ahead | number
+// preference     | SPT or LPT or SLS
+// look_ahead     | number
+// pass_max_count | number
 bool Loader::LoadPreferences(QString file_name, Algorithm &algorithm)
 {
     QFile file(file_name);
@@ -264,6 +265,10 @@ bool Loader::LoadPreferences(QString file_name, Algorithm &algorithm)
         if (list[0] == "look_ahead")
         {
             algorithm.set_look_ahead_time(list[1].toInt());
+        }
+        if (list[0] == "pass_max_count")
+        {
+            algorithm.set_pass_max_count(list[1].toInt());
         }
     }
     return true;
@@ -317,6 +322,7 @@ bool Loader::LoadWeights(QString file_name, Algorithm &algorithm)
     if (!Weights::are_valid(weights))
     {
         qDebug("Got invalid weights...");
+        return false;
         //throw std::invalid_argument("Invalid weights");
     }
     algorithm.set_weights(weights);

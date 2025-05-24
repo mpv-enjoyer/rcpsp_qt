@@ -49,23 +49,23 @@ using AlgorithmWeights = std::unordered_map<std::string, double>;
 #define REGISTER_WEIGHT(N) const static std::string N = #N
 namespace Weights
 {
-    REGISTER_WEIGHT(ancestors_per_left); // кол-во последователей / кол-во оставшихся требований
     REGISTER_WEIGHT(ancestors_per_job); // кол-во последователей / кол-во требований всего
-    REGISTER_WEIGHT(critical_time_per_max_critical_time); // критическое время требования / максимальное критическое время всех требований
+    REGISTER_WEIGHT(ancestors_per_left); // кол-во последователей / кол-во оставшихся требований
     REGISTER_WEIGHT(avg_occupancy); // средняя занятость станка во время выполнения
+    REGISTER_WEIGHT(bias);
+    REGISTER_WEIGHT(critical_time_per_max_critical_time); // критическое время требования / максимальное критическое время всех требований
     REGISTER_WEIGHT(time_after_begin_per_overall_time); // время от начала выполнения до текущего момента / время всего на выполнение этого требования
     REGISTER_WEIGHT(worker_count_per_max_worker_count); // кол-во станков / максимальное число станков для требования
-    REGISTER_WEIGHT(bias);
     constexpr static size_t SIZE = 7;
     const std::set<std::string> WeightsNames =
     {
-        "ancestors_per_left", // кол-во последователей / кол-во оставшихся требований
         "ancestors_per_job", // кол-во последователей / кол-во требований всего
-        "critical_time_per_max_critical_time", // критическое время требования / максимальное критическое время всех требований
+        "ancestors_per_left", // кол-во последователей / кол-во оставшихся требований
         "avg_occupancy", // средняя занятость станка во время выполнения
+        "bias",
+        "critical_time_per_max_critical_time", // критическое время требования / максимальное критическое время всех требований
         "time_after_begin_per_overall_time", // время от начала выполнения до текущего момента / время всего на выполнение этого требования
-        "worker_count_per_max_worker_count", // кол-во станков / максимальное число станков для требования
-        "bias"
+        "worker_count_per_max_worker_count"  // кол-во станков / максимальное число станков для требования
     };
     double get(AlgorithmWeights weights, std::string name);
     bool set(AlgorithmWeights& weights, std::string name, double value);
@@ -114,7 +114,7 @@ class Algorithm
     std::size_t _penalty = 0;
     AlgorithmWeights _weights;
     static const int CURRENT_EQUAL_MAX = 1;
-    static const int PASS_MAX_COUNT = 1;
+    int pass_max_count = 1;
 public:
     Algorithm();
     void add_job_group(JobGroup *jobs, std::vector<WorkerGroup *> worker_groups);
@@ -132,6 +132,8 @@ public:
     std::string get_string_result(const std::vector<ResultPair>& completed) const;
     std::size_t get_penalty() const;
     std::unordered_set<WorkerGroup*> get_worker_groups();
+    int get_pass_max_count() const;
+    void set_pass_max_count(int count);
     ~Algorithm();
 };
 

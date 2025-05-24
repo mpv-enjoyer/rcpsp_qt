@@ -70,6 +70,10 @@ void MainWindow::on_pushButton_clicked()
             {
                 algorithm.set_weights(Weights::create_empty());
             }
+            else
+            {
+                algorithm.set_weights(wwws);
+            }
             break;
         case COMBOBOX_INDEX_LPT: algorithm.set_preference(LPT); break;
         case COMBOBOX_INDEX_SPT: algorithm.set_preference(SPT); break;
@@ -192,6 +196,24 @@ void MainWindow::on_actionCopy_weights_from_clipboard_triggered()
     ui->doubleSpinBox_6->setValue((iter++)->toFloat(nullptr));
     ui->doubleSpinBox_7->setValue((iter++)->toFloat(nullptr));
     ui->doubleSpinBox_8->setValue((iter)->toFloat(nullptr));
+    ui->comboBox->setCurrentIndex(COMBOBOX_INDEX_LWS);
+}
+
+
+void MainWindow::on_actionCopy_legacy_weights_triggered()
+{
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    QString string = clipboard->text();
+    QStringList weights_strs = string.split(',');
+    if (weights_strs.size() != Weights::SIZE) return;
+    QStringList::iterator iter = weights_strs.begin();
+    ui->doubleSpinBox_2->setValue(-(iter++)->toFloat(nullptr));
+    ui->doubleSpinBox_3->setValue(-(iter++)->toFloat(nullptr));
+    ui->doubleSpinBox_4->setValue(-(iter++)->toFloat(nullptr));
+    ui->doubleSpinBox_5->setValue(-(iter++)->toFloat(nullptr));
+    ui->doubleSpinBox_6->setValue(-(iter++)->toFloat(nullptr));
+    ui->doubleSpinBox_7->setValue(-(iter++)->toFloat(nullptr));
+    ui->doubleSpinBox_8->setValue(-(iter)->toFloat(nullptr));
     ui->comboBox->setCurrentIndex(COMBOBOX_INDEX_LWS);
 }
 

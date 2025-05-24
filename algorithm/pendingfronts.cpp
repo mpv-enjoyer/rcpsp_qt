@@ -43,7 +43,8 @@ bool compare_EST(JobPair lhs, JobPair rhs)
 
 bool compare_weights(JobPair lhs, JobPair rhs)
 {
-    return (lhs.current_preference < rhs.current_preference);
+    return (lhs.current_preference > rhs.current_preference);
+    // BREAKING CHANGE!!! All previous weights MUST BE REVERSED
 }
 
 void PendingFronts::sort_current_front(Data& current_front, AlgorithmDataForWeights data_for_weights)

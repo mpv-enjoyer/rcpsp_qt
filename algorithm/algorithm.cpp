@@ -206,6 +206,17 @@ std::unordered_set<WorkerGroup *> Algorithm::get_worker_groups()
     return output;
 }
 
+int Algorithm::get_pass_max_count() const
+{
+    return pass_max_count;
+}
+
+void Algorithm::set_pass_max_count(int count)
+{
+    if (count <= 0) throw std::invalid_argument("Invalid pass max count");
+    pass_max_count = count;
+}
+
 #include <unordered_map>
 #include <random>
 
@@ -257,7 +268,7 @@ int Algorithm::run()
         if (current_completed_jobs.size() != _pending_jobs.size()) throw std::invalid_argument("Lost some jobs");
 
         current_failed_jobs = completed_jobs.failed_count();
-        if (current_failed_jobs == 0 || i + 1 >= PASS_MAX_COUNT)
+        if (current_failed_jobs == 0 || i + 1 >= pass_max_count)
         {
             best_failed_jobs = current_failed_jobs;
             best_completed_jobs = current_completed_jobs;
