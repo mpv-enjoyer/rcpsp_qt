@@ -48,6 +48,8 @@ private slots:
 
     void on_actionCopy_weights_from_clipboard_triggered();
 
+    void on_actionCopy_legacy_weights_triggered();
+
 private:
     Plot _plot;
     WaitStatsPlot _wait_stats_plot;

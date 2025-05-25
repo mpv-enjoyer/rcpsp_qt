@@ -193,9 +193,9 @@ bool Job::is_failed(int start_time) const
 
 #include <fstream>
 
-std::ofstream GLOBAL_LOGGING_FILE("GLOBAL_LOG.LOG");
+//std::ofstream GLOBAL_LOGGING_FILE("GLOBAL_LOG.LOG");
 
 void GLOBAL_LOG(std::string log)
 {
-    GLOBAL_LOGGING_FILE << log;
+    //GLOBAL_LOGGING_FILE << log;
 }

@@ -7,6 +7,7 @@
 
 Parser::Parser(int argc, char **argv)
 {
+    bool legacy_lws_datafix = false;
     std::string buffer;
     argh::parser argh_args(argc, argv);
     for (auto arg : argh_args.flags())
@@ -55,6 +56,15 @@ Parser::Parser(int argc, char **argv)
         {
             groups = std::atoi(arg.second.c_str());
         }
+        else if (arg.first == "PREFERENCE")
+        {
+            if (arg.second == "SLS" || arg.second == "FLS") preference = FLS;
+            else if (arg.second == "LPT") preference = LPT;
+            else if (arg.second == "SPT") preference = SPT;
+            else if (arg.second == "LWS") { /* Do nothing */ }
+            else if (arg.second == "LEGACY_LWS") legacy_lws_datafix = true;
+            else error_out(arg.second, "unknown preference");
+        }
         else
         {
             error_out(arg.first, "unknown param");
@@ -70,6 +80,15 @@ Parser::Parser(int argc, char **argv)
         if (!QFile::exists(QString(arg.c_str())))
         {
             error_out(arg, "file not exists");
+        }
+    }
+
+    if (legacy_lws_datafix)
+    {
+        if (!weights) error_out("LEGACY_LWS", "no weights");
+        for (auto name : Weights::WeightsNames)
+        {
+            weights->at(name) = -weights->at(name);
         }
     }
 }

@@ -405,6 +405,7 @@
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionCopy_weights_from_clipboard"/>
+    <addaction name="actionCopy_legacy_weights"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -425,6 +426,11 @@
   <action name="actionCopy_weights_from_clipboard">
    <property name="text">
     <string>Copy weights from clipboard</string>
+   </property>
+  </action>
+  <action name="actionCopy_legacy_weights">
+   <property name="text">
+    <string>Copy legacy weights</string>
    </property>
   </action>
  </widget>

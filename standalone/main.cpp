@@ -16,6 +16,7 @@ int main(int argc, char** argv)
     if (!parser.debug_output) qInstallMessageHandler(DisabledDebugOutput);
     if (!parser.solver)
     {
+        std::size_t sum_penalty = 0;
         std::cout << "No solver." << "\n";
         for (auto std_input_file : parser.input_files)
         {
@@ -29,7 +30,11 @@ int main(int argc, char** argv)
             std::vector<Worker*> all_workers;
             Loader::Load(input_file, algorithm, all_workers, all_jobs);
             Loader::LoadPreferences(input_file, algorithm);
-            if (algorithm.get_preference() == Preference::NONE)
+            if (parser.preference)
+            {
+                algorithm.set_preference(*parser.preference);
+            }
+            else if (algorithm.get_preference() == Preference::NONE)
             {
                 algorithm.set_weights(*parser.weights);
             }
@@ -44,6 +49,7 @@ int main(int argc, char** argv)
             auto max_time = algorithm.run();
             auto completed = algorithm.get_completed();
             Stats stats(completed, 0.1);
+            sum_penalty += algorithm.get_penalty();
             std::cout << "Penalty: " << algorithm.get_penalty() << "\n";
             GLOBAL_LOG(std::string("Penalty") + std::to_string(algorithm.get_penalty()) + std::string("\n"));
             if (parser.debug_output)
@@ -54,6 +60,7 @@ int main(int argc, char** argv)
                 stats.print();
             }
         }
+        std::cout << "Penalty sum: " << sum_penalty << "\n";
     }
     else
     {

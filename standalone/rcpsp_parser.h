@@ -11,6 +11,7 @@ struct Parser
     int groups = 1;
     std::vector<std::string> input_files;
     std::optional<AlgorithmWeights> weights;
+    std::optional<Preference> preference;
     Parser(int argc, char** argv);
     Parser() = delete;
     Parser(const Parser& p) = delete;
