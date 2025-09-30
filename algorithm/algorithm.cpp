@@ -83,6 +83,24 @@ AlgorithmWeights Weights::create_equal()
     return output;
 }
 
+std::size_t Algorithm::calculate_penalty(std::vector<ResultPair> &result)
+{
+    std::size_t penalty = 0;
+    std::unordered_map<int, int> failed_groups; // job_group_id -> time
+    for (auto& resultpair : result)
+    {
+        auto id = resultpair.job->get_global_group_id();
+        if (!(resultpair.job->is_failed(resultpair.start))) continue;
+        int failed_time = resultpair.start + resultpair.job->get_time_to_spend() - resultpair.job->get_end_before(); 
+        failed_groups[id] = std::max(failed_groups[id], failed_time);
+    }
+    for (auto failed_group : failed_groups)
+    {
+        penalty += failed_group.second;
+    }
+    return penalty;
+}
+
 Algorithm::Algorithm()
 {
 
@@ -227,7 +245,7 @@ void Algorithm::shuffle_pending_jobs()
 
 int Algorithm::run()
 {
-    int best_failed_jobs = __INT_MAX__;
+    std::size_t best_failed_jobs = SIZE_MAX;
     std::vector<ResultPair> best_completed_jobs;
     int current_failed_jobs = 0;
     int current_equal_failed = 0;
@@ -267,7 +285,7 @@ int Algorithm::run()
         current_completed_jobs = completed_jobs.result();
         if (current_completed_jobs.size() != _pending_jobs.size()) throw std::invalid_argument("Lost some jobs");
 
-        current_failed_jobs = completed_jobs.failed_count();
+        current_failed_jobs = calculate_penalty(current_completed_jobs); //get_penalty(current_completed_jobs);
         if (current_failed_jobs == 0 || i + 1 >= pass_max_count)
         {
             best_failed_jobs = current_failed_jobs;
@@ -291,9 +309,9 @@ int Algorithm::run()
         current_equal_failed = 0;
         best_failed_jobs = current_failed_jobs;
         completed_jobs.prepare_for_next_iteration();
-        std::cout << " [REITERATE] current failed job count:" << best_failed_jobs << "with" << completed_jobs.result().size() << "completed\n";
+        std::cout << "[REITERATE] current penalty:" << best_failed_jobs << "with" << completed_jobs.result().size() << "completed\n";
     }
-    if (best_failed_jobs != __INT_MAX__) // Does it ever occur?
+    if (best_failed_jobs != SIZE_MAX) // Does it ever occur?
         _completed_jobs = best_completed_jobs;
     std::sort(_completed_jobs.begin(), _completed_jobs.end(), compare_result);
     int time_used = 0;
@@ -302,23 +320,11 @@ int Algorithm::run()
         _completed_jobs[i].job_id = _completed_jobs[i].job->get_global_id();
         time_used = std::max(time_used, _completed_jobs[i].start + _completed_jobs[i].job->get_time_to_spend());
     }
-    qDebug() << "final failed job count:" << best_failed_jobs << "with" << _completed_jobs.size() << "completed";
+    std::cout << "final failed job count:" << best_failed_jobs << "with" << _completed_jobs.size() << "completed";
     _failed_jobs_count = best_failed_jobs;
+    _penalty = best_failed_jobs; // ITS JUST A PENALTY, NOT A FAILED JOB COUNT
+    //_penalty = calculate_penalty(_completed_jobs);
 
-    // Calculate penalty
-    _penalty = 0;
-    std::unordered_map<int, int> failed_groups; // job_group_id -> time
-    for (auto& resultpair : _completed_jobs)
-    {
-        auto id = resultpair.job->get_global_group_id();
-        if (!(resultpair.job->is_failed(resultpair.start))) continue;
-        int failed_time = resultpair.start + resultpair.job->get_time_to_spend() - resultpair.job->get_end_before(); 
-        failed_groups[id] = std::max(failed_groups[id], failed_time);
-    }
-    for (auto failed_group : failed_groups)
-    {
-        _penalty += failed_group.second;
-    }
     return time_used;
 }
 

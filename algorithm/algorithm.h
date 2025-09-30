@@ -115,6 +115,7 @@ class Algorithm
     AlgorithmWeights _weights;
     static const int CURRENT_EQUAL_MAX = 1;
     int pass_max_count = 1;
+    static std::size_t calculate_penalty(std::vector<ResultPair>& result);
 public:
     Algorithm();
     void add_job_group(JobGroup *jobs, std::vector<WorkerGroup *> worker_groups);
