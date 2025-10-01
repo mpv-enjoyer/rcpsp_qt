@@ -22,8 +22,6 @@ private:
     int predecessors_count = 0;
     int begin_min = 0;
     int end_max = 0;
-    int want_renewable;
-    int want_non_renewable;
     int time_to_spend;
     int global_id = 0;
     std::vector<OccupancyPair> occupancy;
@@ -31,10 +29,8 @@ private:
     double avg_occupancy_buffered = 0;
     int global_group_id = -1;
 public:
-    Job(int renewable, int non_renewable, std::vector<OccupancyPair> occupancy);
+    Job(std::vector<OccupancyPair> occupancy);
     int get_time_to_spend() const;
-    int get_want_renewable() const;
-    int get_want_non_renewable() const;
     bool is_done() const;
     void done();
     void undone();

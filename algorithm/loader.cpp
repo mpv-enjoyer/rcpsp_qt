@@ -199,7 +199,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             }
             if (!all_ancestors_assigned) continue;
             changed = true;
-            Job* job = new Job(0, 0, jobs_load[i].occupancy);
+            Job* job = new Job(jobs_load[i].occupancy);
             job->set_ancestors(ancestors);
             job->set_global_id(i);
             jobs_load[i].assign = job;

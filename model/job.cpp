@@ -1,8 +1,7 @@
 #include "job.h"
 #include <stdexcept>
 
-Job::Job(int renewable, int non_renewable, std::vector<OccupancyPair> occupancy) :
-    want_renewable(renewable), want_non_renewable(non_renewable)
+Job::Job(std::vector<OccupancyPair> occupancy)
 {
     this->occupancy = occupancy;
     time_to_spend = 0;
@@ -17,16 +16,6 @@ Job::Job(int renewable, int non_renewable, std::vector<OccupancyPair> occupancy)
 int Job::get_time_to_spend() const
 {
     return time_to_spend;
-}
-
-int Job::get_want_renewable() const
-{
-    return want_renewable;
-}
-
-int Job::get_want_non_renewable() const
-{
-    return want_non_renewable;
 }
 
 void Job::done()
