@@ -1,6 +1,6 @@
 #include "loader.h"
 #include "algorithm.h"
-#include "arena_cpp.h"
+#include "../arena_cpp.h"
 #include <unordered_set>
 struct JobLoad
 {

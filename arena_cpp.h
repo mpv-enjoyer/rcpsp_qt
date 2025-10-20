@@ -1,3 +1,4 @@
+#pragma once
 #include "arena.h"
 #include <cstdlib>
 #include <iostream>
@@ -18,7 +19,6 @@ struct Arena_Allocator
 
         if (auto p = static_cast<T*>(arena_alloc(&m_arena, n * sizeof(T))))
         {
-            report(p, n);
             return p;
         }
 
@@ -29,5 +29,5 @@ struct Arena_Allocator
         arena_free(&m_arena);
     }
 private:
-    Arena m_arena = { 0 };
+    Arena m_arena = { 0, 0 };
 };

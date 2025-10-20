@@ -341,8 +341,8 @@ size_t arena_strlen(const char *s)
 
 void *arena_memcpy(void *dest, const void *src, size_t n)
 {
-    char *d = dest;
-    const char *s = src;
+    char *d = (char*)dest;
+    const char *s = (char*)src;
     for (; n; n--) *d++ = *s++;
     return dest;
 }

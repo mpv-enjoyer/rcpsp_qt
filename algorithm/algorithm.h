@@ -102,7 +102,7 @@ struct SearchResult
 };
 
 #include <unordered_set>
-#include "arena_cpp.h"
+#include "../arena_cpp.h"
 
 class Algorithm
 {

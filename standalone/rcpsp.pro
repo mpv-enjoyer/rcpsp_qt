@@ -19,7 +19,8 @@ SOURCES += \
     *.cpp \
     ../algorithm/*.cpp \
     ../model/*.cpp \
-    ../misc/*.h
+    ../misc/*.h \
+    ../arena_cpp.cpp
 
 HEADERS += \
     *.h \
