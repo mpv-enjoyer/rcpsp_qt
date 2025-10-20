@@ -102,6 +102,7 @@ struct SearchResult
 };
 
 #include <unordered_set>
+#include "arena_cpp.h"
 
 class Algorithm
 {
@@ -115,6 +116,7 @@ class Algorithm
     AlgorithmWeights _weights;
     static const int CURRENT_EQUAL_MAX = 1;
     int pass_max_count = 1;
+    std::unique_ptr<Arena_Allocator> arena;
     static std::size_t calculate_penalty(std::vector<ResultPair>& result);
 public:
     Algorithm();
@@ -129,6 +131,7 @@ public:
     void set_weights(AlgorithmWeights weights);
     AlgorithmWeights get_weights();
     void reset();
+    Arena_Allocator& reset_allocator_and_get(); // Remove everything!
     int get_failed_jobs_count();
     std::string get_string_result(const std::vector<ResultPair>& completed) const;
     std::size_t get_penalty() const;

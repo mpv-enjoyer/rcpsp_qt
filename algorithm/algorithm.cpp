@@ -177,6 +177,12 @@ void Algorithm::reset()
     }
 }
 
+Arena_Allocator &Algorithm::reset_allocator_and_get()
+{
+    arena.reset(new Arena_Allocator());
+    return *arena;
+}
+
 int Algorithm::get_failed_jobs_count()
 {
     return _failed_jobs_count;

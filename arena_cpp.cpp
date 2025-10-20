@@ -1,0 +1,3 @@
+#define ARENA_REGION_DEFAULT_CAPACITY (1024 * 1024 * 8)
+#define ARENA_IMPLEMENTATION
+#include "arena.h"

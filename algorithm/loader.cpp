@@ -1,5 +1,6 @@
 #include "loader.h"
 #include "algorithm.h"
+#include "arena_cpp.h"
 #include <unordered_set>
 struct JobLoad
 {
@@ -138,6 +139,9 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
     }
     file.close();
 
+    /* Invalid ID's check here? */
+    Arena_Allocator& allocator = algorithm.reset_allocator_and_get();
+
     for (int i = 0; i < plans_load.size(); i++)
     {
         plans_load[i].assign = Plan(plans_load[i].plan, plans_load[i].start_at);
@@ -145,39 +149,30 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
     }
     all_workers = std::vector<Worker*>(workers_load.size());
     
-    bool workers_load_skipped_someone = true; // TODO: I can do this in one cycle
-    while (workers_load_skipped_someone)
+    for (int i = 0; i < workers_load.size(); i++)
     {
-        workers_load_skipped_someone = false;
-        for (int i = 0; i < workers_load.size(); i++)
-        {
-            if (workers_load[i].assign != nullptr) continue;
-            workers_load[i].assign = new Worker(plans_load[workers_load[i].plan].assign);
-            int id_true = workers_load[i].id;
-            std::swap(workers_load[i], workers_load[id_true]);
-            all_workers[id_true] = workers_load[id_true].assign;
-            workers_load_skipped_someone = true;
-        }
+        workers_load[i].assign = new(allocator.allocate<Worker>()) Worker(plans_load[workers_load[i].plan].assign);
+        int id_true = workers_load[i].id;
+        all_workers[id_true] = workers_load[i].assign;
     }
 
-    std::unordered_set<WorkerGroup*> unused_worker_groups;
+    std::vector<WorkerGroup*> all_worker_groups = std::vector<WorkerGroup*>(worker_groups_load.size());
 
     for (int i = 0; i < worker_groups_load.size(); i++)
     {
-        WorkerGroup* worker_group = new WorkerGroup();
-        unused_worker_groups.insert(worker_group);
+        WorkerGroup* worker_group = new(allocator.allocate<WorkerGroup>()) WorkerGroup();
         worker_group->set_global_id(worker_groups_load[i].id);
         worker_groups_load[i].assign = worker_group;
-        std::swap(worker_groups_load[i], worker_groups_load[worker_groups_load[i].id]);
+        all_worker_groups[worker_groups_load[i].id] = worker_group;
         for (int j = 0; j < worker_groups_load[i].workers.size(); j++)
         {
-            worker_group->add_worker(workers_load[worker_groups_load[i].workers[j]].assign);
+            worker_group->add_worker(all_workers[worker_groups_load[i].workers[j]]);
         }
     }
     all_jobs = std::vector<Job*>(jobs_load.size());
     for (int i = 0; i < jobs_load.size(); i++)
     {
-        std::swap(jobs_load[i], jobs_load[jobs_load[i].id]);
+        std::swap(jobs_load[i], jobs_load[jobs_load[i].id]); // Probably a bug here?
     }
     bool changed = true;
     while (changed)
@@ -199,8 +194,8 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             }
             if (!all_ancestors_assigned) continue;
             changed = true;
-            Job* job = new Job(jobs_load[i].occupancy);
-            job->set_ancestors(ancestors);
+            Job* job = new(allocator.allocate<Job>()) Job(jobs_load[i].occupancy);
+            job->set_successors(ancestors);
             job->set_global_id(i);
             jobs_load[i].assign = job;
             all_jobs[i] = job;
@@ -223,20 +218,14 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             jobs_load[id].assign->set_global_group_id(i);
             want_jobs.push_back(jobs_load[id].assign);
         }
-        job_groups_load[i].assign = new JobGroup(want_jobs, job_groups_load[i].start_after, job_groups_load[i].end_before);
+        job_groups_load[i].assign = new(allocator.allocate<JobGroup>()) JobGroup(want_jobs, job_groups_load[i].start_after, job_groups_load[i].end_before);
         auto current_worker_group_ids = job_groups_load[i].worker_groups;
         std::vector<WorkerGroup*> worker_groups_for_job;
         for (auto worker_group_id : current_worker_group_ids)
         {
-            if (unused_worker_groups.count(worker_groups_load[worker_group_id].assign) != 0) unused_worker_groups.erase(worker_groups_load[worker_group_id].assign);
-            worker_groups_for_job.push_back(worker_groups_load[worker_group_id].assign);
+            worker_groups_for_job.push_back(all_worker_groups[worker_group_id]);
         }
         algorithm.add_job_group(job_groups_load[i].assign, worker_groups_for_job);
-        delete job_groups_load[i].assign;
-    }
-    for (auto unused_worker_group : unused_worker_groups)
-    {
-        delete unused_worker_group;
     }
     return true;
 }

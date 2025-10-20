@@ -39,7 +39,7 @@ int PendingJobs::set_critical_time(Data current_job_pair)
         return current_job_pair.job->get_critical_time();
     }
     int result = current_job_pair.end_before;
-    std::vector<Job*>* current_ancestors = current_job_pair.job->get_ancestors();
+    std::vector<Job*>* current_ancestors = current_job_pair.job->get_successors();
     for (int j = 0; j < current_ancestors->size(); j++)
     {
         int internal_result = set_critical_time( { current_ancestors->at(j)->get_start_after(), current_ancestors->at(j)->get_end_before(), current_ancestors->at(j) } );

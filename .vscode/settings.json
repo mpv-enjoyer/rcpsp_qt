@@ -84,6 +84,8 @@
         "qtdebug": "cpp",
         "qfile": "cpp",
         "queue": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "cfenv": "cpp",
+        "stack": "cpp"
     }
 }

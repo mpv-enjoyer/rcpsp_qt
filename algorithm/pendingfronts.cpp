@@ -60,8 +60,8 @@ void PendingFronts::sort_current_front(Data& current_front, AlgorithmDataForWeig
         auto& job_pair = current_front.job_pairs[i];
         auto* job = job_pair.job;
         AlgorithmWeights jw;
-        Weights::set(jw, Weights::ancestors_per_left, job->get_ancestors()->size() / job_count_not_assigned);
-        Weights::set(jw, Weights::ancestors_per_job, job->get_ancestors()->size() / data_for_weights.job_count_overall);
+        Weights::set(jw, Weights::ancestors_per_left, job->get_successors()->size() / job_count_not_assigned);
+        Weights::set(jw, Weights::ancestors_per_job, job->get_successors()->size() / data_for_weights.job_count_overall);
         Weights::set(jw, Weights::critical_time_per_max_critical_time, job->get_critical_time() / data_for_weights.max_critical_time);
         Weights::set(jw, Weights::avg_occupancy, job->get_average_occupancy());
         Weights::set(jw, Weights::time_after_begin_per_overall_time,

@@ -18,7 +18,7 @@ private:
     bool _done = false;
     int _critical_time = -1;
     int* _following_time_to_spend = nullptr;
-    std::vector<Job*> ancestors;
+    std::vector<Job*> successors;
     int predecessors_count = 0;
     int begin_min = 0;
     int end_max = 0;
@@ -35,8 +35,8 @@ public:
     void done();
     void undone();
     bool check_predecessors();
-    void set_ancestors(std::vector<Job*> new_ancestors); // i mean successor oops :)
-    std::vector<Job*>* get_ancestors(); // i mean successor oops :)
+    void set_successors(std::vector<Job*> new_ancestors);
+    std::vector<Job*>* get_successors();
     void increment_predecessors_count();
     void decrement_predecessors_count();
     int get_critical_time() const;

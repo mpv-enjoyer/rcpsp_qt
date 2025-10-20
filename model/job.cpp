@@ -21,18 +21,18 @@ int Job::get_time_to_spend() const
 void Job::done()
 {
     _done = true;
-    for (int i = 0; i < ancestors.size(); i++)
+    for (int i = 0; i < successors.size(); i++)
     {
-        ancestors[i]->decrement_predecessors_count();
+        successors[i]->decrement_predecessors_count();
     }
 }
 
 void Job::undone()
 {
     _done = false;
-    for (int i = 0; i < ancestors.size(); i++)
+    for (int i = 0; i < successors.size(); i++)
     {
-        ancestors[i]->increment_predecessors_count();
+        successors[i]->increment_predecessors_count();
     }
 }
 
@@ -66,18 +66,18 @@ void Job::decrement_predecessors_count()
     predecessors_count--;
 }
 
-void Job::set_ancestors(std::vector<Job*> new_ancestors)
+void Job::set_successors(std::vector<Job*> new_ancestors)
 {
-    ancestors = new_ancestors;
+    successors = new_ancestors;
     for (int i = 0; i < new_ancestors.size(); i++)
     {
         new_ancestors[i]->increment_predecessors_count();
     }
 }
 
-std::vector<Job*>* Job::get_ancestors()
+std::vector<Job*>* Job::get_successors()
 {
-    return &ancestors;
+    return &successors;
 }
 /*bool Job::is_predecessor(Job *job)
 void Job::reset()
