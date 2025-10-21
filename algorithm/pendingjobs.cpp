@@ -6,9 +6,7 @@ PendingJobs::PendingJobs(int *current_time, PendingFronts *next, int look_ahead_
 {
     for (int i = 0; i < _data.size(); i++)
     {
-        next->add(_data[i].start_after);
-        _data[i].job->set_start_after(_data[i].start_after);
-        _data[i].job->set_end_before(_data[i].end_before); // IDK why didn't we do it earlier
+        next->add(_data[i].job->get_start_after());
         for (int j = 0; j < _data[i].worker_groups.size(); j++)
         {
             _data[i].worker_groups[j]->set_clock(current_time);
@@ -29,7 +27,7 @@ PendingJobs::PendingJobs(int *current_time, PendingFronts *next, int look_ahead_
         }
         if (_max_critical_time < job.job->get_critical_time()) _max_critical_time = job.job->get_critical_time();
     }
-    std::sort(_data.begin(), _data.end(), [](const Data& l, const Data& r) -> bool { return l.start_after < r.start_after; });
+    std::sort(_data.begin(), _data.end(), [](const Data& l, const Data& r) -> bool { return l.job->get_start_after() < r.job->get_start_after(); });
 }
 
 int PendingJobs::set_critical_time(Data current_job_pair)
@@ -38,11 +36,11 @@ int PendingJobs::set_critical_time(Data current_job_pair)
     {
         return current_job_pair.job->get_critical_time();
     }
-    int result = current_job_pair.end_before;
+    int result = current_job_pair.job->get_end_before();
     std::vector<Job*>* current_ancestors = current_job_pair.job->get_successors();
     for (int j = 0; j < current_ancestors->size(); j++)
     {
-        int internal_result = set_critical_time( { current_ancestors->at(j)->get_start_after(), current_ancestors->at(j)->get_end_before(), current_ancestors->at(j) } );
+        int internal_result = set_critical_time( { current_ancestors->at(j) } );
         result = internal_result < result ? internal_result : result;
     }
     double output = result - current_job_pair.job->get_time_to_spend();
@@ -73,7 +71,7 @@ bool PendingJobs::tick()
     for (int i = 0; i < _data.size(); i++)
     {
         result = true;
-        if (_data[i].start_after > current_time + _look_ahead_time) break; // sorted
+        if (_data[i].job->get_start_after() > current_time + _look_ahead_time) break; // sorted
         if (!(_data[i].job->check_predecessors())) continue;
 
         next->add(current_time, _data[i]);

@@ -1,7 +1,7 @@
 #include "job.h"
 #include <stdexcept>
 
-Job::Job(std::vector<OccupancyPair> occupancy)
+Job::Job(std::vector<OccupancyPair> occupancy, std::vector<Job *> successors, int global_id)
 {
     this->occupancy = occupancy;
     time_to_spend = 0;
@@ -11,6 +11,7 @@ Job::Job(std::vector<OccupancyPair> occupancy)
         time_to_spend += occupancy[i].time;
     }
     avg_occupancy_buffered /= time_to_spend;
+    set_global_id(global_id);
 }
 
 int Job::get_time_to_spend() const

@@ -7,7 +7,7 @@ struct JobLoad
     Job* assign;
     int id;
     std::vector<OccupancyPair> occupancy;
-    std::vector<int> ancestors;
+    std::vector<int> successors;
 };
 
 struct WorkerLoad
@@ -49,7 +49,7 @@ struct WorkerGroupLoad
 // plan         | id (from 0 without skips) | start_at          | work, rest... |              |         |              |
 // job_group    | id (from 0 without skips) | start_after       | end_before    | worker_group | jobs... | ] (optional) | worker_groups... (optional)
 // worker_group | id (from 0 without skips) | workers...        |               |              |         |              |
-bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>& all_workers, std::vector<Job*>& all_jobs)
+bool Loader::Load(QString file_name, Algorithm& algorithm)
 {
     QFile file(file_name);
     if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
@@ -81,7 +81,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             for (; i < list.size(); i++)
             {
                 if (list[i].size() == 0) break;
-                current.ancestors.push_back(list[i].toInt());
+                current.successors.push_back(list[i].toInt());
             }
             jobs_load.push_back(current);
         }
@@ -147,7 +147,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
         plans_load[i].assign = Plan(plans_load[i].plan, plans_load[i].start_at);
         std::swap(plans_load[i], plans_load[plans_load[i].id]);
     }
-    all_workers = std::vector<Worker*>(workers_load.size());
+    auto all_workers = std::vector<Worker*>(workers_load.size());
     
     for (int i = 0; i < workers_load.size(); i++)
     {
@@ -169,63 +169,56 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             worker_group->add_worker(all_workers[worker_groups_load[i].workers[j]]);
         }
     }
-    all_jobs = std::vector<Job*>(jobs_load.size());
+    auto jobs_load_fix = std::vector<JobLoad>(jobs_load.size());
     for (int i = 0; i < jobs_load.size(); i++)
     {
-        std::swap(jobs_load[i], jobs_load[jobs_load[i].id]); // Probably a bug here?
+        jobs_load_fix[jobs_load[i].id] = jobs_load[i];
     }
     bool changed = true;
-    while (changed)
+
+    std::function<std::vector<Job*>(const std::vector<int>&)> init_jobs = [&allocator, &jobs_load_fix, &init_jobs](const std::vector<int>& job_ids)
     {
-        changed = false;
-        for (int i = 0; i < jobs_load.size(); i++)
+        std::vector<Job*> output;
+        output.reserve(job_ids.size());
+        for (auto job_id : job_ids)
         {
-            if (jobs_load[i].assign) continue;
-            bool all_ancestors_assigned = true;
-            std::vector<Job*> ancestors;
-            for (int j = 0; j < jobs_load[i].ancestors.size(); j++)
+            auto& job = jobs_load_fix[job_id].assign;
+            if (!job)
             {
-                if (!jobs_load[jobs_load[i].ancestors[j]].assign)
-                {
-                    all_ancestors_assigned = false;
-                    break;
-                }
-                ancestors.push_back(jobs_load[jobs_load[i].ancestors[j]].assign);
+                auto successors = init_jobs(jobs_load_fix[job_id].successors);
+                job = new(allocator.allocate<Job>()) Job(jobs_load_fix[job_id].occupancy, successors, job_id);
             }
-            if (!all_ancestors_assigned) continue;
-            changed = true;
-            Job* job = new(allocator.allocate<Job>()) Job(jobs_load[i].occupancy);
-            job->set_successors(ancestors);
-            job->set_global_id(i);
-            jobs_load[i].assign = job;
-            all_jobs[i] = job;
+            output.push_back(job);
         }
-    }
-    for (int i = 0; i < job_groups_load.size(); i++)
+        return output;
+    };
+    auto init_job_group = [&init_jobs, &all_worker_groups](JobGroupLoad job_group_load) -> std::vector<Job*>
     {
-        std::swap(job_groups_load[i], job_groups_load[job_groups_load[i].id]);
-    }
-    for (int i = 0; i < job_groups_load.size(); i++)
-    {
-        if (job_groups_load[i].id != i) throw std::invalid_argument("Bad job group ID");
-    }
-    for (int i = 0; i < job_groups_load.size(); i++)
-    {
-        std::vector<Job*> want_jobs;
-        for (int j = 0; j < job_groups_load[i].jobs.size(); j++)
+        auto jobs = init_jobs(job_group_load.jobs);
+        for (int i = 0; i < jobs.size(); i++)
         {
-            int id = job_groups_load[i].jobs[j];
-            jobs_load[id].assign->set_global_group_id(i);
-            want_jobs.push_back(jobs_load[id].assign);
+            jobs[i]->set_global_group_id(i);
+            jobs[i]->set_start_after(job_group_load.start_after);
+            jobs[i]->set_end_before(job_group_load.end_before);
         }
-        job_groups_load[i].assign = new(allocator.allocate<JobGroup>()) JobGroup(want_jobs, job_groups_load[i].start_after, job_groups_load[i].end_before);
-        auto current_worker_group_ids = job_groups_load[i].worker_groups;
+        return jobs;
+    };
+
+    std::vector<JobGroupLoad> job_groups_load_fix(job_groups_load.size());
+    for (auto job_group_load : job_groups_load)
+    {
+        job_groups_load_fix[job_group_load.id] = job_group_load;
+    }
+    for (auto job_group_load : job_groups_load_fix)
+    {
+        auto job_group = init_job_group(job_group_load);
+        const auto& current_worker_group_ids = job_group_load.worker_groups;
         std::vector<WorkerGroup*> worker_groups_for_job;
         for (auto worker_group_id : current_worker_group_ids)
         {
             worker_groups_for_job.push_back(all_worker_groups[worker_group_id]);
         }
-        algorithm.add_job_group(job_groups_load[i].assign, worker_groups_for_job);
+        algorithm.add_job_group(job_group, worker_groups_for_job);
     }
     return true;
 }

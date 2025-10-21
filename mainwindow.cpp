@@ -52,7 +52,7 @@ void MainWindow::on_pushButton_clicked()
     if (file_name.isEmpty())
     {
         return; /* ignore */
-        Loader::Load("../sample.csv", algorithm, all_workers, all_jobs);
+        Loader::Load("../sample.csv", algorithm);
         Loader::LoadPreferences("../preferences.csv", algorithm);
         Loader::LoadWeights("../weights.csv", algorithm);
     }
@@ -60,7 +60,7 @@ void MainWindow::on_pushButton_clicked()
     {
         AlgorithmWeights ws = Weights::create_equal(); // ONLY FOR LWS
         auto niter = Weights::WeightsNames.begin(); // ONLY FOR LWS
-        Loader::Load(file_name, algorithm, all_workers, all_jobs);
+        Loader::Load(file_name, algorithm);
         Loader::LoadPreferences(file_name, algorithm);
         Loader::LoadWeights(file_name, algorithm);
         auto wwws = algorithm.get_weights(); // ONLY FOR NONE

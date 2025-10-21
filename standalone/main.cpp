@@ -28,7 +28,7 @@ int main(int argc, char** argv)
             Algorithm algorithm;
             std::vector<Job*> all_jobs;
             std::vector<Worker*> all_workers;
-            Loader::Load(input_file, algorithm, all_workers, all_jobs);
+            Loader::Load(input_file, algorithm);
             Loader::LoadPreferences(input_file, algorithm);
             if (parser.preference)
             {
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
             Algorithm algorithm;
             std::vector<Job*> all_jobs;
             std::vector<Worker*> all_workers;
-            Loader::Load(QString::fromStdString(input_file), algorithm, all_workers, all_jobs);
+            Loader::Load(QString::fromStdString(input_file), algorithm);
             Loader::LoadPreferences(QString::fromStdString(input_file), algorithm);
             assert(algorithm.get_preference() == Preference::NONE);
             // Check if point is outside of [0, 1].

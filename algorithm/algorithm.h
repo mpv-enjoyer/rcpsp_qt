@@ -26,8 +26,8 @@ enum Preference
 
 struct JobPair
 {
-    int start_after;
-    int end_before;
+    //int start_after;
+    //int end_before;
     Job* job;
     std::vector<WorkerGroup*> worker_groups;
     int id;
@@ -120,7 +120,7 @@ class Algorithm
     static std::size_t calculate_penalty(std::vector<ResultPair>& result);
 public:
     Algorithm();
-    void add_job_group(JobGroup *jobs, std::vector<WorkerGroup *> worker_groups);
+    void add_job_group(std::vector<Job *> jobs, std::vector<WorkerGroup *> worker_groups);
     void set_preference(Preference new_preference);
     void shuffle_pending_jobs();
     int run();

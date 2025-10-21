@@ -106,18 +106,16 @@ Algorithm::Algorithm()
 
 }
 
-void Algorithm::add_job_group(JobGroup* jobs, std::vector<WorkerGroup*> worker_groups)
+void Algorithm::add_job_group(std::vector<Job*> jobs, std::vector<WorkerGroup*> worker_groups)
 {
     std::size_t worker_count = 0;
     for (const auto& worker_group : worker_groups)
     {
         worker_count += worker_group->get_size();
     }
-    for (int i = 0; i < jobs->get_size(); i++)
+    for (auto job : jobs)
     {
-        int start = jobs->get_start();
-        int end = jobs->get_end();
-        JobPair new_pair = {start, end, jobs->get_job(i), worker_groups, static_cast<int>(_pending_jobs.size()), worker_count};
+        JobPair new_pair = {job, worker_groups, static_cast<int>(_pending_jobs.size()), worker_count};
         _pending_jobs.push_back(new_pair);
     }
     for (auto workers : worker_groups)

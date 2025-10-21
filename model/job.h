@@ -17,7 +17,6 @@ class Job
 private:
     bool _done = false;
     int _critical_time = -1;
-    int* _following_time_to_spend = nullptr;
     std::vector<Job*> successors;
     int predecessors_count = 0;
     int begin_min = 0;
@@ -28,8 +27,9 @@ private:
     int preference_coefficient = 0;
     double avg_occupancy_buffered = 0;
     int global_group_id = -1;
+    void set_global_id(int id);
 public:
-    Job(std::vector<OccupancyPair> occupancy);
+    Job(std::vector<OccupancyPair> occupancy, std::vector<Job*> successors, int global_id);
     int get_time_to_spend() const;
     bool is_done() const;
     void done();
@@ -47,7 +47,6 @@ public:
     int get_start_after() const;
     void set_end_before(int time);
     int get_end_before() const;
-    void set_global_id(int id);
     int get_global_id();
     std::vector<OccupancyPair> get_occupancy() const;
     double get_average_occupancy() const;
