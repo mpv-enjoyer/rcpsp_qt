@@ -12,6 +12,14 @@ Job::Job(std::vector<OccupancyPair> occupancy, std::vector<Job *> successors, in
     }
     avg_occupancy_buffered /= time_to_spend;
     set_global_id(global_id);
+    set_successors(successors);
+}
+
+void Job::init_group(int start_after_time, int end_before_time, int global_group_id)
+{
+    set_start_after(start_after_time);
+    set_end_before(end_before_time);
+    set_global_group_id(global_group_id);
 }
 
 int Job::get_time_to_spend() const
@@ -104,14 +112,28 @@ bool Job::critical_time_exists() const
     return _critical_time != -1;
 }
 
+int Job::init_critical_time()
+{
+    if (critical_time_exists())
+    {
+        return get_critical_time();
+    }
+    int result = get_end_before();
+    std::vector<Job*>* current_ancestors = get_successors();
+    for (int j = 0; j < current_ancestors->size(); j++)
+    {
+        int internal_result = current_ancestors->at(j)->init_critical_time();
+        result = internal_result < result ? internal_result : result;
+    }
+    double output = result - get_time_to_spend();
+    if (output == -1) output = 0;
+    set_critical_time(output);
+    return result - get_time_to_spend();
+}
+
 void Job::set_critical_time(int time)
 {
     _critical_time = time;
-}
-
-void Job::reset_critical_time()
-{
-    _critical_time = -1;
 }
 
 void Job::set_start_after(int time)

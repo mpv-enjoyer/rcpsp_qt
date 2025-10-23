@@ -197,9 +197,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm)
         auto jobs = init_jobs(job_group_load.jobs);
         for (int i = 0; i < jobs.size(); i++)
         {
-            jobs[i]->set_global_group_id(i);
-            jobs[i]->set_start_after(job_group_load.start_after);
-            jobs[i]->set_end_before(job_group_load.end_before);
+            jobs[i]->init_group(job_group_load.start_after, job_group_load.end_before, i);
         }
         return jobs;
     };

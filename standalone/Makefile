@@ -61,6 +61,7 @@ SOURCES       = main.cpp \
 		../algorithm/loader.cpp \
 		../algorithm/pendingfronts.cpp \
 		../algorithm/pendingjobs.cpp \
+		../algorithm/resultcheck.cpp \
 		../model/job.cpp \
 		../model/jobgroup.cpp \
 		../model/plan.cpp \
@@ -76,6 +77,7 @@ OBJECTS       = main.o \
 		loader.o \
 		pendingfronts.o \
 		pendingjobs.o \
+		resultcheck.o \
 		job.o \
 		jobgroup.o \
 		plan.o \
@@ -248,6 +250,7 @@ DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		../algorithm/loader.h \
 		../algorithm/pendingfronts.h \
 		../algorithm/pendingjobs.h \
+		../algorithm/resultcheck.h \
 		../model/job.h \
 		../model/jobgroup.h \
 		../model/plan.h \
@@ -262,6 +265,7 @@ DIST          = /usr/lib/qt/mkspecs/features/spec_pre.prf \
 		../algorithm/loader.cpp \
 		../algorithm/pendingfronts.cpp \
 		../algorithm/pendingjobs.cpp \
+		../algorithm/resultcheck.cpp \
 		../model/job.cpp \
 		../model/jobgroup.cpp \
 		../model/plan.cpp \
@@ -611,8 +615,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/qt/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents argh.h rcpsp_parser.h solver.h ../algorithm/algorithm.h ../algorithm/assignedjobs.h ../algorithm/completedjobs.h ../algorithm/loader.h ../algorithm/pendingfronts.h ../algorithm/pendingjobs.h ../model/job.h ../model/jobgroup.h ../model/plan.h ../model/worker.h ../model/workergroup.h ../misc/debugoutput.h $(DISTDIR)/
-	$(COPY_FILE) --parents main.cpp rcpsp_parser.cpp solver.cpp ../algorithm/algorithm.cpp ../algorithm/assignedjobs.cpp ../algorithm/completedjobs.cpp ../algorithm/loader.cpp ../algorithm/pendingfronts.cpp ../algorithm/pendingjobs.cpp ../model/job.cpp ../model/jobgroup.cpp ../model/plan.cpp ../model/worker.cpp ../model/workergroup.cpp ../arena_cpp.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents argh.h rcpsp_parser.h solver.h ../algorithm/algorithm.h ../algorithm/assignedjobs.h ../algorithm/completedjobs.h ../algorithm/loader.h ../algorithm/pendingfronts.h ../algorithm/pendingjobs.h ../algorithm/resultcheck.h ../model/job.h ../model/jobgroup.h ../model/plan.h ../model/worker.h ../model/workergroup.h ../misc/debugoutput.h $(DISTDIR)/
+	$(COPY_FILE) --parents main.cpp rcpsp_parser.cpp solver.cpp ../algorithm/algorithm.cpp ../algorithm/assignedjobs.cpp ../algorithm/completedjobs.cpp ../algorithm/loader.cpp ../algorithm/pendingfronts.cpp ../algorithm/pendingjobs.cpp ../algorithm/resultcheck.cpp ../model/job.cpp ../model/jobgroup.cpp ../model/plan.cpp ../model/worker.cpp ../model/workergroup.cpp ../arena_cpp.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -722,7 +726,8 @@ algorithm.o: ../algorithm/algorithm.cpp ../algorithm/algorithm.h \
 		../algorithm/assignedjobs.h \
 		../algorithm/completedjobs.h \
 		../arena_cpp.h \
-		../arena.h
+		../arena.h \
+		../algorithm/resultcheck.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o algorithm.o ../algorithm/algorithm.cpp
 
 assignedjobs.o: ../algorithm/assignedjobs.cpp ../algorithm/assignedjobs.h \
@@ -795,6 +800,21 @@ pendingjobs.o: ../algorithm/pendingjobs.cpp ../algorithm/pendingjobs.h \
 		../arena_cpp.h \
 		../arena.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o pendingjobs.o ../algorithm/pendingjobs.cpp
+
+resultcheck.o: ../algorithm/resultcheck.cpp ../algorithm/resultcheck.h \
+		../algorithm/algorithm.h \
+		../model/jobgroup.h \
+		../model/job.h \
+		../model/workergroup.h \
+		../model/worker.h \
+		../model/plan.h \
+		../algorithm/pendingjobs.h \
+		../algorithm/pendingfronts.h \
+		../algorithm/assignedjobs.h \
+		../algorithm/completedjobs.h \
+		../arena_cpp.h \
+		../arena.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o resultcheck.o ../algorithm/resultcheck.cpp
 
 job.o: ../model/job.cpp ../model/job.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o job.o ../model/job.cpp

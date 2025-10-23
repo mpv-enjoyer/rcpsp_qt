@@ -28,24 +28,26 @@ private:
     double avg_occupancy_buffered = 0;
     int global_group_id = -1;
     void set_global_id(int id);
+    void set_successors(std::vector<Job*> new_ancestors);
+    void set_start_after(int time);
+    void set_end_before(int time);
+    void set_global_group_id(int id);
+    void set_critical_time(int time);
 public:
     Job(std::vector<OccupancyPair> occupancy, std::vector<Job*> successors, int global_id);
+    void init_group(int start_after_time, int end_before_time, int global_group_id);
     int get_time_to_spend() const;
     bool is_done() const;
     void done();
     void undone();
     bool check_predecessors();
-    void set_successors(std::vector<Job*> new_ancestors);
     std::vector<Job*>* get_successors();
     void increment_predecessors_count();
     void decrement_predecessors_count();
     int get_critical_time() const;
     bool critical_time_exists() const;
-    void set_critical_time(int time);
-    void reset_critical_time();
-    void set_start_after(int time);
+    int init_critical_time();
     int get_start_after() const;
-    void set_end_before(int time);
     int get_end_before() const;
     int get_global_id();
     std::vector<OccupancyPair> get_occupancy() const;
@@ -53,7 +55,6 @@ public:
     int get_preference_coefficient() const;
     void set_preference_coefficient(int coefficient);
     int get_global_group_id() const;
-    void set_global_group_id(int id);
     bool is_failed(int start_time) const;
 };
 

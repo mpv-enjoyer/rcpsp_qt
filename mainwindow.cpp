@@ -48,7 +48,6 @@ void MainWindow::on_pushButton_clicked()
     }
     workers_indexes.clear();
     start_first_job_group_at = 0;
-    algorithm = Algorithm();
     if (file_name.isEmpty())
     {
         return; /* ignore */

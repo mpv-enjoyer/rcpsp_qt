@@ -26,8 +26,6 @@ int main(int argc, char** argv)
             }
             QString input_file(std_input_file.c_str());
             Algorithm algorithm;
-            std::vector<Job*> all_jobs;
-            std::vector<Worker*> all_workers;
             Loader::Load(input_file, algorithm);
             Loader::LoadPreferences(input_file, algorithm);
             if (parser.preference)
@@ -68,8 +66,6 @@ int main(int argc, char** argv)
         auto calculate_value = [](Point point, std::string input_file) -> double
         {
             Algorithm algorithm;
-            std::vector<Job*> all_jobs;
-            std::vector<Worker*> all_workers;
             Loader::Load(QString::fromStdString(input_file), algorithm);
             Loader::LoadPreferences(QString::fromStdString(input_file), algorithm);
             assert(algorithm.get_preference() == Preference::NONE);
@@ -98,19 +94,6 @@ int main(int argc, char** argv)
             //std::cout << " max time: " << algorithm.run() << "\n";
             std::size_t value = algorithm.get_penalty();
             //std::cout << " penalty: " << value << "\n";
-            algorithm.reset();
-            for (auto worker_group : algorithm.get_worker_groups())
-            {
-                delete worker_group;
-            }
-            for (auto worker : all_workers)
-            {
-                delete worker; // FIXME: weird outer destructor because Algorithm doesn't contain all_workers
-            }
-            for (auto job : all_jobs)
-            {
-                delete job;
-            }
             return value;
         };
         particle_swarm(-1, 1, calculate_value, parser.input_files, parser.threads, parser.groups);

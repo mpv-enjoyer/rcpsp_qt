@@ -1,5 +1,6 @@
 #include "algorithm.h"
 #include <iostream>
+#include "resultcheck.h"
 
 double Weights::get(AlgorithmWeights weights, std::string name)
 {
@@ -99,6 +100,12 @@ std::size_t Algorithm::calculate_penalty(std::vector<ResultPair> &result)
         penalty += failed_group.second;
     }
     return penalty;
+}
+
+void Algorithm::assert_if_invalid_result() const
+{
+    
+    get_penalty();
 }
 
 Algorithm::Algorithm()
@@ -328,7 +335,7 @@ int Algorithm::run()
     _failed_jobs_count = best_failed_jobs;
     _penalty = best_failed_jobs; // ITS JUST A PENALTY, NOT A FAILED JOB COUNT
     //_penalty = calculate_penalty(_completed_jobs);
-
+    ResultCheck r(get_completed());
     return time_used;
 }
 

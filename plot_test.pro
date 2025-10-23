@@ -22,8 +22,10 @@ SOURCES += \
     algorithm/pendingfronts.cpp \
     algorithm/pendingjobs.cpp \
     algorithm/loader.cpp \
+    algorithm/resultcheck.cpp \
     contentwidget.cpp \
     main.cpp \
+    arena_cpp.cpp \
     mainwindow.cpp \
     misc/debugoutput.cpp \
     model/job.cpp \
@@ -42,6 +44,7 @@ HEADERS += \
     algorithm/pendingfronts.h \
     algorithm/pendingjobs.h \
     algorithm/loader.h \
+    algorithm/resultcheck.h \
     contentwidget.h \
     mainwindow.h \
     misc/debugoutput.h \
@@ -53,6 +56,8 @@ HEADERS += \
     plot.h \
     qcustomplot.h \
     chartview.h \
+    arena_cpp.h
+    arena.h
 
 FORMS += \
     mainwindow.ui

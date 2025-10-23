@@ -20,13 +20,13 @@ SOURCES += \
     ../algorithm/*.cpp \
     ../model/*.cpp \
     ../misc/*.h \
-    ../arena_cpp.cpp
+    ../arena_cpp.cpp \
 
 HEADERS += \
     *.h \
     ../algorithm/*.h \
     ../model/*.h \
-    ../misc/*.h
+    ../misc/*.h \
 
 QMAKE_CXXFLAGS_RELEASE -= -O2
 QMAKE_CXXFLAGS_RELEASE += -O3

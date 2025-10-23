@@ -26,8 +26,6 @@ enum Preference
 
 struct JobPair
 {
-    //int start_after;
-    //int end_before;
     Job* job;
     std::vector<WorkerGroup*> worker_groups;
     int id;
@@ -118,6 +116,7 @@ class Algorithm
     int pass_max_count = 1;
     std::unique_ptr<Arena_Allocator> arena;
     static std::size_t calculate_penalty(std::vector<ResultPair>& result);
+    void assert_if_invalid_result() const;
 public:
     Algorithm();
     void add_job_group(std::vector<Job *> jobs, std::vector<WorkerGroup *> worker_groups);
