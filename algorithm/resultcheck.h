@@ -5,8 +5,12 @@
 
 class ResultCheck
 {
+    const std::vector<ResultPair>& m_result;
+    void successor() const;
+    void plan() const;
+    void occupancy() const;
 public:
-    ResultCheck(std::vector<ResultPair> result);
+    ResultCheck(const std::vector<ResultPair>& result);
 };
 
 #endif // RESULTCHECK_H

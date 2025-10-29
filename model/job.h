@@ -51,6 +51,7 @@ public:
     int get_end_before() const;
     int get_global_id();
     std::vector<OccupancyPair> get_occupancy() const;
+    float get_occupancy_at(int time) const; // slow
     double get_average_occupancy() const;
     int get_preference_coefficient() const;
     void set_preference_coefficient(int coefficient);

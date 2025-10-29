@@ -171,6 +171,15 @@ std::vector<OccupancyPair> Job::get_occupancy() const
     return occupancy;
 }
 
+// Slow
+float Job::get_occupancy_at(int time) const
+{
+    if (time >= get_time_to_spend()) throw std::invalid_argument("get_occupancy_at invalid time");
+    int i = 0;
+    for (int t = 0; i < occupancy.size() && t + occupancy[i].time < time; t += occupancy[i].time, i++) { }
+    return occupancy[i].occupancy;
+}
+
 double Job::get_average_occupancy() const
 {
     return avg_occupancy_buffered;
