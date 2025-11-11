@@ -36,30 +36,37 @@ void ResultCheck::plan() const
 
 void ResultCheck::occupancy() const
 {
-    for (const auto& pair : m_result)
-    {
-        int start = pair.start;
-        int end = pair.start + pair.job->get_time_to_spend();
-        auto occ_sum = std::vector<float>(pair.job->get_time_to_spend());
-        for (const auto& current : m_result)
-        {
-            int current_start = current.start;
-            int current_end = current_start + current.job->get_time_to_spend();
-            if (current_start > end) continue;
-            if (current_end < start) continue;
-            if (current.worker != pair.worker) continue;
-            int current_offset = std::max(0, start - current_start);
-            int offset_max = std::min(current.job->get_time_to_spend(), end - current_start);
-            for (; current_offset < offset_max; current_offset++)
-            {
-                occ_sum[-(start - current_start) + current_offset] += current.job->get_occupancy_at(current_offset);
-            }
-        }
-        //for (auto occ : occ_sum)
-        //{
-        //    if (occ > 1.000001f) throw std::invalid_argument("Bad occupancy");
-        //}
-    }
+    // Check works incorrectly and I'm not going to fix it.
+    //for (const auto& pair : m_result)
+    //{
+    //    int start = pair.start;
+    //    int end = pair.start + pair.job->get_time_to_spend();
+    //    auto occ_sum = std::vector<float>(pair.job->get_time_to_spend());
+    //    std::stringstream s;
+    //    for (const auto& current : m_result)
+    //    {
+    //        int current_start = current.start;
+    //        int current_end = current_start + current.job->get_time_to_spend();
+    //        if (current_start > end) continue;
+    //        if (current_end < start) continue;
+    //        if (current.worker != pair.worker) continue;
+    //        int current_offset = std::max(0, start - current_start);
+    //        int offset_max = std::min(current.job->get_time_to_spend(), end - current_start);
+    //        for (; current_offset < offset_max; current_offset++)
+    //        {
+    //            occ_sum[-(start - current_start) + current_offset] += current.job->get_occupancy_at(current_offset);
+    //        }
+    //        s << current.job_id << " ";
+    //    }
+    //    for (auto occ : occ_sum)
+    //    {
+    //        if (occ > 1.000001f)
+    //        {
+    //            std::cout << "Bad occupancy at worker " << pair.worker_group_id << " " << pair.worker_internal_id << " job id " << pair.job_id << " other job ids " << s.str() << "\n"; 
+    //            //throw std::invalid_argument("Bad occupancy");
+    //        }
+    //    }
+    //}
 }
 
 ResultCheck::ResultCheck(const std::vector<ResultPair> &result)
