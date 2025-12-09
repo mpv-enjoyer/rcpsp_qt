@@ -10,7 +10,7 @@ Worker::Worker(Plan want_plan) :
 void Worker::assign(Job *job)
 {
     update();
-    if (job->get_start_after() > *clock)
+    if (job->get_start_after() > shared.clock())
     {
         throw std::invalid_argument("Assign a job before the start_after");
     }
@@ -18,29 +18,29 @@ void Worker::assign(Job *job)
     {
         throw std::invalid_argument("Worker is already busy enough");
     }
-    if (plan.get_time_until_rest(*clock) < job->get_time_to_spend())
+    if (plan.get_time_until_rest(shared.clock()) < job->get_time_to_spend())
     {
         throw std::invalid_argument("Not enough time until rest");
     }
-    if (preserved_until > *clock)
+    if (preserved_until > shared.clock())
     {
         throw std::invalid_argument("Attempted to assign preserved worker");
     }
-    int job_ends_at = *clock + job->get_time_to_spend();
+    int job_ends_at = shared.clock() + job->get_time_to_spend();
     int time_ready = job_ends_at;
-    current_jobs.push_back({*clock, job, time_ready});
+    current_jobs.push_back({shared.clock(), job, time_ready});
     //forgot to sort current_jobs by time_ready?
 }
 
 void Worker::update()
 {
-    if (preserved_until != -1 && preserved_until <= *clock)
+    if (preserved_until != -1 && preserved_until <= shared.clock())
     {
         preserved_until = -1;
     }
     for (int i = 0; i < current_jobs.size(); i++)
     {
-        if (*clock >= current_jobs[i].will_be_free_at)
+        if (shared.clock() >= current_jobs[i].will_be_free_at)
         {
             current_jobs[i].job->done();
             current_jobs.erase(current_jobs.begin() + i);
@@ -54,7 +54,7 @@ float Worker::current_occupancy()
     for (auto job : current_jobs)
     {
         auto job_occupancy = job.job->get_occupancy();
-        int time_spent = *clock - job.time_start;
+        int time_spent = shared.clock() - job.time_start;
         for (int i = 0; i < job_occupancy.size(); i++)
         {
             time_spent -= job_occupancy[i].time;
@@ -70,9 +70,14 @@ float Worker::current_occupancy()
     return output;
 }
 
+void Worker::set_shared(Shared shared)
+{
+    this->shared = shared;
+}
+
 bool Worker::is_free(std::vector<OccupancyPair> want_occupancy, int fetch_time)
 {
-    if (fetch_time == -1) fetch_time = *clock;
+    if (fetch_time == -1) fetch_time = shared.clock();
     update();
     if (preserved_until > fetch_time) return false;
     //if (!plan.is_ready(fetch_time)) return false;
@@ -171,13 +176,13 @@ int Worker::can_be_placed_after(std::vector<OccupancyPair> occupancy)
     }*/
     int time;
     if (preserved_until != -1) time = preserved_until;
-    else time = *clock;
+    else time = shared.clock();
     while (!is_free(occupancy, time))
     {
         time++;
         // this might hang the program
     }
-    return time - *clock;
+    return time - shared.clock();
 }
 
 void Worker::preserve(int interval)
@@ -187,7 +192,7 @@ void Worker::preserve(int interval)
     //idk what this line did
     if (preserved_until != -1) throw std::invalid_argument("Tried to preserve an already preserved worker");
     if (interval <= 0) return;
-    preserved_until = *clock + interval;
+    preserved_until = shared.clock() + interval;
 }
 
 const Plan Worker::get_plan() const
@@ -198,9 +203,4 @@ const Plan Worker::get_plan() const
 int Worker::is_preserved() const
 {
     return preserved_until != -1;
-}
-
-void Worker::set_clock(int* new_clock)
-{
-    clock = new_clock;
 }

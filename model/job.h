@@ -12,6 +12,12 @@ struct OccupancyPair
     float occupancy;
 };
 
+struct OccupancyPairInt
+{
+    int time;
+    int occupancy;
+};
+
 class Job
 {
 private:
@@ -24,6 +30,7 @@ private:
     int time_to_spend;
     int global_id = 0;
     std::vector<OccupancyPair> occupancy;
+    std::vector<OccupancyPairInt> occupancy_int;
     int preference_coefficient = 0;
     double avg_occupancy_buffered = 0;
     int global_group_id = -1;
@@ -34,7 +41,7 @@ private:
     void set_global_group_id(int id);
     void set_critical_time(int time);
 public:
-    Job(std::vector<OccupancyPair> occupancy, std::vector<Job*> successors, int global_id);
+    Job(std::vector<OccupancyPair> occupancy, std::vector<Job*> successors, int global_id, int occupancy_int_segment_count = -1);
     void init_group(int start_after_time, int end_before_time, int global_group_id);
     int get_time_to_spend() const;
     bool is_done() const;
@@ -51,6 +58,7 @@ public:
     int get_end_before() const;
     int get_global_id();
     std::vector<OccupancyPair> get_occupancy() const;
+    std::vector<OccupancyPairInt> get_occupancy_int() const;
     float get_occupancy_at(int time) const; // slow
     double get_average_occupancy() const;
     int get_preference_coefficient() const;

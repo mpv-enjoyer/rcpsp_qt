@@ -1,9 +1,29 @@
 #include "job.h"
 #include <stdexcept>
+#include <cmath>
 
-Job::Job(std::vector<OccupancyPair> occupancy, std::vector<Job *> successors, int global_id)
+Job::Job(std::vector<OccupancyPair> occupancy, std::vector<Job *> successors, int global_id, int occupancy_int_segment_count = -1)
 {
-    this->occupancy = occupancy;
+    if (occupancy_int_segment_count == -1)
+    {
+        this->occupancy = occupancy;
+    }
+    else
+    {
+        if (occupancy_int_segment_count < 2) throw std::invalid_argument("occupancy_int_segment_count < 2");
+        for (auto part : occupancy)
+        {
+            int occupancy_new = std::min(occupancy_int_segment_count, static_cast<int>(std::ceil(part.occupancy * occupancy_int_segment_count)));
+            if (occupancy_int.size() > 0 && occupancy_int.back().occupancy == occupancy_new)
+            {
+                occupancy_int.back().time += part.time;
+            }
+            else
+            {
+                occupancy_int.push_back(OccupancyPairInt{.time = part.time, .occupancy = occupancy_new});
+            }
+        }
+    }
     time_to_spend = 0;
     for (int i = 0; i < occupancy.size(); i++)
     {
@@ -168,7 +188,14 @@ int Job::get_global_id()
 
 std::vector<OccupancyPair> Job::get_occupancy() const
 {
+    if (occupancy.size() == 0) throw std::invalid_argument("Tried to access float occupancy while using int occupancy");
     return occupancy;
+}
+
+std::vector<OccupancyPairInt> Job::get_occupancy_int() const
+{
+    if (occupancy_int.size() == 0) throw std::invalid_argument("Tried to access int occupancy while using float occupancy");
+    return occupancy_int;
 }
 
 // Slow

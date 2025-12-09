@@ -6,12 +6,12 @@ WorkerGroup::WorkerGroup()
 
 }
 
-void WorkerGroup::set_clock(int* clock)
+void WorkerGroup::set_shared(Shared shared)
 {
-    current_time = clock;
+    this->shared = shared;
     for (int i = 0; i < workers.size(); i++)
     {
-        workers[i]->set_clock(clock);
+        workers[i]->set_shared(shared);
         workers[i]->update();
     }
 }
@@ -30,7 +30,7 @@ Placement WorkerGroup::get_earliest_placement_time(Job *job)
 {
     Placement output = {nullptr, -1};
     int job_time = job->get_time_to_spend();
-    int lookup_time = *current_time >= job->get_start_after() ? *current_time : job->get_start_after();
+    int lookup_time = shared.clock() >= job->get_start_after() ? shared.clock() : job->get_start_after();
     for (int i = 0; i < workers.size(); i++)
     {
         int current_nearest = -1;
@@ -38,8 +38,8 @@ Placement WorkerGroup::get_earliest_placement_time(Job *job)
         {
             current_nearest = workers[i]->get_plan().get_time_nearest_possible(lookup_time, job_time);
             if (current_nearest == -1) continue;
-            if (lookup_time != *current_time)
-                current_nearest += job->get_start_after() - *current_time;
+            if (lookup_time != shared.clock())
+                current_nearest += job->get_start_after() - shared.clock();
         }
         else
         {

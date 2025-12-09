@@ -182,7 +182,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm)
         output.reserve(job_ids.size());
         for (auto job_id : job_ids)
         {
-            auto& job = jobs_load_fix[job_id].assign;
+            auto job = jobs_load_fix[job_id].assign;
             if (!job)
             {
                 auto successors = init_jobs(jobs_load_fix[job_id].successors);

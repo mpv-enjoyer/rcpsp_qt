@@ -18,12 +18,12 @@ struct Placement
 class WorkerGroup
 {
 private:
-    int* current_time;
+    Shared shared;
     std::vector<Worker*> workers;
     int global_id;
 public:
     WorkerGroup();
-    void set_clock(int* clock);
+    void set_shared(Shared shared);
     void set_global_id(int id);
     void add_worker(Worker* new_worker);
     Placement get_earliest_placement_time(Job* job);

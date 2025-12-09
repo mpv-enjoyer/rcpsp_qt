@@ -4,6 +4,13 @@
 #include "job.h"
 #include "plan.h"
 
+struct Shared
+{
+    const int* clock_ = nullptr;
+    bool use_int = false;
+    int clock() const { return *clock_; }
+};
+
 struct CurrentJob
 {
     int time_start;
@@ -14,7 +21,7 @@ struct CurrentJob
 class Worker
 {
 private:
-    int* clock;
+    Shared shared;
     Plan plan;
     std::vector<CurrentJob> current_jobs;
     int preserved_until = -1;
@@ -22,7 +29,7 @@ public:
     Worker(Plan want_plan);
     void update();
     float current_occupancy();
-    void set_clock(int* new_clock);
+    void set_shared(Shared shared);
     void assign(Job* job);
     const Job* get_job(int index);
     int get_job_count();
