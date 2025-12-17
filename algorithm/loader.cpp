@@ -138,6 +138,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
     }
     file.close();
 
+    
     for (int i = 0; i < plans_load.size(); i++)
     {
         plans_load[i].assign = Plan(plans_load[i].plan, plans_load[i].start_at);
@@ -199,7 +200,34 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             }
             if (!all_ancestors_assigned) continue;
             changed = true;
-            Job* job = new Job(0, 0, jobs_load[i].occupancy);
+            /* JOB DISCRETIZATION BEGIN */
+            static const int JOB_DISCRETIZATION = 3; // { 0, 1, ..., JOB_DISCRETIZATION - 1 }
+            std::vector<int> discretization_sectors;
+            for (auto occupancy : jobs_load[i].occupancy)
+            {
+                int sector = std::min(JOB_DISCRETIZATION - 1, int(JOB_DISCRETIZATION * occupancy.occupancy));
+                discretization_sectors.push_back(sector);
+            }
+            std::vector<OccupancyPair> discrete_occupancy;
+            int previous = -1;
+            for (size_t j = 0; j < jobs_load[i].occupancy.size(); j++)
+            {
+                float current = (discretization_sectors[j] + 1) / JOB_DISCRETIZATION;
+                if (previous == current)
+                {
+                    discrete_occupancy.back().time += jobs_load[i].occupancy[j].time;
+                }
+                else
+                {
+                    discrete_occupancy.push_back(OccupancyPair{
+                        .time = jobs_load[i].occupancy[j].time,
+                        .occupancy = current
+                    });
+                }
+                previous = current;
+            }
+            /* JOB DISCRETIZATION END */
+            Job* job = new Job(0, 0, discrete_occupancy);
             job->set_ancestors(ancestors);
             job->set_global_id(i);
             jobs_load[i].assign = job;
@@ -223,6 +251,7 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             jobs_load[id].assign->set_global_group_id(i);
             want_jobs.push_back(jobs_load[id].assign);
         }
+
         job_groups_load[i].assign = new JobGroup(want_jobs, job_groups_load[i].start_after, job_groups_load[i].end_before);
         auto current_worker_group_ids = job_groups_load[i].worker_groups;
         std::vector<WorkerGroup*> worker_groups_for_job;
