@@ -89,10 +89,26 @@ std::size_t Algorithm::calculate_penalty(std::vector<ResultPair> &result)
     std::unordered_map<int, int> failed_groups; // job_group_id -> time
     for (auto& resultpair : result)
     {
-        auto id = resultpair.job->get_global_group_id();
-        if (!(resultpair.job->is_failed(resultpair.start))) continue;
-        int failed_time = resultpair.start + resultpair.job->get_time_to_spend() - resultpair.job->get_end_before(); 
-        failed_groups[id] = std::max(failed_groups[id], failed_time);
+        if (resultpair.job->get_preferred())
+        {
+            auto preferred = resultpair.job->get_preferred();
+            static const int COEFF = 2;
+            if (resultpair.start < preferred->first)
+            {
+                penalty += (preferred->first - resultpair.start) / COEFF;
+            }
+            else if (resultpair.start + resultpair.job->get_time_to_spend() > preferred->second)
+            {
+                penalty += (resultpair.start + resultpair.job->get_time_to_spend() - preferred->second) / COEFF;
+            }
+        }
+        else
+        {
+            auto id = resultpair.job->get_global_group_id();
+            if (!(resultpair.job->is_failed(resultpair.start))) continue;
+            int failed_time = resultpair.start + resultpair.job->get_time_to_spend() - resultpair.job->get_end_before(); 
+            failed_groups[id] = std::max(failed_groups[id], failed_time);
+        }
     }
     for (auto failed_group : failed_groups)
     {
@@ -333,7 +349,6 @@ int Algorithm::run()
         time_used = std::max(time_used, _completed_jobs[i].start + _completed_jobs[i].job->get_time_to_spend());
     }
     std::cout << "final failed job count:" << best_failed_jobs << "with" << _completed_jobs.size() << "completed";
-    _failed_jobs_count = best_failed_jobs;
     _penalty = best_failed_jobs; // ITS JUST A PENALTY, NOT A FAILED JOB COUNT
     //_penalty = calculate_penalty(_completed_jobs);
 

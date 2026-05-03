@@ -13,3 +13,5 @@ standalone/samples/bugged_algorithm.csv
 standalone/success.png
 samples
 .qtcreator
+*.user
+Makefile

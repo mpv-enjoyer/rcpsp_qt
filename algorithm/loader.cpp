@@ -7,6 +7,7 @@ struct JobLoad
     int id;
     std::vector<OccupancyPair> occupancy;
     std::vector<int> ancestors;
+    std::optional<std::pair<int, int>> preferred;
 };
 
 struct WorkerLoad
@@ -41,13 +42,13 @@ struct WorkerGroupLoad
     std::vector<int> workers;
 };
 
-// 0            | 1                         | 2                 | 3             | 4            | 5       | 6            | 7...
-// --------------------------------------------------------------------------------------------------------------------------------------------------
-// job          | id (from 0 without skips) | time, busyness... | ]             | ancestors... |         |              |
-// worker       | id (from 0 without skips) | plan_id           |               |              |         |              |
-// plan         | id (from 0 without skips) | start_at          | work, rest... |              |         |              |
-// job_group    | id (from 0 without skips) | start_after       | end_before    | worker_group | jobs... | ] (optional) | worker_groups... (optional)
-// worker_group | id (from 0 without skips) | workers...        |               |              |         |              |
+// 0            | 1                         | 2                 | 3             | 4            | 5            | 6                        | 7...
+// -------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// job          | id (from 0 without skips) | time, busyness... | ]             | ancestors... | ] (optional) | want_begin_at (optional) | want_end_before (optional)
+// worker       | id (from 0 without skips) | plan_id           |               |              |              |                          |
+// plan         | id (from 0 without skips) | start_at          | work, rest... |              |              |                          |
+// job_group    | id (from 0 without skips) | start_after       | end_before    | worker_group | jobs...      | ] (optional)             | worker_groups... (optional)
+// worker_group | id (from 0 without skips) | workers...        |               |              |              |                          |
 bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>& all_workers, std::vector<Job*>& all_jobs)
 {
     QFile file(file_name);
@@ -77,10 +78,29 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
                 current.occupancy.push_back({list[i].toInt(), list[i+1].toFloat()});
             }
             i++;
+            bool more = false;
             for (; i < list.size(); i++)
             {
+                if (list[i] == "]")
+                {
+                    more = true;
+                    break;
+                }
                 if (list[i].size() == 0) break;
                 current.ancestors.push_back(list[i].toInt());
+            }
+            if (more)
+            {
+                if (++i < list.size() && list[i].size() != 0)
+                {
+                    int pref_begin = list[i].toInt();
+                    current.preferred = {pref_begin, pref_begin};
+                    if (++i < list.size() && list[i].size() != 0)
+                    {
+                        int pref_end = list[i].toInt();
+                        current.preferred->second = pref_end;
+                    }
+                }
             }
             jobs_load.push_back(current);
         }
@@ -230,6 +250,11 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             Job* job = new Job(0, 0, discrete_occupancy);
             job->set_ancestors(ancestors);
             job->set_global_id(i);
+            if (jobs_load[i].preferred)
+            {
+                auto pref = jobs_load[i].preferred;
+                job->set_preferred(pref->first, pref->second);
+            }
             jobs_load[i].assign = job;
             all_jobs[i] = job;
         }

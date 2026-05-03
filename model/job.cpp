@@ -191,6 +191,23 @@ bool Job::is_failed(int start_time) const
     return (start_time + get_time_to_spend()) > get_end_before();
 }
 
+std::optional<std::pair<int, int>> Job::get_preferred() const
+{
+    if (preferred)
+    {
+        auto[start_after, end_before] = *preferred;
+        if (start_after + get_time_to_spend() > end_before) throw std::invalid_argument("preferred_start_after + time_to_spend > preferred_end_before");
+        if (start_after < get_start_after()) throw std::invalid_argument("preferred_begin < start_after");
+        if (end_before > get_end_before()) throw std::invalid_argument("preferred_end > end_before");
+    }
+    return preferred;
+}
+
+void Job::set_preferred(int start_after, int end_before)
+{
+    preferred = std::pair<int, int>{start_after, end_before};
+}
+
 #include <fstream>
 
 //std::ofstream GLOBAL_LOGGING_FILE("GLOBAL_LOG.LOG");

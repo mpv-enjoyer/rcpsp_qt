@@ -110,7 +110,6 @@ class Algorithm
     std::vector<ResultPair> _completed_jobs;
     int look_ahead_time = 0;
     int longest_plan_loop = 0;
-    int _failed_jobs_count = 0;
     std::size_t _penalty = 0;
     AlgorithmWeights _weights;
     static const int CURRENT_EQUAL_MAX = 1;

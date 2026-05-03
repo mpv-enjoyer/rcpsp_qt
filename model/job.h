@@ -2,8 +2,9 @@
 #define JOB_H
 
 #include <vector>
-
+#include <optional>
 #include <string>
+#include <set>
 void GLOBAL_LOG(std::string log);
 
 struct OccupancyPair
@@ -30,6 +31,7 @@ private:
     int preference_coefficient = 0;
     double avg_occupancy_buffered = 0;
     int global_group_id = -1;
+    std::optional<std::pair<int, int>> preferred; // start_after, end_before
 public:
     Job(int renewable, int non_renewable, std::vector<OccupancyPair> occupancy);
     int get_time_to_spend() const;
@@ -60,6 +62,8 @@ public:
     int get_global_group_id() const;
     void set_global_group_id(int id);
     bool is_failed(int start_time) const;
+    std::optional<std::pair<int, int>> get_preferred() const; // Get ONLY after start_after, occupancy, end_before
+    void set_preferred(int start_after, int end_before);
 };
 
 #endif // JOB_H
