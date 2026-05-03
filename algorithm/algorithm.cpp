@@ -179,7 +179,19 @@ void Algorithm::reset()
 
 int Algorithm::get_failed_jobs_count()
 {
-    return _failed_jobs_count;
+    int count = 0;
+    const auto completed = get_completed();
+    for (const auto resultpair : completed) {
+        if (resultpair.start + resultpair.job->get_time_to_spend() <= resultpair.job->get_end_before())
+        {
+            /* GOOD */
+        }
+        else
+        {
+            count++;
+        }
+    }
+    return count;
 }
 
 std::string Algorithm::get_string_result(const std::vector<ResultPair> &completed) const
