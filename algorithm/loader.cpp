@@ -220,34 +220,36 @@ bool Loader::Load(QString file_name, Algorithm& algorithm, std::vector<Worker*>&
             }
             if (!all_ancestors_assigned) continue;
             changed = true;
+            auto occupancy = jobs_load[i].occupancy;
             /* JOB DISCRETIZATION BEGIN */
-            static const int JOB_DISCRETIZATION = 3; // { 0, 1, ..., JOB_DISCRETIZATION - 1 }
-            std::vector<int> discretization_sectors;
-            for (auto occupancy : jobs_load[i].occupancy)
-            {
-                int sector = std::min(JOB_DISCRETIZATION - 1, int(JOB_DISCRETIZATION * occupancy.occupancy));
-                discretization_sectors.push_back(sector);
-            }
-            std::vector<OccupancyPair> discrete_occupancy;
-            int previous = -1;
-            for (size_t j = 0; j < jobs_load[i].occupancy.size(); j++)
-            {
-                float current = (discretization_sectors[j] + 1) / JOB_DISCRETIZATION;
-                if (previous == current)
-                {
-                    discrete_occupancy.back().time += jobs_load[i].occupancy[j].time;
-                }
-                else
-                {
-                    discrete_occupancy.push_back(OccupancyPair{
-                        .time = jobs_load[i].occupancy[j].time,
-                        .occupancy = current
-                    });
-                }
-                previous = current;
-            }
+            //static const int JOB_DISCRETIZATION = 3; // { 0, 1, ..., JOB_DISCRETIZATION - 1 }
+            //std::vector<int> discretization_sectors;
+            //for (auto occupancy : jobs_load[i].occupancy)
+            //{
+            //    int sector = std::min(JOB_DISCRETIZATION - 1, int(JOB_DISCRETIZATION * occupancy.occupancy));
+            //    discretization_sectors.push_back(sector);
+            //}
+            //std::vector<OccupancyPair> discrete_occupancy;
+            //int previous = -1;
+            //for (size_t j = 0; j < jobs_load[i].occupancy.size(); j++)
+            //{
+            //    float current = (discretization_sectors[j] + 1) / JOB_DISCRETIZATION;
+            //    if (previous == current)
+            //    {
+            //        discrete_occupancy.back().time += jobs_load[i].occupancy[j].time;
+            //    }
+            //    else
+            //    {
+            //        discrete_occupancy.push_back(OccupancyPair{
+            //            .time = jobs_load[i].occupancy[j].time,
+            //            .occupancy = current
+            //        });
+            //    }
+            //    previous = current;
+            //}
+            //occupancy = discrete_occupancy;
             /* JOB DISCRETIZATION END */
-            Job* job = new Job(0, 0, discrete_occupancy);
+            Job* job = new Job(0, 0, occupancy);
             job->set_ancestors(ancestors);
             job->set_global_id(i);
             if (jobs_load[i].preferred)
